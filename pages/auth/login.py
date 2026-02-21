@@ -30,6 +30,3 @@ def render() -> None:
                     st.rerun()
                 else:
                     st.error("Invalid username or password")
-
-        st.markdown("---")
-        st.caption("Default: SPOIDERMON / SPOIDERMON123")
