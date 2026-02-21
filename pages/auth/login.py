@@ -243,6 +243,14 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   width: 100%;
   max-width: 400px;
   z-index: 2;
+  margin: 0 auto;
+}
+
+/* ── Form container alignment ── */
+[data-testid="stVerticalBlockContainer"] {
+  width: 100%;
+  max-width: 400px !important;
+  margin: 0 auto !important;
 }
 
 .login-header {
@@ -547,24 +555,24 @@ def render() -> None:
 
     with col_right:
         st.markdown("""
-            <div class="right-panel">
-                <div class="login-box">
-                    <svg class="dots-deco" width="100" height="100" viewBox="0 0 100 100">
-                        <circle cx="10" cy="10" r="3" fill="#C9A96E"/><circle cx="30" cy="10" r="3" fill="#C9A96E"/>
-                        <circle cx="50" cy="10" r="3" fill="#C9A96E"/><circle cx="70" cy="10" r="3" fill="#C9A96E"/>
-                        <circle cx="10" cy="30" r="3" fill="#C9A96E"/><circle cx="30" cy="30" r="3" fill="#C9A96E"/>
-                        <circle cx="50" cy="30" r="3" fill="#C9A96E"/><circle cx="70" cy="30" r="3" fill="#C9A96E"/>
-                        <circle cx="10" cy="50" r="3" fill="#C9A96E"/><circle cx="30" cy="50" r="3" fill="#C9A96E"/>
-                        <circle cx="50" cy="50" r="3" fill="#C9A96E"/><circle cx="70" cy="50" r="3" fill="#C9A96E"/>
-                        <circle cx="10" cy="70" r="3" fill="#C9A96E"/><circle cx="30" cy="70" r="3" fill="#C9A96E"/>
-                        <circle cx="50" cy="70" r="3" fill="#C9A96E"/><circle cx="70" cy="70" r="3" fill="#C9A96E"/>
-                    </svg>
+            <div style="text-align: center;">
+                <svg class="dots-deco" width="100" height="100" viewBox="0 0 100 100">
+                    <circle cx="10" cy="10" r="3" fill="#C9A96E"/><circle cx="30" cy="10" r="3" fill="#C9A96E"/>
+                    <circle cx="50" cy="10" r="3" fill="#C9A96E"/><circle cx="70" cy="10" r="3" fill="#C9A96E"/>
+                    <circle cx="10" cy="30" r="3" fill="#C9A96E"/><circle cx="30" cy="30" r="3" fill="#C9A96E"/>
+                    <circle cx="50" cy="30" r="3" fill="#C9A96E"/><circle cx="70" cy="30" r="3" fill="#C9A96E"/>
+                    <circle cx="10" cy="50" r="3" fill="#C9A96E"/><circle cx="30" cy="50" r="3" fill="#C9A96E"/>
+                    <circle cx="50" cy="50" r="3" fill="#C9A96E"/><circle cx="70" cy="50" r="3" fill="#C9A96E"/>
+                    <circle cx="10" cy="70" r="3" fill="#C9A96E"/><circle cx="30" cy="70" r="3" fill="#C9A96E"/>
+                    <circle cx="50" cy="70" r="3" fill="#C9A96E"/><circle cx="70" cy="70" r="3" fill="#C9A96E"/>
+                </svg>
 
-                    <div class="login-header">
-                        <div class="welcome">Welcome Back</div>
-                        <h3>Sign In</h3>
-                        <p>Access your dental practice management dashboard</p>
-                    </div>
+                <div class="login-header">
+                    <div class="welcome">Welcome Back</div>
+                    <h3>Sign In</h3>
+                    <p>Access your dental practice management dashboard</p>
+                </div>
+            </div>
         """, unsafe_allow_html=True)
 
         # Role selector
@@ -634,7 +642,6 @@ def render() -> None:
             "<div class='login-footer'>"
             "<p>Need access? <a href='#'>Contact your admin</a></p>"
             "<p style='font-size:11px;color:#BFB8AE;margin:0;'>v2.4.1</p>"
-            "</div>"
-            "</div></div>",
+            "</div>",
             unsafe_allow_html=True,
         )
