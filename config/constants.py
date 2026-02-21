@@ -72,7 +72,7 @@ DUTY_ASSIGNMENTS_COLUMNS = ["id", "duty_id", "assistant", "op", "est_minutes", "
 DUTY_RUNS_COLUMNS = ["id", "date", "assistant", "duty_id", "status", "started_at", "due_at", "ended_at", "est_minutes", "op"]
 
 # ── OP Rooms ──────────────────────────────────────────────────────────────────
-OP_ROOMS = ["OP1", "OP2", "OP3", "OP4", "OP5", "OP6", "OP7", "OP8"]
+OP_ROOMS = ["OP1", "OP2", "OP3", "OP4"]
 
 # ── Weekday names ─────────────────────────────────────────────────────────────
 WEEKDAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
