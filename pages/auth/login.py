@@ -42,6 +42,15 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 .block-container {
   padding: 0 !important;
   max-width: 100% !important;
+  margin: 0 !important;
+  width: 100% !important;
+}
+
+.main {
+  max-width: 100% !important;
+  width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
 /* ── LOGIN WRAPPER ── */
