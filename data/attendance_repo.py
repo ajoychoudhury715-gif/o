@@ -72,14 +72,10 @@ def punch_in(date_str: str, assistant: str, time_str: str) -> bool:
     client = _get_client()
     if client:
         try:
-            resp = (
-                client.table(SUPABASE_ATTENDANCE_TABLE)
-                .select("id")
-                .eq("date", date_str)
-                .eq("assistant", assistant)
-                .execute()
-            )
+            # Check if record exists
+            resp = client.table(SUPABASE_ATTENDANCE_TABLE).select("id").eq("date", date_str).eq("assistant", assistant).limit(1).execute()
             existing = resp.data or []
+
             if existing:
                 client.table(SUPABASE_ATTENDANCE_TABLE).update({"punch_in": time_str}).eq("date", date_str).eq("assistant", assistant).execute()
             else:
@@ -88,7 +84,8 @@ def punch_in(date_str: str, assistant: str, time_str: str) -> bool:
                     "punch_in": time_str, "punch_out": None,
                 }).execute()
             return True
-        except Exception:
+        except Exception as e:
+            st.warning(f"Supabase punch in failed: {str(e)[:50]}. Using Excel backup.")
             pass
     df = load_sheet(EXCEL_ATTENDANCE_SHEET, ATTENDANCE_COLUMNS)
     mask = (df["DATE"].astype(str) == date_str) & (df["ASSISTANT"].astype(str) == assistant)

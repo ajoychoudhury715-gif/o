@@ -37,9 +37,9 @@ EXCEL_DUTY_RUNS_SHEET = "Duty_Runs"
 EXCEL_PATIENTS_SHEET = "Patients"
 
 # ── Performance TTLs ──────────────────────────────────────────────────────────
-SUPABASE_CHECK_TTL_SECONDS = 300
-PROFILE_CACHE_TTL_SECONDS = 600
-SCHEDULE_CACHE_TTL_SECONDS = 300
+SUPABASE_CHECK_TTL_SECONDS = 60
+PROFILE_CACHE_TTL_SECONDS = 120
+SCHEDULE_CACHE_TTL_SECONDS = 60
 
 
 def get_supabase_config():
