@@ -60,7 +60,7 @@ def get_supabase_config():
         if hasattr(st, "secrets"):
             sec = st.secrets
             sb = sec.get("supabase", None)
-            if isinstance(sb, dict):
+            if sb is not None and hasattr(sb, "get"):
                 url = str(sb.get("url", "") or "").strip() or url
                 key = str(sb.get("key", "") or "").strip() or key
                 service_key = str(sb.get("service_role_key", "") or "").strip()
