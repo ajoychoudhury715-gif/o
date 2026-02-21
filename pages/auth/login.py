@@ -11,7 +11,8 @@ def render() -> None:
     col1, col2, col3 = st.columns([1, 2, 1])
 
     with col2:
-        st.markdown("## 🦷 THE DENTAL BOND")
+        # Display logo
+        st.image("assets/logo.png", use_container_width=True)
         st.markdown("---")
         st.markdown("### Login")
 
