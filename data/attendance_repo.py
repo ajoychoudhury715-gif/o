@@ -66,26 +66,11 @@ def get_today_punch_map(date_str: str) -> dict[str, dict[str, str]]:
 
     print(f"[PUNCH MAP DEBUG] DataFrame shape: {df.shape}, columns: {list(df.columns)}")
 
-    # Normalize column names for Supabase (lowercase) vs Excel (uppercase)
-    col_map = {}
-    for col in df.columns:
-        col_map[col.upper()] = col
-
-    # Get actual column names (handle both Supabase lowercase and Excel uppercase)
-    date_col = col_map.get("DATE")
-    asst_col = col_map.get("ASSISTANT")
-    pin_col = col_map.get("PUNCH IN") or col_map.get("PUNCH_IN")
-    pout_col = col_map.get("PUNCH OUT") or col_map.get("PUNCH_OUT")
-
-    # Fallback if columns not found in map
-    if not date_col:
-        date_col = "DATE" if "DATE" in df.columns else ("date" if "date" in df.columns else None)
-    if not asst_col:
-        asst_col = "ASSISTANT" if "ASSISTANT" in df.columns else ("assistant" if "assistant" in df.columns else None)
-    if not pin_col:
-        pin_col = "PUNCH IN" if "PUNCH IN" in df.columns else ("punch_in" if "punch_in" in df.columns else None)
-    if not pout_col:
-        pout_col = "PUNCH OUT" if "PUNCH OUT" in df.columns else ("punch_out" if "punch_out" in df.columns else None)
+    # Prefer lowercase Supabase columns, fallback to uppercase Excel columns
+    date_col = "date" if "date" in df.columns else ("DATE" if "DATE" in df.columns else None)
+    asst_col = "assistant" if "assistant" in df.columns else ("ASSISTANT" if "ASSISTANT" in df.columns else None)
+    pin_col = "punch_in" if "punch_in" in df.columns else ("PUNCH IN" if "PUNCH IN" in df.columns else None)
+    pout_col = "punch_out" if "punch_out" in df.columns else ("PUNCH OUT" if "PUNCH OUT" in df.columns else None)
 
     print(f"[PUNCH MAP DEBUG] Resolved columns: date={date_col}, asst={asst_col}, pin={pin_col}, pout={pout_col}")
 
