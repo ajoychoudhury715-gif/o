@@ -84,6 +84,7 @@ def punch_in(date_str: str, assistant: str, time_str: str) -> bool:
                     "date": date_str, "assistant": assistant,
                     "punch_in": time_str, "punch_out": None,
                 }).execute()
+            load_attendance.clear()  # Clear cache after successful punch
             return True
         except Exception as e:
             st.warning(f"Supabase punch in failed: {str(e)[:50]}. Using Excel backup.")
@@ -95,7 +96,10 @@ def punch_in(date_str: str, assistant: str, time_str: str) -> bool:
     else:
         new_row = pd.DataFrame([{"DATE": date_str, "ASSISTANT": assistant, "PUNCH IN": time_str, "PUNCH OUT": ""}])
         df = pd.concat([df, new_row], ignore_index=True)
-    return save_sheet(df, EXCEL_ATTENDANCE_SHEET)
+    ok = save_sheet(df, EXCEL_ATTENDANCE_SHEET)
+    if ok:
+        load_attendance.clear()  # Clear cache after successful save
+    return ok
 
 
 def punch_out(date_str: str, assistant: str, time_str: str) -> bool:
@@ -103,6 +107,7 @@ def punch_out(date_str: str, assistant: str, time_str: str) -> bool:
     if client:
         try:
             client.table(SUPABASE_ATTENDANCE_TABLE).update({"punch_out": time_str}).eq("date", date_str).eq("assistant", assistant).execute()
+            load_attendance.clear()  # Clear cache after successful punch
             return True
         except Exception:
             pass
@@ -110,7 +115,11 @@ def punch_out(date_str: str, assistant: str, time_str: str) -> bool:
     mask = (df["DATE"].astype(str) == date_str) & (df["ASSISTANT"].astype(str) == assistant)
     if mask.any():
         df.loc[mask, "PUNCH OUT"] = time_str
-    return save_sheet(df, EXCEL_ATTENDANCE_SHEET)
+        ok = save_sheet(df, EXCEL_ATTENDANCE_SHEET)
+        if ok:
+            load_attendance.clear()  # Clear cache after successful save
+        return ok
+    return False  # No matching record found
 
 
 def reset_attendance(date_str: str, assistant: str) -> bool:
@@ -118,10 +127,14 @@ def reset_attendance(date_str: str, assistant: str) -> bool:
     if client:
         try:
             client.table(SUPABASE_ATTENDANCE_TABLE).delete().eq("date", date_str).eq("assistant", assistant).execute()
+            load_attendance.clear()  # Clear cache after deletion
             return True
         except Exception:
             pass
     df = load_sheet(EXCEL_ATTENDANCE_SHEET, ATTENDANCE_COLUMNS)
     mask = (df["DATE"].astype(str) == date_str) & (df["ASSISTANT"].astype(str) == assistant)
     df = df[~mask].copy()
-    return save_sheet(df, EXCEL_ATTENDANCE_SHEET)
+    ok = save_sheet(df, EXCEL_ATTENDANCE_SHEET)
+    if ok:
+        load_attendance.clear()  # Clear cache after successful delete
+    return ok
