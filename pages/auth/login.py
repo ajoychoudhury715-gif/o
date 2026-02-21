@@ -53,51 +53,51 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 /* Login Card */
 .login-wrapper {
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 7px 14px 0 rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.08);
   width: 100%;
-  max-width: 380px;
-  padding: 50px 40px;
+  max-width: 340px;
+  padding: 36px 28px;
 }
 
 .login-header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 28px;
 }
 
 .login-logo {
-  font-size: 40px;
-  margin-bottom: 16px;
+  font-size: 32px;
+  margin-bottom: 12px;
   display: block;
 }
 
 .login-title {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 600;
   color: #1a1a1a;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   letter-spacing: -0.5px;
 }
 
 .login-subtitle {
-  font-size: 14px;
+  font-size: 13px;
   color: #6b7684;
   font-weight: 400;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .login-divider {
-  margin: 40px 0;
+  margin: 28px 0;
   border: none;
   border-top: 1px solid #e1e6eb;
 }
 
 .login-footer {
-  margin-top: 24px;
+  margin-top: 16px;
   text-align: center;
-  font-size: 12px;
+  font-size: 11px;
   color: #9da5b0;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 .login-footer a {
@@ -113,11 +113,11 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 
 /* Form Elements */
 [data-testid="stTextInput"] label {
-  font-size: 13px !important;
+  font-size: 12px !important;
   font-weight: 600 !important;
   color: #1a1a1a !important;
   letter-spacing: 0.3px !important;
-  margin-bottom: 8px !important;
+  margin-bottom: 6px !important;
   text-transform: none !important;
 }
 
@@ -125,8 +125,8 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   background-color: #f7fafb !important;
   border: 1px solid #e1e6eb !important;
   border-radius: 6px !important;
-  font-size: 14px !important;
-  padding: 11px 14px !important;
+  font-size: 13px !important;
+  padding: 9px 12px !important;
   color: #1a1a1a !important;
   transition: all 0.2s ease !important;
   font-family: inherit !important;
@@ -145,7 +145,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 }
 
 [data-testid="stElementContainer"] {
-  margin-bottom: 20px !important;
+  margin-bottom: 14px !important;
 }
 
 /* Buttons */
@@ -154,9 +154,9 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   color: white !important;
   border: none !important;
   border-radius: 6px !important;
-  font-size: 14px !important;
+  font-size: 13px !important;
   font-weight: 600 !important;
-  padding: 11px 16px !important;
+  padding: 10px 14px !important;
   letter-spacing: 0.2px !important;
   transition: all 0.3s ease !important;
   cursor: pointer !important;
@@ -208,16 +208,16 @@ div[data-testid="stToast"] {
 /* Responsive */
 @media (max-width: 600px) {
   .login-wrapper {
-    padding: 40px 24px;
+    padding: 32px 20px;
     max-width: 100%;
   }
 
   .login-title {
-    font-size: 20px;
+    font-size: 18px;
   }
 
   .login-subtitle {
-    font-size: 13px;
+    font-size: 12px;
   }
 }
 </style>
