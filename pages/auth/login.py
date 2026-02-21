@@ -249,7 +249,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 .login-box {
   width: 100%;
   max-width: 420px;
-  margin: 0 auto;
+  margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
