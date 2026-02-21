@@ -1,5 +1,5 @@
 # pages/auth/login.py
-"""Premium split-panel login page for authentication."""
+"""Premium split-panel login page with full design integration."""
 
 import streamlit as st
 from data.auth_repo import authenticate
@@ -12,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# ── Custom CSS ─────────────────────────────────────────────────────────────────
+# ── Custom CSS (from premium template) ──────────────────────────────────────────
 st.markdown("""
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -31,7 +31,7 @@ st.markdown("""
 }
 
 html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', 'Segoe UI', sans-serif !important;
   background-color: var(--cream) !important;
   margin: 0 !important;
   padding: 0 !important;
@@ -44,8 +44,8 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   max-width: 100% !important;
 }
 
-/* ── Layout wrapper ── */
-.login-wrapper {
+/* ── LOGIN WRAPPER ── */
+.login-container {
   display: flex;
   min-height: 100vh;
   width: 100%;
@@ -53,8 +53,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 
 /* ── LEFT PANEL ── */
 .left-panel {
-  width: 100%;
-  min-height: 100vh;
+  width: 48%;
   background: linear-gradient(160deg, #1A1209 0%, #2E1F08 40%, #3D2A10 100%);
   display: flex;
   flex-direction: column;
@@ -62,7 +61,6 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   padding: 56px 60px;
   position: relative;
   overflow: hidden;
-  box-sizing: border-box;
 }
 
 .left-panel::before {
@@ -117,7 +115,6 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   letter-spacing: 0.04em;
   line-height: 1.2;
   margin: 0;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
 .brand-text p {
@@ -126,7 +123,6 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   color: rgba(201,169,110,0.65);
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  margin-top: 2px;
   margin: 2px 0 0 0;
 }
 
@@ -167,7 +163,6 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   font-weight: 600;
   color: var(--white);
   line-height: 1.15;
-  margin-bottom: 20px;
   margin: 0 0 20px 0;
 }
 
@@ -209,7 +204,6 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   font-size: 11px;
   color: rgba(255,255,255,0.45);
   letter-spacing: 0.1em;
-  margin-top: 4px;
   margin: 4px 0 0 0;
 }
 
@@ -229,31 +223,24 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 
 /* ── RIGHT PANEL ── */
 .right-panel {
-  width: 100%;
-  min-height: 100vh;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 48px 60px;
   background: var(--cream);
-  box-sizing: border-box;
+  position: relative;
 }
 
 .login-box {
   width: 100%;
   max-width: 400px;
-  z-index: 2;
-  margin: 0 auto;
-}
-
-/* ── Form container ── */
-[data-testid="stVerticalBlockContainer"] {
-  padding: 60px 48px !important;
 }
 
 .login-header {
   margin-bottom: 36px;
   animation: fadeIn 0.8s ease-out;
+  text-align: center;
 }
 
 @keyframes fadeIn {
@@ -275,17 +262,15 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   font-size: 36px;
   font-weight: 600;
   color: var(--dark);
-  margin-top: 6px;
-  line-height: 1.1;
   margin: 6px 0 0 0;
+  line-height: 1.1;
 }
 
 .login-header p {
   font-size: 13px;
   color: var(--muted);
-  margin-top: 8px;
-  font-weight: 300;
   margin: 8px 0 0 0;
+  font-weight: 300;
 }
 
 .form-group {
@@ -300,7 +285,6 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted);
-  margin-bottom: 8px;
   margin: 0 0 8px 0;
 }
 
@@ -345,10 +329,15 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   background: rgba(192,57,43,0.08);
   border: 1px solid rgba(192,57,43,0.25);
   color: var(--error);
+  display: none;
+}
+
+.alert.show {
+  display: block;
 }
 
 .dots-deco {
-  position: absolute;
+  position: fixed;
   top: 40px;
   right: 40px;
   opacity: 0.18;
@@ -400,27 +389,11 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   color: var(--gold);
 }
 
-/* ── Form decorative icons ── */
-.form-group label::before {
-  content: '';
-  display: inline-block;
-  width: 4px;
-  height: 4px;
-  background: var(--gold);
-  border-radius: 50%;
-  margin-right: 8px;
-  opacity: 0.6;
-}
-
-/* ── Streamlit overrides ── */
+/* ── STREAMLIT COMPONENT OVERRIDES ── */
 [data-testid="stForm"] {
   background: transparent !important;
   border: none !important;
   padding: 0 !important;
-}
-
-[data-testid="stTextInput"] {
-  position: relative !important;
 }
 
 [data-testid="stTextInput"] input,
@@ -431,9 +404,8 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   font-family: 'Inter', sans-serif !important;
   font-size: 14px !important;
   color: var(--dark) !important;
-  padding: 12px 16px !important;
+  padding: 13px 14px !important;
   transition: all 0.2s !important;
-  padding-left: 40px !important;
 }
 
 [data-testid="stTextInput"] input::placeholder {
@@ -451,21 +423,6 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   letter-spacing: 0.12em !important;
   text-transform: uppercase !important;
   color: var(--muted) !important;
-  font-family: 'Inter', sans-serif !important;
-}
-
-[data-testid="stSelectbox"] > label {
-  font-size: 11px !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.12em !important;
-  text-transform: uppercase !important;
-  color: var(--muted) !important;
-}
-
-[data-testid="stSelectbox"] > div > div {
-  border: 1.5px solid var(--border) !important;
-  border-radius: 8px !important;
-  background: var(--white) !important;
   font-family: 'Inter', sans-serif !important;
 }
 
@@ -489,7 +446,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 
 [data-testid="stForm"] button[type="submit"]:hover,
 [data-testid="stFormSubmitButton"] button:hover {
-  opacity: 0.9 !important;
+  opacity: 0.92 !important;
   transform: translateY(-1px) !important;
   box-shadow: 0 6px 24px rgba(160,120,64,0.45) !important;
 }
@@ -498,6 +455,27 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   font-size: 13px !important;
   color: var(--muted) !important;
   font-family: 'Inter', sans-serif !important;
+}
+
+[data-testid="stButton"] button {
+  border: 1.5px solid var(--border) !important;
+  background: var(--white) !important;
+  color: var(--dark) !important;
+  padding: 12px 14px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s !important;
+  border-radius: 8px !important;
+  font-family: 'Inter', sans-serif !important;
+}
+
+[data-testid="stButton"] button:hover {
+  border-color: var(--gold-light) !important;
+  background: rgba(201,169,110,0.05) !important;
+}
+
+[data-testid="stButton"] button:active {
+  transform: translateY(1px) !important;
 }
 
 hr {
@@ -509,31 +487,12 @@ hr {
   font-family: 'Inter', sans-serif !important;
 }
 
-/* ── Secondary button (Google) ── */
-[data-testid="stButton"] button[kind="secondary"] {
-  border: 1.5px solid var(--border) !important;
-  background: var(--white) !important;
-  color: var(--dark) !important;
-  padding: 12px 14px !important;
-  font-size: 13px !important;
-  font-weight: 500 !important;
-  transition: all 0.2s !important;
-}
-
-[data-testid="stButton"] button[kind="secondary"]:hover {
-  border-color: var(--gold-light) !important;
-  background: rgba(201,169,110,0.05) !important;
-}
-
-[data-testid="stButton"] button[kind="secondary"]:active {
-  transform: translateY(1px) !important;
-}
-
 @media (max-width: 900px) {
   .left-panel { width: 100%; min-height: 280px; padding: 36px 32px; }
   .hero-content h2 { font-size: 34px; }
   .right-panel { padding: 36px 28px; }
   .stats { gap: 24px; margin-top: 28px; }
+  .login-box { padding: 0 16px; }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -581,7 +540,7 @@ LEFT_PANEL = """
 </div>
 """
 
-# ── Layout: two columns ────────────────────────────────────────────────────────
+# ── Main layout ────────────────────────────────────────────────────────────────
 def render() -> None:
     col_left, col_right = st.columns([1, 1.1], gap="small")
 
@@ -589,29 +548,30 @@ def render() -> None:
         st.markdown(LEFT_PANEL, unsafe_allow_html=True)
 
     with col_right:
+        # Decorative dots
         st.markdown("""
-            <div style="text-align: center;">
-                <svg class="dots-deco" width="100" height="100" viewBox="0 0 100 100">
-                    <circle cx="10" cy="10" r="3" fill="#C9A96E"/><circle cx="30" cy="10" r="3" fill="#C9A96E"/>
-                    <circle cx="50" cy="10" r="3" fill="#C9A96E"/><circle cx="70" cy="10" r="3" fill="#C9A96E"/>
-                    <circle cx="10" cy="30" r="3" fill="#C9A96E"/><circle cx="30" cy="30" r="3" fill="#C9A96E"/>
-                    <circle cx="50" cy="30" r="3" fill="#C9A96E"/><circle cx="70" cy="30" r="3" fill="#C9A96E"/>
-                    <circle cx="10" cy="50" r="3" fill="#C9A96E"/><circle cx="30" cy="50" r="3" fill="#C9A96E"/>
-                    <circle cx="50" cy="50" r="3" fill="#C9A96E"/><circle cx="70" cy="50" r="3" fill="#C9A96E"/>
-                    <circle cx="10" cy="70" r="3" fill="#C9A96E"/><circle cx="30" cy="70" r="3" fill="#C9A96E"/>
-                    <circle cx="50" cy="70" r="3" fill="#C9A96E"/><circle cx="70" cy="70" r="3" fill="#C9A96E"/>
-                </svg>
+            <svg class="dots-deco" width="100" height="100" viewBox="0 0 100 100">
+                <circle cx="10" cy="10" r="3" fill="#C9A96E"/><circle cx="30" cy="10" r="3" fill="#C9A96E"/>
+                <circle cx="50" cy="10" r="3" fill="#C9A96E"/><circle cx="70" cy="10" r="3" fill="#C9A96E"/>
+                <circle cx="10" cy="30" r="3" fill="#C9A96E"/><circle cx="30" cy="30" r="3" fill="#C9A96E"/>
+                <circle cx="50" cy="30" r="3" fill="#C9A96E"/><circle cx="70" cy="30" r="3" fill="#C9A96E"/>
+                <circle cx="10" cy="50" r="3" fill="#C9A96E"/><circle cx="30" cy="50" r="3" fill="#C9A96E"/>
+                <circle cx="50" cy="50" r="3" fill="#C9A96E"/><circle cx="70" cy="50" r="3" fill="#C9A96E"/>
+                <circle cx="10" cy="70" r="3" fill="#C9A96E"/><circle cx="30" cy="70" r="3" fill="#C9A96E"/>
+                <circle cx="50" cy="70" r="3" fill="#C9A96E"/><circle cx="70" cy="70" r="3" fill="#C9A96E"/>
+            </svg>
+        """, unsafe_allow_html=True)
 
-                <div class="login-header">
-                    <div class="welcome">Welcome Back</div>
-                    <h3>Sign In</h3>
-                    <p>Access your dental practice management dashboard</p>
-                </div>
+        st.markdown("""
+            <div class="login-header">
+                <div class="welcome">Welcome Back</div>
+                <h3>Sign In</h3>
+                <p>Access your dental practice management dashboard</p>
             </div>
         """, unsafe_allow_html=True)
 
         # Role selector
-        st.markdown('<label class="role-label">Sign in as</label>', unsafe_allow_html=True)
+        st.markdown('<label style="display:block;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#6B6B6B;margin-bottom:8px;">Sign in as</label>', unsafe_allow_html=True)
 
         role_col1, role_col2, role_col3 = st.columns(3, gap="small")
         with role_col1:
@@ -625,14 +585,15 @@ def render() -> None:
                 st.session_state.login_role = "assistant"
 
         # Error alert
+        error_placeholder = st.empty()
         if st.session_state.login_error:
-            st.markdown(f'<div class="alert">{st.session_state.login_error}</div>', unsafe_allow_html=True)
+            with error_placeholder.container():
+                st.markdown(f'<div class="alert show">{st.session_state.login_error}</div>', unsafe_allow_html=True)
 
-        # Email input
+        # Form
         st.markdown('<div class="form-group"><label>Email Address</label></div>', unsafe_allow_html=True)
         email = st.text_input("", key="login_email", placeholder="you@thedentalbond.com", label_visibility="collapsed")
 
-        # Password input
         st.markdown('<div class="form-group"><label>Password</label></div>', unsafe_allow_html=True)
         password = st.text_input("", key="login_password", placeholder="Enter your password", type="password", label_visibility="collapsed")
 
@@ -669,13 +630,10 @@ def render() -> None:
         # Divider
         st.markdown('<div class="divider">or continue with</div>', unsafe_allow_html=True)
 
-        # Google button with styling
-        col_google, _ = st.columns([1, 0.1])
+        # Google button
+        col_google = st.columns([1, 0.05])[0]
         with col_google:
-            st.markdown(
-                "<button style='width:100%;padding:12px;border:1.5px solid #E2D9CA;border-radius:8px;background:#fff;cursor:pointer;font-size:13px;font-family:\"Inter\",sans-serif;font-weight:500;color:#1A1A1A;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s;'>Continue with Google</button>",
-                unsafe_allow_html=True,
-            )
+            st.button("Continue with Google", key="google_btn", use_container_width=True)
 
         # Footer
         st.markdown(
