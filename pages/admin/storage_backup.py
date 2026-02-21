@@ -13,44 +13,53 @@ from config.settings import USE_SUPABASE, get_supabase_config
 from data.supabase_client import get_supabase_client
 
 
-def _render_supabase_status() -> None:
-    """Display Supabase connection status."""
+@st.cache_data(ttl=60)
+def _check_supabase_connection() -> dict[str, str]:
+    """Check Supabase connection (cached 60s)."""
     if not USE_SUPABASE:
-        st.info("⚙️ Supabase disabled (Excel-only mode)")
-        return
+        return {"status": "disabled"}
 
     try:
         url, key, _, _, _ = get_supabase_config()
     except Exception as e:
-        st.error(f"❌ **Error reading config** — {str(e)[:100]}")
-        return
+        return {"status": "error_config", "msg": str(e)[:100]}
 
     if not url or not key:
-        # Provide more debugging info
-        has_url = bool(url)
-        has_key = bool(key)
-        debug_info = f"(url={has_url}, key={has_key})"
-        st.error(f"❌ **Supabase not configured** — Missing credentials in secrets {debug_info}")
+        return {"status": "not_configured"}
+
+    try:
+        client = get_supabase_client(url, key)
+        if client is None:
+            return {"status": "client_failed"}
+        resp = client.table("profiles").select("profile_id").limit(1).execute()
+        return {"status": "connected"}
+    except Exception as e:
+        return {"status": "connection_error", "msg": str(e)[:150]}
+
+
+def _render_supabase_status() -> None:
+    """Display Supabase connection status (cached)."""
+    result = _check_supabase_connection()
+    status = result.get("status")
+
+    if status == "disabled":
+        st.info("⚙️ Supabase disabled (Excel-only mode)")
+    elif status == "error_config":
+        st.error(f"❌ **Error reading config** — {result.get('msg')}")
+    elif status == "not_configured":
+        st.error("❌ **Supabase not configured** — Missing credentials in secrets")
         with st.expander("Debug info"):
             st.write("Ensure `.streamlit/secrets.toml` has:")
             st.code("""[supabase]
 url = "your-supabase-url"
 key = "your-supabase-key"
 """)
-        return
-
-    # Test connection
-    try:
-        client = get_supabase_client(url, key)
-        if client is None:
-            st.error("❌ **Supabase connection failed** — Could not create client")
-            return
-
-        # Try to ping a table
-        resp = client.table("profiles").select("profile_id").limit(1).execute()
+    elif status == "client_failed":
+        st.error("❌ **Supabase connection failed** — Could not create client")
+    elif status == "connection_error":
+        st.error(f"❌ **Supabase connection error** — {result.get('msg')}")
+    elif status == "connected":
         st.success("✅ **Supabase connected** — All systems operational")
-    except Exception as e:
-        st.error(f"❌ **Supabase connection error** — {str(e)[:150]}")
 
 
 def render() -> None:

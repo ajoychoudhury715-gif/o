@@ -23,6 +23,7 @@ def _get_client():
     return get_supabase_client(url, key)
 
 
+@st.cache_data(ttl=30)
 def load_attendance() -> pd.DataFrame:
     client = _get_client()
     if client:

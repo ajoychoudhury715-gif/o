@@ -30,7 +30,7 @@ def _ensure_columns(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-@st.cache_data(ttl=SCHEDULE_CACHE_TTL_SECONDS, show_spinner="Loading schedule...")
+@st.cache_data(ttl=SCHEDULE_CACHE_TTL_SECONDS)
 def _load_from_supabase_cached(url: str, key: str, table: str, row_id: str) -> Optional[pd.DataFrame]:
     try:
         client = get_supabase_client(url, key)

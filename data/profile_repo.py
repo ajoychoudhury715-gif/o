@@ -39,7 +39,7 @@ def _excel_sheet_for_kind(kind: str) -> str:
     return EXCEL_ASSISTANTS_SHEET if kind == ASSISTANT_KIND else EXCEL_DOCTORS_SHEET
 
 
-@st.cache_data(ttl=PROFILE_CACHE_TTL_SECONDS, show_spinner="Loading profiles...")
+@st.cache_data(ttl=PROFILE_CACHE_TTL_SECONDS)
 def _load_cached(kind: str, cache_bust: int) -> pd.DataFrame:
     return _load_profiles(kind)
 
