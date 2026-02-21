@@ -23,12 +23,8 @@ def render() -> None:
 
         /* Login container styling */
         .login-container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 24px;
+            background: transparent;
             padding: 60px 40px;
-            box-shadow: 0 20px 60px rgba(37, 99, 235, 0.15);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.18);
         }
 
         /* Logo styling */
