@@ -90,8 +90,7 @@ def _render_doctor_card(row: dict, profile_id: str, edit_key: str) -> None:
               {("<div style='font-size:12px;color:#94a3b8;'>📱 " + phone + "</div>") if phone else ""}
               {("<div style='font-size:12px;color:#94a3b8;'>📋 Reg: " + reg + "</div>") if reg else ""}
             </div>
-            <span style="flex-shrink:0;background:{status_color}22;color:{status_color};padding:2px 10px;
-                         border-radius:12px;font-size:11px;font-weight:600;">{status_label}</span>
+            <span style="flex-shrink:0;background:{status_color}22;color:{status_color};padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;">{status_label}</span>
           </div>
         </div>""",
         unsafe_allow_html=True,

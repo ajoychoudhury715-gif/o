@@ -99,8 +99,7 @@ def _render_assistant_card(row: dict, profile_id: str, edit_key: str, df) -> Non
               {("<div style='font-size:12px;color:#94a3b8;'>🗓 Off: " + wo + "</div>") if wo else ""}
               {("<div style='font-size:12px;color:#94a3b8;'>⏳ " + str(experience) + " yrs exp</div>") if experience else ""}
             </div>
-            <span style="flex-shrink:0;background:{status_color}22;color:{status_color};padding:2px 10px;
-                         border-radius:12px;font-size:11px;font-weight:600;">{status_label}</span>
+            <span style="flex-shrink:0;background:{status_color}22;color:{status_color};padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;">{status_label}</span>
           </div>
         </div>""",
         unsafe_allow_html=True,
