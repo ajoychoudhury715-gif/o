@@ -258,7 +258,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 }
 
 .login-header {
-  margin-bottom: 32px;
+  margin-bottom: 24px;
   animation: fadeIn 0.8s ease-out;
   text-align: center;
   width: 100%;
@@ -303,7 +303,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 }
 
 .form-group {
-  margin-bottom: 16px;
+  margin-bottom: 0;
   position: relative;
 }
 
@@ -311,9 +311,9 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
-  margin-top: 8px;
+  gap: 8px;
+  margin-bottom: 16px;
+  margin-top: 0;
   width: 100%;
 }
 
@@ -361,7 +361,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 .role-selector {
   display: flex;
   gap: 12px;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .role-btn {
@@ -398,10 +398,10 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 }
 
 .alert {
-  padding: 12px 14px;
+  padding: 10px 12px;
   border-radius: 8px;
   font-size: 13px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   background: rgba(192,57,43,0.08);
   border: 1px solid rgba(192,57,43,0.25);
   color: var(--error);
@@ -432,8 +432,8 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 .divider {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin: 32px 0 24px 0;
+  gap: 12px;
+  margin: 20px 0 16px 0;
   font-size: 11px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -450,8 +450,8 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 }
 
 .login-footer {
-  margin-top: 32px;
-  padding-top: 24px;
+  margin-top: 20px;
+  padding-top: 16px;
   border-top: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
@@ -482,7 +482,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 }
 
 [data-testid="stTextInput"] {
-  margin-bottom: 16px !important;
+  margin-bottom: 12px !important;
 }
 
 [data-testid="stTextInput"] input,
@@ -576,7 +576,7 @@ hr {
 [data-testid="stAlert"] {
   border-radius: 8px !important;
   font-family: 'Inter', sans-serif !important;
-  margin-bottom: 16px !important;
+  margin-bottom: 12px !important;
 }
 
 [data-testid="stElementContainer"] {
@@ -607,13 +607,16 @@ hr {
   .left-panel { width: 100%; justify-content: center; padding: 40px 24px; min-height: auto; }
   .hero-content h2 { font-size: 34px; }
   .hero-content p { font-size: 13px; }
-  .right-panel { width: 100%; padding: 40px 24px; min-height: auto; justify-content: center; align-items: center; }
+  .right-panel { width: 100%; padding: 32px 24px; min-height: auto; justify-content: center; align-items: center; }
   .login-box { max-width: 420px; margin: 0 auto; }
   .brand { gap: 8px; margin-bottom: 40px; }
   .brand-text h1 { font-size: 18px; }
   .brand-text p { font-size: 9px; }
   .left-footer { position: relative; margin-top: 40px; }
-  [data-testid="stTextInput"] { margin-bottom: 14px !important; }
+  [data-testid="stTextInput"] { margin-bottom: 10px !important; }
+  .login-header { margin-bottom: 20px; }
+  .role-selector { margin-bottom: 14px; }
+  .divider { margin: 16px 0 12px 0; }
 }
 
 @media (max-width: 600px) {
@@ -626,25 +629,27 @@ hr {
   .hero-content h2 { font-size: 28px; line-height: 1.2; }
   .hero-content p { font-size: 12px; }
   .left-footer { margin-top: 30px; position: relative; }
-  .right-panel { padding: 28px 16px; width: 100%; min-height: auto; justify-content: center; align-items: center; }
+  .right-panel { padding: 24px 16px; width: 100%; min-height: auto; justify-content: center; align-items: center; }
   .login-box { width: 100%; max-width: 100%; padding: 0; margin: 0 auto; }
-  .login-header { margin-bottom: 24px; text-align: center; }
+  .login-header { margin-bottom: 18px; text-align: center; }
   .login-header h3 { font-size: 28px; }
   .login-header p { font-size: 12px; }
   .role-btn { font-size: 11px; padding: 10px 8px; min-height: 40px; }
-  .checkbox-row { flex-direction: column; align-items: flex-start; gap: 12px; justify-content: flex-start; }
-  [data-testid="stTextInput"] { margin-bottom: 12px !important; }
+  .checkbox-row { flex-direction: column; align-items: flex-start; gap: 8px; justify-content: flex-start; margin-bottom: 12px; }
+  [data-testid="stTextInput"] { margin-bottom: 10px !important; }
   [data-testid="stForm"] button[type="submit"],
   [data-testid="stFormSubmitButton"] button {
     padding: 12px !important;
     font-size: 12px !important;
-    margin-bottom: 12px !important;
+    margin-bottom: 10px !important;
   }
   [data-testid="stButton"] button {
     padding: 11px 12px !important;
+    margin-bottom: 10px !important;
   }
-  .divider { margin: 28px 0 20px 0; }
-  .login-footer { flex-direction: column; gap: 8px; }
+  .divider { margin: 14px 0 12px 0; gap: 10px; }
+  .role-selector { margin-bottom: 12px; gap: 8px; }
+  .login-footer { flex-direction: column; gap: 8px; margin-top: 20px; }
   .dots-deco { width: 80px; height: 80px; }
 }
 </style>
