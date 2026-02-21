@@ -12,6 +12,10 @@ def _inject_css() -> None:
         #MainMenu, footer, header {
           visibility: hidden;
         }
+        [data-testid="stHeader"] {
+          display: none !important;
+          height: 0 !important;
+        }
 
         html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
           background: #e8e6f5;
@@ -20,7 +24,7 @@ def _inject_css() -> None:
         }
 
         .block-container {
-          padding-top: 20px !important;
+          padding-top: 0 !important;
           padding-bottom: 20px !important;
           max-width: 940px !important;
         }
