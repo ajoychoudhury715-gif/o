@@ -183,7 +183,21 @@ def render_edit_row_form(
             in_time_val = _parse_time_str(str(row.get("In Time", "") or ""))
             out_time_val = _parse_time_str(str(row.get("Out Time", "") or ""))
             in_time = st.time_input("In Time *", value=in_time_val)
-            out_time = st.time_input("Out Time *", value=out_time_val)
+
+            # Calculate duration from in_time and out_time
+            in_mins = in_time.hour * 60 + in_time.minute
+            out_mins = out_time_val.hour * 60 + out_time_val.minute
+            initial_duration = (out_mins - in_mins) if out_mins >= in_mins else ((24 * 60) + out_mins - in_mins)
+
+            duration_mins = st.number_input("Duration (minutes)", min_value=1, max_value=480, value=max(1, initial_duration))
+
+            # Calculate out_time based on in_time + duration
+            calculated_out = (in_mins + duration_mins) % (24 * 60)
+            out_hour = calculated_out // 60
+            out_minute = calculated_out % 60
+            import datetime
+            out_time = datetime.time(out_hour, out_minute)
+
             procedure = st.text_input(
                 "Procedure",
                 value=str(row.get("Procedure", "") or ""),

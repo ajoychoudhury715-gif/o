@@ -98,8 +98,18 @@ def render_add_appointment_form(
                 op = st.selectbox("OP Room", [""] + op_rooms)
             with c2:
                 in_time = st.time_input("In Time *")
-                out_time = st.time_input("Out Time *")
+                duration_mins = st.number_input("Duration (minutes)", min_value=1, max_value=480, value=30)
                 procedure = st.text_input("Procedure")
+
+            # Calculate out_time based on in_time + duration
+            from datetime import timedelta
+            out_time = (
+                (int(in_time.hour * 60 + in_time.minute) + int(duration_mins)) % (24 * 60)
+            )
+            out_hour = out_time // 60
+            out_minute = out_time % 60
+            import datetime
+            out_time = datetime.time(out_hour, out_minute)
 
             c3, c4, c5 = st.columns(3)
             with c3:
