@@ -97,19 +97,25 @@ def render_add_appointment_form(
                 doctor = st.selectbox("Doctor *", [""] + doctors)
                 op = st.selectbox("OP Room", [""] + op_rooms)
             with c2:
-                # Digital clock time picker for In Time
+                # Digital clock time picker for In Time (12-hour format)
                 st.markdown("**In Time*** 🕐")
-                t_col1, t_col2, t_col3 = st.columns([2, 1, 2])
+                t_col1, t_col2, t_col3, t_col4 = st.columns([2, 1, 2, 2])
                 with t_col1:
-                    in_hour = st.number_input("Hour", min_value=0, max_value=23, value=9, step=1, key="in_hour_add")
+                    in_hour_12 = st.number_input("Hour", min_value=1, max_value=12, value=9, step=1, key="in_hour_add")
                 with t_col2:
                     st.markdown("<div style='text-align:center;padding-top:32px;font-size:20px;font-weight:bold;'>:</div>", unsafe_allow_html=True)
                 with t_col3:
                     in_minute = st.number_input("Minute", min_value=0, max_value=59, value=0, step=5, key="in_minute_add")
+                with t_col4:
+                    in_ampm = st.selectbox("", ["AM", "PM"], index=0, key="in_ampm_add", label_visibility="collapsed")
 
                 import datetime
-                in_time = datetime.time(int(in_hour), int(in_minute))
-                st.markdown(f"<div style='text-align:center;font-size:18px;font-weight:bold;color:#3b82f6;'>{in_time.strftime('%H:%M')}</div>", unsafe_allow_html=True)
+                # Convert 12-hour to 24-hour format
+                in_hour_24 = int(in_hour_12) % 12
+                if in_ampm == "PM":
+                    in_hour_24 += 12
+                in_time = datetime.time(in_hour_24, int(in_minute))
+                st.markdown(f"<div style='text-align:center;font-size:18px;font-weight:bold;color:#3b82f6;'>{in_time.strftime('%I:%M %p')}</div>", unsafe_allow_html=True)
 
                 duration_mins = st.number_input("Duration (minutes)", min_value=1, max_value=480, value=30)
                 procedure = st.text_input("Procedure")

@@ -183,19 +183,33 @@ def render_edit_row_form(
             in_time_val = _parse_time_str(str(row.get("In Time", "") or ""))
             out_time_val = _parse_time_str(str(row.get("Out Time", "") or ""))
 
-            # Digital clock time picker for In Time
+            # Digital clock time picker for In Time (12-hour format)
             st.markdown("**In Time*** 🕐")
-            t_col1, t_col2, t_col3 = st.columns([2, 1, 2])
+            t_col1, t_col2, t_col3, t_col4 = st.columns([2, 1, 2, 2])
+
+            # Convert existing 24-hour time to 12-hour
+            existing_hour_24 = in_time_val.hour
+            existing_ampm = "AM" if existing_hour_24 < 12 else "PM"
+            existing_hour_12 = existing_hour_24 % 12
+            if existing_hour_12 == 0:
+                existing_hour_12 = 12
+
             with t_col1:
-                in_hour = st.number_input("Hour", min_value=0, max_value=23, value=in_time_val.hour, step=1, key=f"in_hour_edit_{row_id}")
+                in_hour_12 = st.number_input("Hour", min_value=1, max_value=12, value=existing_hour_12, step=1, key=f"in_hour_edit_{row_id}")
             with t_col2:
                 st.markdown("<div style='text-align:center;padding-top:32px;font-size:20px;font-weight:bold;'>:</div>", unsafe_allow_html=True)
             with t_col3:
                 in_minute = st.number_input("Minute", min_value=0, max_value=59, value=in_time_val.minute, step=5, key=f"in_minute_edit_{row_id}")
+            with t_col4:
+                in_ampm = st.selectbox("", ["AM", "PM"], index=(0 if existing_ampm == "AM" else 1), key=f"in_ampm_edit_{row_id}", label_visibility="collapsed")
 
             import datetime
-            in_time = datetime.time(int(in_hour), int(in_minute))
-            st.markdown(f"<div style='text-align:center;font-size:18px;font-weight:bold;color:#3b82f6;'>{in_time.strftime('%H:%M')}</div>", unsafe_allow_html=True)
+            # Convert 12-hour to 24-hour format
+            in_hour_24 = int(in_hour_12) % 12
+            if in_ampm == "PM":
+                in_hour_24 += 12
+            in_time = datetime.time(in_hour_24, int(in_minute))
+            st.markdown(f"<div style='text-align:center;font-size:18px;font-weight:bold;color:#3b82f6;'>{in_time.strftime('%I:%M %p')}</div>", unsafe_allow_html=True)
 
             # Calculate duration from in_time and out_time
             in_mins = in_time.hour * 60 + in_time.minute
