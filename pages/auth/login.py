@@ -1,7 +1,8 @@
 # pages/auth/login.py
-"""Custom split login page."""
+"""Login page."""
 
 import streamlit as st
+
 from data.auth_repo import authenticate
 
 
@@ -9,49 +10,35 @@ def _inject_css() -> None:
     st.markdown(
         """
         <style>
-        #MainMenu, footer, header {
-          visibility: hidden;
-        }
-        [data-testid="stHeader"] {
+        #MainMenu, footer, header, [data-testid="stHeader"] {
           display: none !important;
           height: 0 !important;
         }
 
         html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
           background: #e8e6f5;
-          min-height: 100vh;
+          min-height: 100dvh;
           font-family: 'Segoe UI', sans-serif;
           overflow: hidden !important;
         }
 
         [data-testid="stAppViewContainer"] > .main {
           padding: 0 !important;
-          overflow: hidden !important;
-          display: block !important;
+          min-height: 100dvh !important;
         }
 
         .main .block-container {
-          padding: 0 !important;
+          max-width: 520px !important;
           margin: 0 auto !important;
-          max-width: 940px !important;
-          min-height: 100vh !important;
-          overflow: hidden !important;
+          min-height: 100dvh !important;
+          padding: 24px !important;
           display: flex !important;
-          flex-direction: column !important;
-          justify-content: flex-start !important;
+          align-items: center !important;
+          justify-content: center !important;
         }
 
-        .login-card {
+        .login-panel {
           width: 100%;
-          min-height: 520px;
-          border-radius: 24px;
-          overflow: hidden;
-          box-shadow: none;
-          background: transparent;
-        }
-
-        .left-panel {
-          padding: 40px 34px 24px;
         }
 
         .login-title {
@@ -65,57 +52,47 @@ def _inject_css() -> None:
 
         .subtitle {
           text-align: center;
-          color: #888;
+          color: #777;
           font-size: 13px;
-          margin-bottom: 26px;
+          margin-bottom: 24px;
         }
 
-        .field-icon {
-          font-size: 15px;
-          color: #9e9cb8;
-          margin: 8px 0 4px 10px;
-          position: relative;
-          z-index: 3;
-        }
-
-        .left-panel [data-testid="stTextInput"] {
-          margin-top: -24px;
+        .login-panel [data-testid="stTextInput"] {
           margin-bottom: 12px;
         }
 
-        .left-panel [data-testid="stTextInput"] label {
+        .login-panel [data-testid="stTextInput"] label {
           display: none !important;
         }
 
-        .left-panel [data-testid="stTextInput"] input {
+        .login-panel [data-testid="stTextInput"] input {
           width: 100% !important;
-          padding: 14px 16px 14px 44px !important;
+          padding: 14px 16px !important;
           border: none !important;
           background: #f0eefa !important;
           border-radius: 10px !important;
-          font-size: 14px !important;
+          font-size: 15px !important;
           color: #333 !important;
-          outline: none !important;
           box-shadow: none !important;
         }
 
-        .left-panel [data-testid="stTextInput"] input::placeholder {
-          color: #aaa !important;
+        .login-panel [data-testid="stTextInput"] input::placeholder {
+          color: #9f9f9f !important;
         }
 
-        .left-panel [data-testid="stTextInput"] input:focus {
+        .login-panel [data-testid="stTextInput"] input:focus {
           background: #e4dff5 !important;
-          border: none !important;
           box-shadow: none !important;
         }
 
         .forgot-wrap {
-          text-align: right;
+          display: flex;
+          justify-content: flex-end;
           margin-top: -2px;
-          margin-bottom: 14px;
+          margin-bottom: 12px;
         }
 
-        .forgot-wrap button {
+        .forgot-wrap .stButton button[kind="tertiary"] {
           background: transparent !important;
           border: none !important;
           color: #6c5ce7 !important;
@@ -123,10 +100,11 @@ def _inject_css() -> None:
           padding: 0 !important;
           height: auto !important;
           min-height: auto !important;
+          box-shadow: none !important;
         }
 
-        .left-panel [data-testid="stButton"] button {
-          width: 100%;
+        .login-panel .stButton button[kind="primary"] {
+          width: 100% !important;
           padding: 14px !important;
           background: #6c5ce7 !important;
           color: #fff !important;
@@ -135,20 +113,19 @@ def _inject_css() -> None:
           font-size: 15px !important;
           font-weight: 700 !important;
           letter-spacing: 0.5px !important;
-          transition: background 0.2s, transform 0.15s !important;
+          box-shadow: none !important;
         }
 
-        .left-panel [data-testid="stButton"] button:hover {
+        .login-panel .stButton button[kind="primary"]:hover {
           background: #5a4bd1 !important;
-          transform: translateY(-1px) !important;
         }
 
         .divider {
           display: flex;
           align-items: center;
           gap: 10px;
-          margin: 20px 0 14px;
-          color: #bbb;
+          margin: 22px 0 14px;
+          color: #a3a3a3;
           font-size: 13px;
           font-weight: 700;
         }
@@ -158,29 +135,19 @@ def _inject_css() -> None:
           content: "";
           flex: 1;
           height: 1px;
-          background: #e5e5e5;
+          background: #dcd9ee;
         }
 
         .social-btn {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 10px;
           width: 100%;
           padding: 11px;
-          border: 1.5px solid #ece9fb;
+          border: 1.5px solid #ddd8f0;
           border-radius: 10px;
           background: #fff;
           font-size: 13.5px;
-          font-weight: 500;
           color: #333;
           margin-bottom: 10px;
           text-align: center;
-        }
-
-        .social-btn:hover {
-          background: #f7f4ff;
-          border-color: #c0b5f0;
         }
 
         .signup-text {
@@ -195,46 +162,9 @@ def _inject_css() -> None:
           font-weight: 600;
         }
 
-        .right-panel {
-          height: 100%;
-          min-height: 520px;
-          background: transparent;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          padding: 40px 30px;
-          position: relative;
-          overflow: visible;
-        }
-
-        .right-panel::before {
-          content: none;
-        }
-
-        .right-panel::after {
-          content: none;
-        }
-
-        .badge {
-          width: 46px;
-          height: 46px;
-          background: #fff;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 20px;
-          box-shadow: 0 4px 14px rgba(0,0,0,0.12);
-          position: absolute;
-          left: 18px;
-          bottom: 90px;
-          z-index: 2;
-        }
-
-        @media (max-width: 900px) {
-          .right-panel {
-            min-height: 220px;
+        @media (max-width: 680px) {
+          .main .block-container {
+            padding: 16px !important;
           }
         }
         </style>
@@ -244,79 +174,60 @@ def _inject_css() -> None:
 
 
 def render() -> None:
-    """Render split login page."""
+    """Render login page."""
     if "login_error" not in st.session_state:
         st.session_state.login_error = False
 
     _inject_css()
 
-    st.markdown('<div class="login-card">', unsafe_allow_html=True)
-    left_col, right_col = st.columns([1.45, 1], gap="small")
+    st.markdown('<div class="login-panel">', unsafe_allow_html=True)
+    st.markdown('<div class="login-title">LOGIN</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<p class="subtitle">Welcome back! Please sign in to continue.</p>',
+        unsafe_allow_html=True,
+    )
 
-    with left_col:
-        st.markdown('<div class="left-panel">', unsafe_allow_html=True)
-        st.markdown('<div class="login-title">LOGIN</div>', unsafe_allow_html=True)
-        st.markdown(
-            '<p class="subtitle">Welcome back! Please sign in to continue.</p>',
-            unsafe_allow_html=True,
-        )
+    if st.session_state.login_error:
+        st.warning(st.session_state.login_error)
 
-        if st.session_state.login_error:
-            st.warning(st.session_state.login_error)
+    username = st.text_input(
+        "Username",
+        key="login_username",
+        placeholder="Username",
+        label_visibility="collapsed",
+    )
+    password = st.text_input(
+        "Password",
+        key="login_password",
+        placeholder="Password",
+        type="password",
+        label_visibility="collapsed",
+    )
 
-        st.markdown('<div class="field-icon">👤</div>', unsafe_allow_html=True)
-        username = st.text_input(
-            "Username",
-            key="login_username",
-            placeholder="Username",
-            label_visibility="collapsed",
-        )
+    st.markdown('<div class="forgot-wrap">', unsafe_allow_html=True)
+    if st.button("Forgot Password?", key="forgot_password_link", type="tertiary"):
+        st.session_state.show_reset_password = True
+        st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True)
 
-        st.markdown('<div class="field-icon">🔒</div>', unsafe_allow_html=True)
-        password = st.text_input(
-            "Password",
-            key="login_password",
-            placeholder="Password",
-            type="password",
-            label_visibility="collapsed",
-        )
-
-        st.markdown('<div class="forgot-wrap">', unsafe_allow_html=True)
-        if st.button("Forgot Password?", key="forgot_password_link", use_container_width=False):
-            st.session_state.show_reset_password = True
+    if st.button("Login Now", use_container_width=True, key="login_now_button", type="primary"):
+        if not username or not password:
+            st.session_state.login_error = "Please enter your username and password."
             st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
-
-        if st.button("Login Now", use_container_width=True, key="login_now_button"):
-            if not username or not password:
-                st.session_state.login_error = "Please enter your username and password."
-                st.rerun()
-            user = authenticate(username, password)
-            if user:
-                st.session_state.current_user = user["username"]
-                st.session_state.user_role = user["role"]
-                st.session_state.login_error = False
-                st.rerun()
-            st.session_state.login_error = "Invalid username or password. Please try again."
+        user = authenticate(username, password)
+        if user:
+            st.session_state.current_user = user["username"]
+            st.session_state.user_role = user["role"]
+            st.session_state.login_error = False
             st.rerun()
+        st.session_state.login_error = "Invalid username or password. Please try again."
+        st.rerun()
 
-        st.markdown('<div class="divider">Login with Others</div>', unsafe_allow_html=True)
-        st.markdown('<div class="social-btn">G Login with <strong>Google</strong></div>', unsafe_allow_html=True)
-        st.markdown('<div class="social-btn">f Login with <strong>Facebook</strong></div>', unsafe_allow_html=True)
-        st.markdown(
-            '<p class="signup-text">Don\'t have an account? <span>Sign Up</span></p>',
-            unsafe_allow_html=True,
-        )
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    with right_col:
-        st.markdown(
-            """
-            <div class="right-panel">
-              <div class="badge">⚡</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
+    st.markdown('<div class="divider">Login with Others</div>', unsafe_allow_html=True)
+    st.markdown('<div class="social-btn">Login with <strong>Google</strong></div>', unsafe_allow_html=True)
+    st.markdown('<div class="social-btn">Login with <strong>Facebook</strong></div>', unsafe_allow_html=True)
+    st.markdown(
+        '<p class="signup-text">Don\'t have an account? <span>Sign Up</span></p>',
+        unsafe_allow_html=True,
+    )
     st.markdown("</div>", unsafe_allow_html=True)
