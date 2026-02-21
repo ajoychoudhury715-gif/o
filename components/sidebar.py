@@ -205,7 +205,9 @@ def _render_save_controls(df) -> None:
         from state.save_manager import maybe_save
         df_to_save = st.session_state.get("unsaved_df") or df
         if df_to_save is not None:
-            maybe_save(df_to_save, message="Saved!", force=True)
+            result = maybe_save(df_to_save, message="Saved!", force=True)
+            if result:
+                st.session_state.df = df_to_save
         else:
             st.warning("Nothing to save.")
 

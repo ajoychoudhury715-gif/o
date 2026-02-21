@@ -102,8 +102,7 @@ def _save_to_supabase(url: str, key: str, table: str, row_id: str, df: pd.DataFr
         except Exception:
             pass
         client.table(table).upsert({"id": row_id, "payload": payload}).execute()
-        if "cached_df_timestamp" in st.session_state:
-            st.session_state.cached_df_timestamp = 0
+        _load_from_supabase_cached.clear()
         return True
     except Exception as e:
         st.error(f"Error saving schedule to Supabase: {e}")

@@ -57,10 +57,10 @@ SCHEDULE_COLUMNS = [
 
 # ── Profile Columns ───────────────────────────────────────────────────────────
 PROFILE_COLUMNS = [
-    "id", "name", "kind", "department",
-    "contact_email", "contact_phone", "status",
-    "weekly_off", "pref_first", "pref_second", "pref_third",
-    "created_at", "updated_at", "created_by", "updated_by",
+    "profile_id", "kind", "name", "role", "department",
+    "phone", "email", "experience", "weekly_off", "notes",
+    "is_active", "specialisation", "reg_number",
+    "can_first", "can_second", "can_third",
 ]
 
 # ── Attendance Columns ────────────────────────────────────────────────────────

@@ -18,6 +18,14 @@ from data.excel_ops import load_sheet, save_sheet
 ASSISTANT_KIND = "Assistants"
 DOCTOR_KIND = "Doctors"
 
+# All columns to SELECT from Supabase (matches profiles table schema)
+_SELECT_COLS = (
+    "profile_id,kind,name,role,department,"
+    "phone,email,experience,weekly_off,notes,"
+    "is_active,specialisation,reg_number,"
+    "can_first,can_second,can_third"
+)
+
 
 def _ensure_profile_df(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy() if not df.empty else pd.DataFrame()
@@ -45,7 +53,7 @@ def _load_profiles(kind: str) -> pd.DataFrame:
                 if client:
                     resp = (
                         client.table(profile_table)
-                        .select("id,name,kind,department,status,weekly_off,pref_first,pref_second,pref_third,contact_email,contact_phone")
+                        .select(_SELECT_COLS)
                         .eq("kind", kind)
                         .execute()
                     )
@@ -87,24 +95,31 @@ def _save_to_supabase(df: pd.DataFrame, kind: str, profile_table: str, url: str,
             return False
         clean_df = _ensure_profile_df(df)
         clean_df = clean_df.where(pd.notna(clean_df), None)
-        if "id" in clean_df.columns:
-            ids = clean_df["id"].astype(str)
-            missing = clean_df["id"].isna() | ids.str.strip().isin(["", "nan", "none"])
+
+        # Ensure every row has a profile_id
+        if "profile_id" in clean_df.columns:
+            ids = clean_df["profile_id"].astype(str)
+            missing = clean_df["profile_id"].isna() | ids.str.strip().isin(["", "nan", "none"])
             if missing.any():
-                clean_df.loc[missing, "id"] = [str(uuid.uuid4()) for _ in range(int(missing.sum()))]
+                clean_df.loc[missing, "profile_id"] = [
+                    str(uuid.uuid4()) for _ in range(int(missing.sum()))
+                ]
         clean_df["kind"] = kind
 
         def _fmt_wo(val):
             if isinstance(val, list):
-                return ",".join(str(v) for v in val if str(v).strip())
+                return ";".join(str(v) for v in val if str(v).strip())
             return str(val or "")
 
         clean_df["weekly_off"] = clean_df["weekly_off"].apply(_fmt_wo)
+
         for row in clean_df.to_dict(orient="records"):
-            if row.get("id"):
-                client.table(profile_table).upsert(row, on_conflict="id").execute()
+            if row.get("profile_id"):
+                client.table(profile_table).upsert(row, on_conflict="profile_id").execute()
             else:
                 client.table(profile_table).insert(row).execute()
+
+        _load_cached.clear()
         return True
     except Exception as e:
         st.error(f"Error saving profiles: {e}")
@@ -118,12 +133,14 @@ def delete_profile(profile_id: str, kind: str) -> bool:
             try:
                 client = get_supabase_client(url, key)
                 if client:
-                    client.table(profile_table).delete().eq("id", profile_id).execute()
+                    client.table(profile_table).delete().eq("profile_id", profile_id).execute()
+                    _load_cached.clear()
                     return True
             except Exception:
                 pass
+    # Excel fallback
     sheet = _excel_sheet_for_kind(kind)
     df = load_sheet(sheet, PROFILE_COLUMNS)
-    if "id" in df.columns:
-        df = df[df["id"].astype(str) != str(profile_id)]
+    if "profile_id" in df.columns:
+        df = df[df["profile_id"].astype(str) != str(profile_id)]
     return save_sheet(df, sheet)
