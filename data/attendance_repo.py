@@ -44,7 +44,11 @@ def load_attendance() -> pd.DataFrame:
             df = pd.DataFrame(data)
             if not df.empty:
                 print(f"[LOAD ATTENDANCE DEBUG] DataFrame shape: {df.shape}, columns: {list(df.columns)}")
-                for col in ATTENDANCE_COLUMNS:
+                # Normalize column names to lowercase to avoid duplicates
+                df.columns = [str(c).strip().lower() for c in df.columns]
+                # Ensure required columns exist
+                required_cols = ["date", "assistant", "punch_in", "punch_out"]
+                for col in required_cols:
                     if col not in df.columns:
                         df[col] = ""
                 return df
