@@ -508,6 +508,12 @@ hr {
 }
 
 /* ── RESPONSIVE DESIGN ── */
+@media (min-width: 1440px) and (max-width: 1920px) {
+  .left-panel { width: 50%; padding: 60px 48px; }
+  .right-panel { padding: 48px 40px 48px 20px; justify-content: flex-start; align-items: center; }
+  .login-box { max-width: 420px; margin: 0; }
+}
+
 @media (max-width: 1200px) {
   .left-panel { width: 50%; padding: 48px 40px; }
   .hero-content h2 { font-size: 40px; }
