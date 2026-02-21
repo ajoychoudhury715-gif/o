@@ -53,7 +53,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 
 /* ── LEFT PANEL ── */
 .left-panel {
-  width: 52%;
+  width: 50%;
   background: linear-gradient(160deg, #1A1209 0%, #2E1F08 40%, #3D2A10 100%);
   display: flex;
   flex-direction: column;
@@ -509,7 +509,7 @@ hr {
 
 /* ── RESPONSIVE DESIGN ── */
 @media (max-width: 1200px) {
-  .left-panel { width: 52%; padding: 48px 40px; }
+  .left-panel { width: 50%; padding: 48px 40px; }
   .hero-content h2 { font-size: 40px; }
   .hero-content p { font-size: 13px; }
   .right-panel { padding: 40px 48px; min-height: 100vh; }
@@ -582,7 +582,7 @@ def render() -> None:
     if "login_role" not in st.session_state:
         st.session_state.login_role = "admin"
 
-    col_left, col_right = st.columns([1.1, 1], gap="small")
+    col_left, col_right = st.columns([1, 1], gap="small")
 
     with col_left:
         st.markdown(LEFT_PANEL, unsafe_allow_html=True)
