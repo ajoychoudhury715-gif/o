@@ -24,10 +24,13 @@ def render_sidebar(df) -> None:
 
 def _render_header() -> None:
     now = now_ist()
-    st.markdown(
-        '<div class="sidebar-title">🦷 THE DENTAL BOND</div>',
-        unsafe_allow_html=True,
-    )
+    try:
+        st.image("assets/logo.svg", width='180')
+    except Exception:
+        st.markdown(
+            '<div class="sidebar-title">🦷 THE DENTAL BOND</div>',
+            unsafe_allow_html=True,
+        )
     st.markdown(
         f'<div class="live-pill"><span class="live-dot"></span>LIVE — {time_to_12h(now.time())}</div>',
         unsafe_allow_html=True,

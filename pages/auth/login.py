@@ -151,11 +151,15 @@ def render() -> None:
     with col2:
         st.markdown('<div class="login-container">', unsafe_allow_html=True)
 
-        # Tooth icon
-        st.markdown('<span class="tooth-icon">🦷</span>', unsafe_allow_html=True)
+        # Logo
+        try:
+            st.image("assets/logo.svg", width='200')
+        except Exception:
+            st.markdown('<span class="tooth-icon">🦷</span>', unsafe_allow_html=True)
+
+        st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
 
         # Title
-        st.markdown('<div class="login-title">THE DENTAL BOND</div>', unsafe_allow_html=True)
         st.markdown('<div class="login-subtitle">Implant & Micro-dentistry</div>', unsafe_allow_html=True)
 
         # Form
