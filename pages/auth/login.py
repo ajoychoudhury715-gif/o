@@ -214,16 +214,6 @@ def _inject_css() -> None:
           left: -40px;
         }
 
-        .right-card {
-          background: transparent;
-          backdrop-filter: none;
-          border: none;
-          border-radius: 0;
-          padding: 0;
-          z-index: 1;
-          text-align: center;
-        }
-
         .badge {
           width: 46px;
           height: 46px;
@@ -335,8 +325,6 @@ def render() -> None:
         st.markdown(
             """
             <div class="right-panel">
-              <div class="right-card">
-              </div>
               <div class="badge">⚡</div>
               <p class="tagline">Your journey starts here. <span>✦</span></p>
             </div>
