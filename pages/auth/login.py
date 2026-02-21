@@ -246,11 +246,9 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   margin: 0 auto;
 }
 
-/* ── Form container alignment ── */
+/* ── Form container ── */
 [data-testid="stVerticalBlockContainer"] {
-  width: 100%;
-  max-width: 400px !important;
-  margin: 0 auto !important;
+  padding: 60px 48px !important;
 }
 
 .login-header {
