@@ -143,6 +143,7 @@ def save_duty_runs(df: pd.DataFrame) -> bool:
 
 
 def get_active_duty_assignments(assistant: str) -> list[dict]:
+    import pandas as pd
     try:
         assignments_df = load_duty_assignments()
         duties_df = load_duties_master()
@@ -158,11 +159,14 @@ def get_active_duty_assignments(assistant: str) -> list[dict]:
         for _, arow in matching.iterrows():
             duty_id = str(arow.get("duty_id", ""))
             duty_info = duty_map.get(duty_id, {})
+            # Convert Int64 nullable integers to regular int
+            est_val = arow.get("est_minutes") or duty_info.get("est_minutes", 30)
+            est_minutes = int(est_val) if pd.notna(est_val) else 30
             result.append({
                 "duty_id": duty_id,
                 "assistant": assistant,
                 "op": str(arow.get("op", "")),
-                "est_minutes": arow.get("est_minutes") or duty_info.get("est_minutes", 30),
+                "est_minutes": est_minutes,
                 "name": duty_info.get("name", duty_id),
                 "frequency": str(duty_info.get("frequency", "")).upper(),
                 "description": duty_info.get("description", ""),
@@ -189,8 +193,11 @@ def get_active_duty_run(assistant: str) -> Optional[dict]:
 
 def start_duty_run(assistant: str, duty: dict, today_str: str) -> str:
     from datetime import datetime, timedelta
+    import pandas as pd
     run_id = str(uuid.uuid4())
-    est_minutes = int(duty.get("est_minutes") or 30)
+    est_val = duty.get("est_minutes") or 30
+    # Handle Int64 nullable integer type safely
+    est_minutes = int(est_val) if pd.notna(est_val) else 30
     now = datetime.now(IST)
     due_at = (now + timedelta(minutes=est_minutes)).isoformat()
     df = load_duty_runs()
