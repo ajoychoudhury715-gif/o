@@ -83,7 +83,7 @@ def _render_doctor_card(row: dict, profile_id: str, edit_key: str) -> None:
         f"""<div class="profile-card">
           <div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">
             <div style="min-width:0;flex:1;">
-              <div style="font-size:16px;font-weight:700;color:#f1f5f9;word-break:break-word;">🩺 {name}</div>
+              <div style="font-size:16px;font-weight:700;color:#1e293b;word-break:break-word;">🩺 {name}</div>
               <div style="font-size:13px;color:#94a3b8;margin-top:2px;">
                 {spec} {("· " + dept) if dept else ""}
               </div>

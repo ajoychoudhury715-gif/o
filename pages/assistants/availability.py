@@ -94,7 +94,7 @@ def render() -> None:
                 st.markdown(
                     f"""<div class="profile-card" style="margin-bottom:8px;">
                       <div style="display:flex;justify-content:space-between;align-items:center;">
-                        <span style="font-weight:600;color:#f1f5f9;font-size:14px;">👤 {asst}</span>
+                        <span style="font-weight:600;color:#1e293b;font-size:14px;">👤 {asst}</span>
                         {badge}
                       </div>
                       {('<div style="font-size:11px;color:#94a3b8;margin-top:4px;">🏥 ' + dept + '</div>') if dept else ''}

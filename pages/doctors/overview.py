@@ -91,7 +91,7 @@ def render() -> None:
                     f"""<div class="profile-card" style="margin-bottom:8px;">
                       <div style="display:flex;justify-content:space-between;gap:8px;">
                         <div style="min-width:0;flex:1;">
-                          <div style="font-weight:700;color:#f1f5f9;font-size:15px;word-break:break-word;">🩺 {s['name']}</div>
+                          <div style="font-weight:700;color:#1e293b;font-size:15px;word-break:break-word;">🩺 {s['name']}</div>
                           <div style="font-size:12px;color:#94a3b8;">
                             {s['spec']} {('· ' + s['dept']) if s['dept'] else ''}
                           </div>
