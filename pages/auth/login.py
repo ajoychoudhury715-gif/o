@@ -62,16 +62,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 
 /* ── LEFT PANEL ── */
 .left-panel {
-  width: 50%;
-  background: linear-gradient(160deg, #1A1209 0%, #2E1F08 40%, #3D2A10 100%);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 60px 48px;
-  position: relative;
-  overflow: hidden;
-  min-height: 100vh;
+  display: none;
 }
 
 .left-panel::before {
@@ -249,10 +240,11 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 /* ── RIGHT PANEL ── */
 .right-panel {
   flex: 1;
+  width: 100%;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  padding: 48px 60px 48px 20px;
+  justify-content: center;
+  padding: 48px 40px;
   background: var(--cream);
   position: relative;
   min-height: 100vh;
@@ -261,7 +253,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 .login-box {
   width: 100%;
   max-width: 420px;
-  margin: 0;
+  margin: 0 auto;
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -600,31 +592,14 @@ hr {
 }
 
 /* ── RESPONSIVE DESIGN ── */
-@media (min-width: 1440px) and (max-width: 1920px) {
-  .left-panel { width: 50%; padding: 60px 48px; }
-  .right-panel { padding: 48px 60px 48px 20px; justify-content: flex-start; align-items: center; }
-  .login-box { max-width: 420px; margin: 0; }
-}
-
 @media (max-width: 1200px) {
-  .left-panel { width: 50%; padding: 48px 40px; }
-  .hero-content h2 { font-size: 40px; }
-  .hero-content p { font-size: 13px; }
-  .right-panel { padding: 40px 50px 40px 15px; min-height: 100vh; justify-content: flex-start; align-items: center; }
-  .login-box { max-width: 380px; margin: 0; }
+  .right-panel { padding: 40px 30px; }
+  .login-box { max-width: 380px; margin: 0 auto; }
 }
 
 @media (max-width: 900px) {
-  .login-container { flex-direction: column; }
-  .left-panel { width: 100%; justify-content: center; padding: 40px 24px; min-height: auto; }
-  .hero-content h2 { font-size: 34px; }
-  .hero-content p { font-size: 13px; }
-  .right-panel { width: 100%; padding: 32px 40px 32px 8px; min-height: auto; justify-content: flex-start; align-items: center; }
-  .login-box { max-width: 420px; margin: 0; }
-  .brand { gap: 8px; margin-bottom: 40px; }
-  .brand-text h1 { font-size: 18px; }
-  .brand-text p { font-size: 9px; }
-  .left-footer { position: relative; margin-top: 40px; }
+  .right-panel { padding: 32px 24px; }
+  .login-box { max-width: 420px; margin: 0 auto; }
   [data-testid="stTextInput"] { margin-bottom: 10px !important; }
   .login-header { margin-bottom: 20px; }
   .role-selector { margin-bottom: 14px; }
@@ -632,17 +607,8 @@ hr {
 }
 
 @media (max-width: 600px) {
-  .login-container { flex-direction: column; }
-  .left-panel { padding: 20px 16px; justify-content: center; min-height: auto; }
-  .brand { margin-bottom: 30px; }
-  .brand-text h1 { font-size: 16px; }
-  .brand-text p { font-size: 8px; }
-  .hero-eyebrow { font-size: 10px; }
-  .hero-content h2 { font-size: 28px; line-height: 1.2; }
-  .hero-content p { font-size: 12px; }
-  .left-footer { margin-top: 30px; position: relative; }
-  .right-panel { padding: 24px 24px 24px 4px; width: 100%; min-height: auto; justify-content: flex-start; align-items: center; }
-  .login-box { width: 100%; max-width: 100%; padding: 0; margin: 0; }
+  .right-panel { padding: 24px 16px; }
+  .login-box { width: 100%; max-width: 100%; padding: 0; margin: 0 auto; }
   .login-header { margin-bottom: 18px; text-align: center; }
   .login-header h3 { font-size: 28px; }
   .login-header p { font-size: 12px; }
@@ -689,12 +655,7 @@ def render() -> None:
     if "login_role" not in st.session_state:
         st.session_state.login_role = "admin"
 
-    col_left, col_right = st.columns([1, 1], gap="small")
-
-    with col_left:
-        st.markdown(LEFT_PANEL, unsafe_allow_html=True)
-
-    with col_right:
+    st.markdown("""<div class="login-container"><div class="right-panel">""", unsafe_allow_html=True)
         # Decorative dots
         st.markdown("""
             <svg class="dots-deco" width="100" height="100" viewBox="0 0 100 100">
@@ -787,6 +748,7 @@ def render() -> None:
             "<div class='login-footer'>"
             "<p>Need access? <a href='#'>Contact your admin</a></p>"
             "<p style='font-size:11px;color:#BFB8AE;margin:0;'>v2.4.1</p>"
-            "</div>",
+            "</div>"
+            "</div></div>",
             unsafe_allow_html=True,
         )
