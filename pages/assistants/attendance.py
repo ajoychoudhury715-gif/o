@@ -79,7 +79,7 @@ def render() -> None:
     with col_to:
         to_date = st.date_input("To", value=datetime.date.today(), key="att_to")
     with col_refresh:
-        if st.button("🔄", use_container_width=True, key="att_refresh"):
+        if st.button("🔄", width='stretch', key="att_refresh"):
             st.rerun()
 
     att_df = load_attendance()
@@ -114,7 +114,7 @@ def render() -> None:
             by="date" if "date" in display_cols else display_cols[0],
             ascending=False,
         ),
-        use_container_width=True,
+        width='stretch',
         hide_index=True,
     )
 
@@ -128,4 +128,4 @@ def render() -> None:
             .reset_index()
             .sort_values("days_present", ascending=False)
         )
-        st.dataframe(summary, use_container_width=True, hide_index=True)
+        st.dataframe(summary, width='stretch', hide_index=True)

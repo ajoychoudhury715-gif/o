@@ -52,7 +52,7 @@ def render_time_block_editor(
                 with c_end:
                     end_time = st.time_input("End Time", value=datetime.time(13, 0), key="tb_end")
 
-            if st.form_submit_button("➕ Add Block", use_container_width=True):
+            if st.form_submit_button("➕ Add Block", width='stretch'):
                 if not assistant:
                     st.error("Please select an assistant.")
                 elif start_time >= end_time:
@@ -119,7 +119,7 @@ def _render_block_row(block: dict, idx: int, on_remove: Callable[[int], None]) -
             unsafe_allow_html=True,
         )
     with c2:
-        if st.button("🗑️", key=f"rm_tb_{idx}", help="Remove block", use_container_width=True):
+        if st.button("🗑️", key=f"rm_tb_{idx}", help="Remove block", width='stretch'):
             on_remove(idx)
 
 

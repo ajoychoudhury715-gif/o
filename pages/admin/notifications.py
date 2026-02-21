@@ -78,7 +78,7 @@ def render() -> None:
 
     # ── Save settings ──────────────────────────────────────────────────────────
     st.markdown("---")
-    if st.button("💾 Save Settings", use_container_width=True, key="btn_save_notif"):
+    if st.button("💾 Save Settings", width='stretch', key="btn_save_notif"):
         st.success("✅ Settings saved to session state.")
         st.toast("Notification settings updated!", icon="🔔")
 

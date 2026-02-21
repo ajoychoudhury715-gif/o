@@ -58,7 +58,7 @@ def render() -> None:
     # ── Workload table ─────────────────────────────────────────────────────────
     st.markdown("#### 📋 Appointments per Assistant")
     display_df = workload_df[workload_df["Total"] > 0].sort_values("Total", ascending=False)
-    st.dataframe(display_df, use_container_width=True, hide_index=True)
+    st.dataframe(display_df, width='stretch', hide_index=True)
 
     # ── Bar chart ──────────────────────────────────────────────────────────────
     if not display_df.empty:
@@ -83,6 +83,6 @@ def render() -> None:
                         if c in unassigned_df.columns]
         st.dataframe(
             unassigned_df[display_cols],
-            use_container_width=True,
+            width='stretch',
             hide_index=True,
         )

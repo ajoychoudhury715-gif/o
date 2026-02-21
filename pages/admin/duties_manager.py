@@ -43,7 +43,7 @@ def _render_master(assistants: list[str]) -> None:
 
     col_refresh = st.columns([4, 1])[1]
     with col_refresh:
-        if st.button("🔄", use_container_width=True, key="duties_refresh"):
+        if st.button("🔄", width='stretch', key="duties_refresh"):
             st.rerun()
 
     render_duty_master_editor(
@@ -75,7 +75,7 @@ def _render_runs() -> None:
 
     col_refresh = st.columns([4, 1])[1]
     with col_refresh:
-        if st.button("🔄", use_container_width=True, key="runs_refresh"):
+        if st.button("🔄", width='stretch', key="runs_refresh"):
             st.rerun()
 
     render_duty_runs_table(runs_df)
@@ -83,7 +83,7 @@ def _render_runs() -> None:
     # Clear completed runs
     st.markdown("---")
     if not runs_df.empty:
-        if st.button("🗑️ Clear All Run History", use_container_width=True, key="btn_clear_runs"):
+        if st.button("🗑️ Clear All Run History", width='stretch', key="btn_clear_runs"):
             import pandas as pd
             empty = pd.DataFrame(columns=runs_df.columns)
             save_duty_runs = _get_save_runs()

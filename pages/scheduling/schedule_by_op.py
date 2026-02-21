@@ -41,7 +41,7 @@ def render() -> None:
     with col_op:
         selected_op = st.selectbox("Select OP Room", all_ops, key="op_room_select")
     with col_refresh:
-        if st.button("🔄", use_container_width=True, key="op_refresh"):
+        if st.button("🔄", width='stretch', key="op_refresh"):
             st.session_state.df = None
             st.cache_data.clear()
             st.rerun()

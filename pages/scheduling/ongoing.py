@@ -28,7 +28,7 @@ def render() -> None:
 
     col_info, col_refresh = st.columns([5, 1])
     with col_refresh:
-        if st.button("🔄", use_container_width=True, key="ongoing_refresh"):
+        if st.button("🔄", width='stretch', key="ongoing_refresh"):
             st.session_state.df = None
             st.cache_data.clear()
             st.rerun()

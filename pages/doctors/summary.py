@@ -42,7 +42,7 @@ def render() -> None:
         .reset_index(name="Appointments")
         .sort_values("Appointments", ascending=False)
     )
-    st.dataframe(appts_by_dr, use_container_width=True, hide_index=True)
+    st.dataframe(appts_by_dr, width='stretch', hide_index=True)
     st.bar_chart(appts_by_dr.set_index("DR.")["Appointments"])
 
     st.markdown("---")
@@ -56,7 +56,7 @@ def render() -> None:
             .unstack(fill_value=0)
             .reset_index()
         )
-        st.dataframe(pivot, use_container_width=True, hide_index=True)
+        st.dataframe(pivot, width='stretch', hide_index=True)
 
     st.markdown("---")
 
@@ -72,7 +72,7 @@ def render() -> None:
             .head(20)
         )
         if not procs.empty:
-            st.dataframe(procs, use_container_width=True, hide_index=True)
+            st.dataframe(procs, width='stretch', hide_index=True)
         else:
             st.info("No procedure data recorded.")
 
@@ -92,4 +92,4 @@ def render() -> None:
                 .sort_values("Avg Duration (min)", ascending=False)
             )
             avg_dur["Avg Duration (min)"] = avg_dur["Avg Duration (min)"].round(1)
-            st.dataframe(avg_dur, use_container_width=True, hide_index=True)
+            st.dataframe(avg_dur, width='stretch', hide_index=True)

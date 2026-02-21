@@ -134,13 +134,13 @@ def render_schedule_table(
     edited = st.data_editor(
         display_df,
         column_config=col_config,
-        use_container_width=True,
+        width='stretch',
         hide_index=False,
         num_rows="fixed",
         key=f"{key}_editor",
     )
 
-    if st.button("💾 Apply Table Changes", key=f"{key}_apply", use_container_width=True):
+    if st.button("💾 Apply Table Changes", key=f"{key}_apply", width='stretch'):
         # Merge edits back into the full df
         updated = df.copy()
         for col in display_cols:
@@ -270,10 +270,10 @@ def render_edit_row_form(
 
         col_save, col_cancel = st.columns(2)
         with col_save:
-            submitted = st.form_submit_button("💾 Save Changes", use_container_width=True)
+            submitted = st.form_submit_button("💾 Save Changes", width='stretch')
         with col_cancel:
             cancelled = st.form_submit_button(
-                "✕ Cancel", use_container_width=True, type="secondary"
+                "✕ Cancel", width='stretch', type="secondary"
             )
 
         if submitted:

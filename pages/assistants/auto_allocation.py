@@ -55,12 +55,12 @@ def render() -> None:
     col_run, col_preview = st.columns(2)
     with col_run:
         run_alloc = st.button(
-            "🚀 Run Auto-Allocation", use_container_width=True,
+            "🚀 Run Auto-Allocation", width='stretch',
             key="btn_run_alloc", type="primary",
         )
     with col_preview:
         preview_only = st.button(
-            "👁️ Preview (don't save)", use_container_width=True,
+            "👁️ Preview (don't save)", width='stretch',
             key="btn_preview_alloc",
         )
 
@@ -120,7 +120,7 @@ def _show_diff(before: pd.DataFrame, after: pd.DataFrame) -> None:
 
     if changes:
         st.markdown("**Changes:**")
-        st.dataframe(pd.DataFrame(changes), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(changes), width='stretch', hide_index=True)
 
 
 def _show_current_summary(df: pd.DataFrame) -> None:
@@ -138,4 +138,4 @@ def _show_current_summary(df: pd.DataFrame) -> None:
     summary_df = pd.DataFrame(
         [{"Assistant": k, "Appointments": v} for k, v in sorted(loads.items(), key=lambda x: -x[1])]
     )
-    st.dataframe(summary_df, use_container_width=True, hide_index=True)
+    st.dataframe(summary_df, width='stretch', hide_index=True)

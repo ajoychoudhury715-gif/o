@@ -912,7 +912,7 @@ def sidebar_punch_widget(schedule_df: pd.DataFrame, excel_path: Optional[str] = 
     c1, c2 = st.columns(2)
     with c1:
         disabled_in = bool(punch_in)
-        if st.button("✅ Punch In", use_container_width=True, disabled=disabled_in):
+        if st.button("✅ Punch In", width='stretch', disabled=disabled_in):
             if row.empty:
                 new_row = pd.DataFrame([{
                     "DATE": today,
@@ -928,7 +928,7 @@ def sidebar_punch_widget(schedule_df: pd.DataFrame, excel_path: Optional[str] = 
             st.rerun()
     with c2:
         disabled_out = (not punch_in) or bool(punch_out)
-        if st.button("⏹ Punch Out", use_container_width=True, disabled=disabled_out):
+        if st.button("⏹ Punch Out", width='stretch', disabled=disabled_out):
             att.loc[mask, "PUNCH OUT"] = now_hhmm
             save_attendance_sheet(excel_path, att)
             st.toast(f"{assistant} punched out at {now_hhmm}", icon="⏹")
@@ -937,7 +937,7 @@ def sidebar_punch_widget(schedule_df: pd.DataFrame, excel_path: Optional[str] = 
                 _maybe_save(updated_df, message=f"{assistant} removed from allotment after punch out")
             st.rerun()
     with st.expander("Admin actions"):
-        if st.button("♻️ Reset today for this assistant", use_container_width=True):
+        if st.button("♻️ Reset today for this assistant", width='stretch'):
             att = att[~mask].copy()
             save_attendance_sheet(excel_path, att)
             st.toast("Reset done", icon="♻️")
@@ -967,12 +967,12 @@ def sidebar_punch_widget_supabase(schedule_df: pd.DataFrame, supabase):
         st.warning("Status: Not punched in")
     c1, c2 = st.columns(2)
     with c1:
-        if st.button("✅ Punch In", use_container_width=True, disabled=bool(punch_in)):
+        if st.button("✅ Punch In", width='stretch', disabled=bool(punch_in)):
             db_punch_in(supabase, date_str, assistant, now_time)
             st.toast(f"{assistant} punched in at {now_hhmm}", icon="✅")
             st.rerun()
     with c2:
-        if st.button("⏹ Punch Out", use_container_width=True, disabled=(not punch_in) or bool(punch_out)):
+        if st.button("⏹ Punch Out", width='stretch', disabled=(not punch_in) or bool(punch_out)):
             db_punch_out(supabase, date_str, assistant, now_time)
             st.toast(f"{assistant} punched out at {now_hhmm}", icon="⏹")
             updated_df = _remove_assistant_assignments(schedule_df, assistant)
@@ -1124,7 +1124,7 @@ def render_duty_reminder_widget(schedule_df: pd.DataFrame, supabase):
                 st.error("⚠️ Time over! Please finish and mark Done.")
         if started_dt:
             st.caption(f"Started at {started_dt.strftime('%I:%M %p')} IST")
-        if st.button("✅ Mark Done", use_container_width=True, key="duty_mark_done_btn"):
+        if st.button("✅ Mark Done", width='stretch', key="duty_mark_done_btn"):
             ok = mark_duty_done_supabase(supabase, active_run_id)
             if ok:
                 for k in ["active_duty_run_id", "active_duty_due_at", "active_duty_started_at", "active_duty_est_minutes"]:
@@ -1178,7 +1178,7 @@ def render_duty_reminder_widget(schedule_df: pd.DataFrame, supabase):
                 format_func=lambda i: labels[i],
                 key=f"duty_select_{tab_key}",
             )
-            if st.button("▶ Start", use_container_width=True, key=f"duty_start_{tab_key}"):
+            if st.button("▶ Start", width='stretch', key=f"duty_start_{tab_key}"):
                 run_id, payload = start_duty_run_supabase(supabase, selected_assistant, duties[idx])
                 if run_id:
                     st.session_state.active_duty_run_id = run_id
@@ -1237,7 +1237,7 @@ def render_assistant_overview_widget():
         })
     # Display as table
     overview_df = pd.DataFrame(overview_data)
-    st.dataframe(overview_df, use_container_width=True, hide_index=True)
+    st.dataframe(overview_df, width='stretch', hide_index=True)
 # ================ DUTY ADMIN (SUPABASE) ================
 def render_duties_master_admin(supabase):
     st.subheader("🗂 Duties Master (Weekly / Monthly)")
@@ -1314,7 +1314,7 @@ def render_duties_master_admin(supabase):
     if duties:
         st.data_editor(
             duties,
-            use_container_width=True,
+            width='stretch',
             disabled=["id", "created_at"],
             num_rows="dynamic",
             key="duties_master_editor",
@@ -1389,7 +1389,7 @@ def render_duty_assignment_admin(supabase, assistants: list[str]):
     if assigns:
         st.data_editor(
             assigns,
-            use_container_width=True,
+            width='stretch',
             disabled=["id"],
             num_rows="dynamic",
             key="duty_assign_editor",
@@ -1417,7 +1417,7 @@ def render_assistant_attendance_tab(schedule_df, excel_path):
     display_df = pd.DataFrame([_decorate(row.copy()) for _, row in today_att.iterrows()]) if not today_att.empty else pd.DataFrame(columns=ATTENDANCE_COLUMNS + ["WORKED MINS", "STATUS"])
     edited = st.data_editor(
         display_df,
-        use_container_width=True,
+        width='stretch',
         num_rows="fixed",
         column_config={
             "ASSISTANT": st.column_config.TextColumn(disabled=True),
@@ -1949,11 +1949,11 @@ def render_compact_dashboard(df_schedule: pd.DataFrame):
             st.markdown("<div class='controls-row'>", unsafe_allow_html=True)
             b1, b2, b3 = st.columns([1.2, 1.2, 1.6], gap="small")
             with b1:
-                st.button("➕ Add Patient", use_container_width=True, key="compact_add_patient", type="primary")
+                st.button("➕ Add Patient", width='stretch', key="compact_add_patient", type="primary")
             with b2:
                 st.button(
                     "?? Save Changes",
-                    use_container_width=True,
+                    width='stretch',
                     key="compact_save_changes",
                     type="secondary",
                     disabled=bool(st.session_state.get("is_saving")),
@@ -2285,9 +2285,9 @@ def render_compact_dashboard(df_schedule: pd.DataFrame):
                     )
                 form_actions = st.columns(2, gap="small")
                 with form_actions[0]:
-                    save_clicked = st.form_submit_button("Save", use_container_width=True)
+                    save_clicked = st.form_submit_button("Save", width='stretch')
                 with form_actions[1]:
-                    cancel_clicked = st.form_submit_button("Cancel", use_container_width=True)
+                    cancel_clicked = st.form_submit_button("Cancel", width='stretch')
             if cancel_clicked:
                 _close_compact_edit_dialog()
                 st.rerun()
@@ -2423,7 +2423,7 @@ def render_compact_dashboard(df_schedule: pd.DataFrame):
             df_table = df_display.drop(columns=["REMINDER_ROW_ID"], errors="ignore")
             # Mark busy assistants in the display
             df_table_with_busy = mark_busy_assistants(df_table)
-            st.data_editor(df_table_with_busy, use_container_width=True, height=280, key="compact_schedule_editor")
+            st.data_editor(df_table_with_busy, width='stretch', height=280, key="compact_schedule_editor")
         else:
             show_case = "CASE PAPER" in df_display.columns
             cards_per_row = 3
@@ -2509,7 +2509,7 @@ def render_compact_dashboard(df_schedule: pd.DataFrame):
                                         _update_row_case_paper(row_id, patient, in_time, case_checked)
                                 with row_cols[1]:
                                     st.markdown("<div class='card-action-marker card-action-done'></div>", unsafe_allow_html=True)
-                                    if st.button("✓ Done", key=f"card_done_{row_key}", use_container_width=True, type="primary"):
+                                    if st.button("✓ Done", key=f"card_done_{row_key}", width='stretch', type="primary"):
                                         _update_row_status(row_id, patient, in_time, "DONE")
                                 with row_cols[2]:
                                     st.markdown("<div class='card-action-marker card-action-edit'></div>", unsafe_allow_html=True)
@@ -2536,18 +2536,18 @@ def render_compact_dashboard(df_schedule: pd.DataFrame):
                                                 "suction": _truthy(row.get("SUCTION")),
                                             },
                                         ),
-                                        use_container_width=True,
+                                        width='stretch',
                                         type="secondary",
                                     )
                                 with row_cols[3]:
                                     st.markdown("<div class='card-action-marker card-action-cancel'></div>", unsafe_allow_html=True)
-                                    if st.button("✕ Cancel", key=f"card_cancel_{row_key}", use_container_width=True, type="secondary"):
+                                    if st.button("✕ Cancel", key=f"card_cancel_{row_key}", width='stretch', type="secondary"):
                                         _update_row_status(row_id, patient, in_time, "CANCELLED")
                             else:
                                 action_cols = st.columns([1.15, 1.15, 1.15], gap="small")
                                 with action_cols[0]:
                                     st.markdown("<div class='card-action-marker card-action-done'></div>", unsafe_allow_html=True)
-                                    if st.button("✓ Done", key=f"card_done_{row_key}", use_container_width=True, type="primary"):
+                                    if st.button("✓ Done", key=f"card_done_{row_key}", width='stretch', type="primary"):
                                         _update_row_status(row_id, patient, in_time, "DONE")
                                 with action_cols[1]:
                                     st.markdown("<div class='card-action-marker card-action-edit'></div>", unsafe_allow_html=True)
@@ -2574,12 +2574,12 @@ def render_compact_dashboard(df_schedule: pd.DataFrame):
                                                 "suction": _truthy(row.get("SUCTION")),
                                             },
                                         ),
-                                        use_container_width=True,
+                                        width='stretch',
                                         type="secondary",
                                     )
                                 with action_cols[2]:
                                     st.markdown("<div class='card-action-marker card-action-cancel'></div>", unsafe_allow_html=True)
-                                    if st.button("✕ Cancel", key=f"card_cancel_{row_key}", use_container_width=True, type="secondary"):
+                                    if st.button("✕ Cancel", key=f"card_cancel_{row_key}", width='stretch', type="secondary"):
                                         _update_row_status(row_id, patient, in_time, "CANCELLED")
                             st.markdown("</div>", unsafe_allow_html=True)
                             st.markdown("<div class='card-details-row'>", unsafe_allow_html=True)
@@ -5707,7 +5707,7 @@ def render_profile_manager(sheet_name: str, entity_label: str, dept_label: str) 
         if search_term:
             filtered = filtered[filtered["name"].str.contains(search_term, case=False, na=False)]
         display_filtered = filtered.drop(columns=[c for c in hidden_cols if c in filtered.columns], errors="ignore")
-        st.dataframe(display_filtered, use_container_width=True, hide_index=True)
+        st.dataframe(display_filtered, width='stretch', hide_index=True)
         st.info("You are in read-only mode. Switch to admin/editor to add or edit profiles.")
         return
     def _render_add_profile_dialog_body() -> None:
@@ -5754,7 +5754,7 @@ def render_profile_manager(sheet_name: str, entity_label: str, dept_label: str) 
         def _render_add_profile_dialog() -> None:
             st.warning("Popup add requires a newer Streamlit version.")
             _render_add_profile_dialog_body()
-    if st.button(f"Add {entity_label}", key=f"add_{sheet_name}_open", use_container_width=True):
+    if st.button(f"Add {entity_label}", key=f"add_{sheet_name}_open", width='stretch'):
         _render_add_profile_dialog()
     def _render_delete_profile_dialog_body() -> None:
         st.markdown(f"### Delete {entity_label} Profiles")
@@ -5796,7 +5796,7 @@ def render_profile_manager(sheet_name: str, entity_label: str, dept_label: str) 
         if st.button(
             f"Delete selected {entity_label} profiles",
             key=f"{sheet_name}_delete_btn",
-            use_container_width=True,
+            width='stretch',
         ):
             if not selected:
                 st.warning("Select at least one profile to delete.")
@@ -5854,13 +5854,13 @@ def render_profile_manager(sheet_name: str, entity_label: str, dept_label: str) 
         def _render_delete_profile_dialog() -> None:
             st.warning("Popup delete requires a newer Streamlit version.")
             _render_delete_profile_dialog_body()
-    if st.button(f"Delete {entity_label}", key=f"delete_{sheet_name}_open", use_container_width=True):
+    if st.button(f"Delete {entity_label}", key=f"delete_{sheet_name}_open", width='stretch'):
         _render_delete_profile_dialog()
     st.markdown("#### Edit All Profiles")
     edited_df = st.data_editor(
         df_profiles,
         hide_index=True,
-        use_container_width=True,
+        width='stretch',
         key=f"{sheet_name}_editor",
         column_config={
             "id": None,
@@ -6768,7 +6768,7 @@ with st.sidebar:
         help="When off, changes stay in session until you click 'Save Changes'."
     )
     save_now_disabled = bool(st.session_state.get("is_saving")) or bool(st.session_state.get("save_conflict"))
-    if st.button("Save Now", key="save_now_btn", use_container_width=True, disabled=save_now_disabled):
+    if st.button("Save Now", key="save_now_btn", width='stretch', disabled=save_now_disabled):
         df_to_save = st.session_state.get("unsaved_df")
         if df_to_save is None:
             df_to_save = df_raw if "df_raw" in locals() else None
@@ -6859,7 +6859,7 @@ with st.sidebar:
             key="block_reason_input",
             placeholder="e.g., Lunch, Training, Backend Work",
         )
-        if st.button("🔒 Add Block", key="add_block_btn", use_container_width=True):
+        if st.button("🔒 Add Block", key="add_block_btn", width='stretch'):
             if not block_assistant:
                 st.warning("Please select an assistant")
             else:
@@ -6917,14 +6917,14 @@ with st.sidebar:
             data=csv_bytes,
             file_name=f"{backup_name_base}.csv",
             mime="text/csv",
-            use_container_width=True,
+            width='stretch',
         )
         st.download_button(
             "⬇️ Download backup (Excel)",
             data=xlsx_bytes,
             file_name=f"{backup_name_base}.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            use_container_width=True,
+            width='stretch',
         )
     except Exception:
         st.caption("Backup download unavailable.")
@@ -6944,7 +6944,7 @@ with st.sidebar:
     if st.button(
         "🧹 Clear All Allotments",
         key="clear_all_allotments_btn",
-        use_container_width=True,
+        width='stretch',
         help="Permanently clears all current schedule rows",
     ):
         ok_check = bool(st.session_state.get("confirm_clear_all_check"))
@@ -7414,7 +7414,7 @@ if category == "Scheduling":
         if st.button(
             "➕ Add Patient",
             key="add_patient_btn",
-            use_container_width=True,
+            width='stretch',
         ):
             # Create a new empty row
             new_row = {
@@ -7453,7 +7453,7 @@ if category == "Scheduling":
         if st.button(
             "?? Save Changes",
             key="manual_save_full",
-            use_container_width=True,
+            width='stretch',
             type="primary",
             disabled=bool(st.session_state.get("is_saving")) or bool(st.session_state.get("save_conflict")),
         ):
@@ -8051,9 +8051,9 @@ if category == "Scheduling":
                 )
             form_actions = st.columns(2, gap="small")
             with form_actions[0]:
-                save_clicked = st.form_submit_button("Save", use_container_width=True)
+                save_clicked = st.form_submit_button("Save", width='stretch')
             with form_actions[1]:
-                cancel_clicked = st.form_submit_button("Cancel", use_container_width=True)
+                cancel_clicked = st.form_submit_button("Cancel", width='stretch')
         if cancel_clicked:
             _close_full_edit_dialog()
             st.rerun()
@@ -8324,27 +8324,27 @@ if category == "Scheduling":
                                         _update_row_case_paper(row_id, patient, in_time, case_checked)
                                 with row_cols[1]:
                                     st.markdown("<div class='card-action-marker card-action-done'></div>", unsafe_allow_html=True)
-                                    if st.button("✓ Done", key=f"full_card_done_{row_key}_{start}", use_container_width=True, type="primary"):
+                                    if st.button("✓ Done", key=f"full_card_done_{row_key}_{start}", width='stretch', type="primary"):
                                         _update_row_status(row_id, patient, in_time, "DONE")
                                 with row_cols[2]:
                                     st.markdown("<div class='card-action-marker card-action-edit'></div>", unsafe_allow_html=True)
-                                    st.button("✎ Edit", key=f"full_card_edit_{row_key}_{start}", on_click=_open_full_edit_dialog, args=({"row_key": row_key, "row_id": row_id, "lookup_patient": patient, "lookup_in_time": _fmt_time(in_time), "patient": patient, "in_time": _fmt_time(in_time), "out_time": _fmt_time(out_time), "doctor": doctor, "procedure": procedure, "status": status, "op": _clean_text(row.get("OP")), "staff_first": _clean_text(row.get("FIRST")), "staff_second": _clean_text(row.get("SECOND")), "staff_third": _clean_text(row.get("Third")), "case_paper": _truthy(row.get("CASE PAPER")), "suction": _truthy(row.get("SUCTION")), "cleaning": _truthy(row.get("CLEANING"))},), use_container_width=True, type="secondary")
+                                    st.button("✎ Edit", key=f"full_card_edit_{row_key}_{start}", on_click=_open_full_edit_dialog, args=({"row_key": row_key, "row_id": row_id, "lookup_patient": patient, "lookup_in_time": _fmt_time(in_time), "patient": patient, "in_time": _fmt_time(in_time), "out_time": _fmt_time(out_time), "doctor": doctor, "procedure": procedure, "status": status, "op": _clean_text(row.get("OP")), "staff_first": _clean_text(row.get("FIRST")), "staff_second": _clean_text(row.get("SECOND")), "staff_third": _clean_text(row.get("Third")), "case_paper": _truthy(row.get("CASE PAPER")), "suction": _truthy(row.get("SUCTION")), "cleaning": _truthy(row.get("CLEANING"))},), width='stretch', type="secondary")
                                 with row_cols[3]:
                                     st.markdown("<div class='card-action-marker card-action-cancel'></div>", unsafe_allow_html=True)
-                                    if st.button("✕ Cancel", key=f"full_card_cancel_{row_key}_{start}", use_container_width=True, type="secondary"):
+                                    if st.button("✕ Cancel", key=f"full_card_cancel_{row_key}_{start}", width='stretch', type="secondary"):
                                         _update_row_status(row_id, patient, in_time, "CANCELLED")
                             else:
                                 action_cols = st.columns([1.15, 1.15, 1.15], gap="small")
                                 with action_cols[0]:
                                     st.markdown("<div class='card-action-marker card-action-done'></div>", unsafe_allow_html=True)
-                                    if st.button("✓ Done", key=f"full_card_done_{row_key}_{start}", use_container_width=True, type="primary"):
+                                    if st.button("✓ Done", key=f"full_card_done_{row_key}_{start}", width='stretch', type="primary"):
                                         _update_row_status(row_id, patient, in_time, "DONE")
                                 with action_cols[1]:
                                     st.markdown("<div class='card-action-marker card-action-edit'></div>", unsafe_allow_html=True)
-                                    st.button("✎ Edit", key=f"full_card_edit_{row_key}_{start}", on_click=_open_full_edit_dialog, args=({"row_key": row_key, "row_id": row_id, "lookup_patient": patient, "lookup_in_time": _fmt_time(in_time), "patient": patient, "in_time": _fmt_time(in_time), "out_time": _fmt_time(out_time), "doctor": doctor, "procedure": procedure, "status": status, "op": _clean_text(row.get("OP")), "staff_first": _clean_text(row.get("FIRST")), "staff_second": _clean_text(row.get("SECOND")), "staff_third": _clean_text(row.get("Third")), "case_paper": _truthy(row.get("CASE PAPER")), "suction": _truthy(row.get("SUCTION")), "cleaning": _truthy(row.get("CLEANING"))},), use_container_width=True, type="secondary")
+                                    st.button("✎ Edit", key=f"full_card_edit_{row_key}_{start}", on_click=_open_full_edit_dialog, args=({"row_key": row_key, "row_id": row_id, "lookup_patient": patient, "lookup_in_time": _fmt_time(in_time), "patient": patient, "in_time": _fmt_time(in_time), "out_time": _fmt_time(out_time), "doctor": doctor, "procedure": procedure, "status": status, "op": _clean_text(row.get("OP")), "staff_first": _clean_text(row.get("FIRST")), "staff_second": _clean_text(row.get("SECOND")), "staff_third": _clean_text(row.get("Third")), "case_paper": _truthy(row.get("CASE PAPER")), "suction": _truthy(row.get("SUCTION")), "cleaning": _truthy(row.get("CLEANING"))},), width='stretch', type="secondary")
                                 with action_cols[2]:
                                     st.markdown("<div class='card-action-marker card-action-cancel'></div>", unsafe_allow_html=True)
-                                    if st.button("✕ Cancel", key=f"full_card_cancel_{row_key}_{start}", use_container_width=True, type="secondary"):
+                                    if st.button("✕ Cancel", key=f"full_card_cancel_{row_key}_{start}", width='stretch', type="secondary"):
                                         _update_row_status(row_id, patient, in_time, "CANCELLED")
                             st.markdown("</div>", unsafe_allow_html=True)
                             st.markdown("<div class='card-details-row'>", unsafe_allow_html=True)
@@ -9108,7 +9108,7 @@ if category == "Assistants" and assist_view == "Workload":
         })
     
     if workload_data:
-        st.dataframe(pd.DataFrame(workload_data), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(workload_data), width='stretch', hide_index=True)
     
 if category == "Assistants" and assist_view == "Attendance":
     # ================ ASSISTANTS ATTENDANCE (EXPERIMENTAL) ================
@@ -9189,7 +9189,7 @@ if category == "Assistants" and assist_view == "Attendance":
                         summary_display = summary.rename(columns={"assistant": "ASSISTANT"})
                         summary_display = summary_display.sort_values("ASSISTANT")
                         st.markdown("**Summary**")
-                        st.dataframe(summary_display, use_container_width=True, hide_index=True)
+                        st.dataframe(summary_display, width='stretch', hide_index=True)
                         details = df_att[
                             ["date", "assistant", "punch_in", "punch_out", "STATUS", "WORKED MINS", "WORKED HH:MM"]
                         ].copy()
@@ -9203,7 +9203,7 @@ if category == "Assistants" and assist_view == "Attendance":
                         )
                         details = details.sort_values(["DATE", "ASSISTANT"])
                         st.markdown("**Details**")
-                        st.dataframe(details, use_container_width=True, hide_index=True)
+                        st.dataframe(details, width='stretch', hide_index=True)
                         csv = details.to_csv(index=False)
                         st.download_button(
                             "Download CSV",

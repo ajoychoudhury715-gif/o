@@ -37,7 +37,7 @@ def render() -> None:
             key="upcoming_window",
         )
     with col_refresh:
-        if st.button("🔄", use_container_width=True, key="upcoming_refresh"):
+        if st.button("🔄", width='stretch', key="upcoming_refresh"):
             st.session_state.df = None
             st.cache_data.clear()
             st.rerun()

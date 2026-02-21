@@ -45,7 +45,7 @@ def render() -> None:
     with col_dr:
         selected_dr = st.selectbox("Select Doctor", doctors, key="per_dr_select")
     with col_refresh:
-        if st.button("🔄", use_container_width=True, key="per_dr_refresh"):
+        if st.button("🔄", width='stretch', key="per_dr_refresh"):
             st.session_state.df = None
             st.cache_data.clear()
             st.rerun()

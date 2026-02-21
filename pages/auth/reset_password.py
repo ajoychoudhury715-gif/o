@@ -141,7 +141,7 @@ def render() -> None:
         col_reset, col_back = st.columns(2)
 
         with col_reset:
-            if st.button("Reset Password", use_container_width=True, type="primary"):
+            if st.button("Reset Password", width='stretch', type="primary"):
                 if not username or not new_password or not confirm_password:
                     st.error("Please fill in all fields")
                 elif new_password != confirm_password:
@@ -158,7 +158,7 @@ def render() -> None:
                         st.error("❌ Failed to reset password. Username may not exist.")
 
         with col_back:
-            if st.button("← Back to Login", use_container_width=True, type="secondary"):
+            if st.button("← Back to Login", width='stretch', type="secondary"):
                 st.session_state.go_to_login = True
 
         # Handle navigation

@@ -89,7 +89,7 @@ def render() -> None:
             data=csv_data,
             file_name="schedule.csv",
             mime="text/csv",
-            use_container_width=True,
+            width='stretch',
             key="dl_csv",
         )
     with col_json:
@@ -102,7 +102,7 @@ def render() -> None:
             data=json_data,
             file_name="schedule.json",
             mime="application/json",
-            use_container_width=True,
+            width='stretch',
             key="dl_json",
         )
     with col_xlsx:
@@ -115,7 +115,7 @@ def render() -> None:
             data=buf.getvalue(),
             file_name="schedule.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            use_container_width=True,
+            width='stretch',
             key="dl_xlsx",
         )
 
@@ -124,7 +124,7 @@ def render() -> None:
     # ── Force save ─────────────────────────────────────────────────────────────
     st.markdown("### 💾 Force Save")
     st.caption("Force-save the current in-memory schedule to storage (skips conflict check).")
-    if st.button("⚡ Force Save Now", use_container_width=True, key="btn_force_save"):
+    if st.button("⚡ Force Save Now", width='stretch', key="btn_force_save"):
         try:
             save_now(df, message="Admin force save", ignore_conflict=True)
             st.success("✅ Force save complete.")
@@ -145,7 +145,7 @@ def render() -> None:
         key="confirm_clear",
     )
     if confirm:
-        if st.button("🗑️ Clear All Allotments", use_container_width=True, key="btn_clear_allotments"):
+        if st.button("🗑️ Clear All Allotments", width='stretch', key="btn_clear_allotments"):
             cleared = df.copy()
             for col in ["FIRST", "SECOND", "Third"]:
                 if col in cleared.columns:
@@ -172,7 +172,7 @@ def render() -> None:
             key="confirm_clear_all_text",
         )
         if confirm3 == "DELETE":
-            if st.button("☢️ Delete All Appointments", use_container_width=True, key="btn_nuke_schedule"):
+            if st.button("☢️ Delete All Appointments", width='stretch', key="btn_nuke_schedule"):
                 empty_df = ensure_schedule_columns(pd.DataFrame())
                 empty_df.attrs = df.attrs.copy()
                 st.session_state.df = empty_df

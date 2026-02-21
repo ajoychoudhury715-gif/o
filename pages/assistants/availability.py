@@ -30,7 +30,7 @@ def render() -> None:
 
     col_refresh, col_filter = st.columns([1, 3])
     with col_refresh:
-        if st.button("🔄 Refresh", use_container_width=True, key="avail_refresh"):
+        if st.button("🔄 Refresh", width='stretch', key="avail_refresh"):
             st.rerun()
     with col_filter:
         filter_status = st.multiselect(

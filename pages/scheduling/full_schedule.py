@@ -63,11 +63,11 @@ def render() -> None:
             label_visibility="collapsed",
         )
     with col_alloc:
-        if st.button("🤖 Auto-Allocate", use_container_width=True, key="btn_auto_alloc"):
+        if st.button("🤖 Auto-Allocate", width='stretch', key="btn_auto_alloc"):
             _run_auto_allocate(df)
             st.rerun()
     with col_refresh:
-        if st.button("🔄", use_container_width=True, key="btn_sched_refresh", help="Refresh"):
+        if st.button("🔄", width='stretch', key="btn_sched_refresh", help="Refresh"):
             st.session_state.df = None
             st.cache_data.clear()
             st.rerun()

@@ -38,7 +38,7 @@ def render_add_assistant_form(
             notes = st.text_area("Notes", height=80)
             is_active = st.checkbox("Active", value=True)
 
-            if st.form_submit_button("➕ Add Assistant", use_container_width=True):
+            if st.form_submit_button("➕ Add Assistant", width='stretch'):
                 if not name.strip():
                     st.error("Full Name is required.")
                 else:
@@ -98,9 +98,9 @@ def render_edit_assistant_form(
 
         col_save, col_cancel = st.columns(2)
         with col_save:
-            submitted = st.form_submit_button("💾 Save", use_container_width=True)
+            submitted = st.form_submit_button("💾 Save", width='stretch')
         with col_cancel:
-            cancelled = st.form_submit_button("✕ Cancel", use_container_width=True, type="secondary")
+            cancelled = st.form_submit_button("✕ Cancel", width='stretch', type="secondary")
 
         if submitted:
             if not name.strip():
@@ -146,7 +146,7 @@ def render_add_doctor_form(
             notes = st.text_area("Notes", height=80)
             is_active = st.checkbox("Active", value=True)
 
-            if st.form_submit_button("➕ Add Doctor", use_container_width=True):
+            if st.form_submit_button("➕ Add Doctor", width='stretch'):
                 if not name.strip():
                     st.error("Full Name is required.")
                 else:
@@ -196,9 +196,9 @@ def render_edit_doctor_form(
 
         col_save, col_cancel = st.columns(2)
         with col_save:
-            submitted = st.form_submit_button("💾 Save", use_container_width=True)
+            submitted = st.form_submit_button("💾 Save", width='stretch')
         with col_cancel:
-            cancelled = st.form_submit_button("✕ Cancel", use_container_width=True, type="secondary")
+            cancelled = st.form_submit_button("✕ Cancel", width='stretch', type="secondary")
 
         if submitted:
             if not name.strip():

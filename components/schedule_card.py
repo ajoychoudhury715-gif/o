@@ -74,11 +74,11 @@ def render_schedule_card(
         if new_status != status:
             on_status_change(row_id, new_status)
     with c2:
-        if st.button("✏️", key=f"edit_btn_{row_id}_{idx}", help="Edit", use_container_width=True):
+        if st.button("✏️", key=f"edit_btn_{row_id}_{idx}", help="Edit", width='stretch'):
             st.session_state[f"editing_row_{row_id}"] = True
             st.rerun()
     with c3:
-        if st.button("🗑️", key=f"del_btn_{row_id}_{idx}", help="Delete", use_container_width=True):
+        if st.button("🗑️", key=f"del_btn_{row_id}_{idx}", help="Delete", width='stretch'):
             on_delete(row_id)
 
 
@@ -139,7 +139,7 @@ def render_add_appointment_form(
             case_paper = st.text_input("Case Paper #")
             status = st.selectbox("Status", STATUS_OPTIONS, index=0)
 
-            submitted = st.form_submit_button("➕ Add Appointment", use_container_width=True)
+            submitted = st.form_submit_button("➕ Add Appointment", width='stretch')
             if submitted:
                 if not patient_name or not doctor:
                     st.error("Patient Name and Doctor are required.")

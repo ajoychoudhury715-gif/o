@@ -26,7 +26,7 @@ def render() -> None:
             label_visibility="collapsed",
         )
     with col_refresh:
-        if st.button("🔄", use_container_width=True, key="dr_refresh"):
+        if st.button("🔄", width='stretch', key="dr_refresh"):
             bust_profiles_cache()
             st.rerun()
 
@@ -93,11 +93,11 @@ def _render_doctor_card(row: dict, profile_id: str, edit_key: str) -> None:
     st.markdown(html_content, unsafe_allow_html=True)
     c1, c2 = st.columns(2)
     with c1:
-        if st.button("✏️ Edit", key=f"edit_dr_btn_{profile_id}", use_container_width=True):
+        if st.button("✏️ Edit", key=f"edit_dr_btn_{profile_id}", width='stretch'):
             st.session_state[edit_key] = True
             st.rerun()
     with c2:
-        if st.button("🗑️ Delete", key=f"del_dr_btn_{profile_id}", use_container_width=True):
+        if st.button("🗑️ Delete", key=f"del_dr_btn_{profile_id}", width='stretch'):
             _on_delete(profile_id)
 
 

@@ -36,12 +36,12 @@ def render_duty_master_editor(
             ),
             "description": st.column_config.TextColumn("Description", width="large"),
         },
-        use_container_width=True,
+        width='stretch',
         num_rows="dynamic",
         key="duty_master_editor",
     )
 
-    if st.button("💾 Save Duties", use_container_width=True, key="btn_save_duties"):
+    if st.button("💾 Save Duties", width='stretch', key="btn_save_duties"):
         import uuid
         # Fill missing duty_ids
         for i in range(len(edited)):
@@ -88,12 +88,12 @@ def render_duty_assignments_editor(
             ),
             "active": st.column_config.CheckboxColumn("Active", width="small"),
         },
-        use_container_width=True,
+        width='stretch',
         num_rows="dynamic",
         key="duty_assignments_editor",
     )
 
-    if st.button("💾 Save Assignments", use_container_width=True, key="btn_save_assignments"):
+    if st.button("💾 Save Assignments", width='stretch', key="btn_save_assignments"):
         for i in range(len(edited)):
             if not str(edited.iloc[i].get("assignment_id", "") or "").strip():
                 edited.iloc[i, edited.columns.get_loc("assignment_id")] = str(uuid.uuid4())[:8]
@@ -117,7 +117,7 @@ def render_duty_runs_table(runs_df) -> None:
             by="started_at" if "started_at" in display_cols else display_cols[0],
             ascending=False,
         ).head(50),
-        use_container_width=True,
+        width='stretch',
         hide_index=True,
     )
 
@@ -138,5 +138,5 @@ def render_duty_timer_card(active_run: dict, on_done: Callable) -> None:
         </div>""",
         unsafe_allow_html=True,
     )
-    if st.button("✅ Mark Done", use_container_width=True, key=f"duty_done_{active_run.get('id','')}"):
+    if st.button("✅ Mark Done", width='stretch', key=f"duty_done_{active_run.get('id','')}"):
         on_done(str(active_run.get("id", "")))

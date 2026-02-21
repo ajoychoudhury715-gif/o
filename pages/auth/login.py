@@ -133,7 +133,7 @@ def render() -> None:
 
         # Try to display logo, fallback to text
         try:
-            st.image("assets/logo.png", use_container_width=True)
+            st.image("assets/logo.png", width='stretch')
             st.markdown("<br>", unsafe_allow_html=True)
         except Exception:
             pass
@@ -149,12 +149,12 @@ def render() -> None:
         # Forgot password link
         col_forgot, _ = st.columns([1, 2])
         with col_forgot:
-            if st.button("🔑 Forgot Password?", use_container_width=True, type="secondary", key="btn_forgot"):
+            if st.button("🔑 Forgot Password?", width='stretch', type="secondary", key="btn_forgot"):
                 st.session_state.show_reset_password = True
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        if st.button("Sign In", use_container_width=True, type="primary"):
+        if st.button("Sign In", width='stretch', type="primary"):
             if not username or not password:
                 st.error("Please enter both username and password")
             else:

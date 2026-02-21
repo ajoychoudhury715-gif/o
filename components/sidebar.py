@@ -26,7 +26,7 @@ def _render_header() -> None:
     now = now_ist()
     # Display logo if it exists
     try:
-        st.image("assets/logo.png", use_container_width=True)
+        st.image("assets/logo.png", width='stretch')
     except Exception:
         st.markdown(
             '<div class="sidebar-title">🦷 THE DENTAL BOND</div>',
@@ -141,7 +141,7 @@ def _render_punch_widget(df) -> None:
 
     c1, c2 = st.columns(2)
     with c1:
-        if st.button("✅ Punch In", use_container_width=True, disabled=bool(pin), key="btn_punch_in"):
+        if st.button("✅ Punch In", width='stretch', disabled=bool(pin), key="btn_punch_in"):
             ok = punch_in(date_str, assistant, now_hhmm)
             if ok:
                 st.toast(f"{assistant} punched in at {now_12h}", icon="✅")
@@ -149,7 +149,7 @@ def _render_punch_widget(df) -> None:
                 st.error(f"❌ Punch in failed for {assistant}")
             st.rerun()
     with c2:
-        if st.button("⏹ Punch Out", use_container_width=True, disabled=(not pin) or bool(pout), key="btn_punch_out"):
+        if st.button("⏹ Punch Out", width='stretch', disabled=(not pin) or bool(pout), key="btn_punch_out"):
             ok = punch_out(date_str, assistant, now_hhmm)
             if ok:
                 st.toast(f"{assistant} punched out at {now_12h}", icon="⏹")
@@ -167,7 +167,7 @@ def _render_punch_widget(df) -> None:
     # Admin-only reset button
     if st.session_state.get("user_role") == "admin":
         with st.expander("Admin"):
-            if st.button("♻️ Reset today", use_container_width=True, key="btn_punch_reset"):
+            if st.button("♻️ Reset today", width='stretch', key="btn_punch_reset"):
                 reset_attendance(date_str, assistant)
                 st.toast("Reset done", icon="♻️")
                 st.rerun()
@@ -263,16 +263,16 @@ def _render_duty_widget(df) -> None:
 
         c1, c2 = st.columns(2)
         with c1:
-            if st.button("✅ Mark Done", use_container_width=True, key="btn_duty_done"):
+            if st.button("✅ Mark Done", width='stretch', key="btn_duty_done"):
                 mark_duty_done(str(active_run.get("id", "")))
                 st.toast("Duty completed!", icon="✅")
                 st.rerun()
         with c2:
-            if st.button("🔄 Refresh", use_container_width=True, key="btn_duty_refresh"):
+            if st.button("🔄 Refresh", width='stretch', key="btn_duty_refresh"):
                 st.rerun()
     elif selected_duty:
         # Show start button if duty is selected but not running
-        if st.button("▶️ Start Duty", use_container_width=True, key="btn_duty_start"):
+        if st.button("▶️ Start Duty", width='stretch', key="btn_duty_start"):
             start_duty_run(assistant, selected_duty, today.isoformat())
             st.toast(f"Duty started: {selected_duty.get('name')}", icon="▶️")
             st.rerun()
@@ -290,7 +290,7 @@ def _render_save_controls(df) -> None:
         key="chk_auto_save",
     )
     save_disabled = bool(st.session_state.get("is_saving")) or bool(st.session_state.get("save_conflict"))
-    if st.button("💾 Save Now", use_container_width=True, disabled=save_disabled, key="btn_save_now"):
+    if st.button("💾 Save Now", width='stretch', disabled=save_disabled, key="btn_save_now"):
         from state.save_manager import maybe_save
         unsaved = st.session_state.get("unsaved_df")
         df_to_save = unsaved if unsaved is not None else df
@@ -314,12 +314,12 @@ def _render_save_controls(df) -> None:
         )
         c1, c2 = st.columns(2)
         with c1:
-            if st.button("🔄 Reload", use_container_width=True, key="btn_conflict_reload"):
+            if st.button("🔄 Reload", width='stretch', key="btn_conflict_reload"):
                 st.session_state.save_conflict = None
                 st.session_state.df = None
                 st.rerun()
         with c2:
-            if st.button("⚠️ Force Save", use_container_width=True, key="btn_conflict_force"):
+            if st.button("⚠️ Force Save", width='stretch', key="btn_conflict_force"):
                 from state.save_manager import save_now
                 unsaved = st.session_state.get("unsaved_df")
                 df_to_save = unsaved if unsaved is not None else df
@@ -347,13 +347,13 @@ def _render_reminders(df) -> None:
         c1, c2 = st.columns(2)
         row_id = r.get("row_id", "")
         with c1:
-            if st.button("✓ Dismiss", key=f"rem_dismiss_{row_id}", use_container_width=True):
+            if st.button("✓ Dismiss", key=f"rem_dismiss_{row_id}", width='stretch'):
                 updated = dismiss_reminder(df, row_id)
                 st.session_state.df = updated
                 maybe_save(updated, show_toast=False)
                 st.rerun()
         with c2:
-            if st.button("💤 Snooze", key=f"rem_snooze_{row_id}", use_container_width=True):
+            if st.button("💤 Snooze", key=f"rem_snooze_{row_id}", width='stretch'):
                 updated = snooze_reminder(df, row_id, snooze_minutes=5)
                 st.session_state.df = updated
                 maybe_save(updated, show_toast=False)
