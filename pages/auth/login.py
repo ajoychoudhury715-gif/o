@@ -119,6 +119,7 @@ def render() -> None:
         .hero-content {
           position: relative;
           z-index: 1;
+          display: none;
         }
 
         .hero-eyebrow {
@@ -203,6 +204,7 @@ def render() -> None:
           position: relative;
           z-index: 1;
           margin: 0;
+          display: none;
         }
 
         /* ── RIGHT PANEL ── */
