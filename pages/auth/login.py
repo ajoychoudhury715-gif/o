@@ -313,7 +313,39 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   align-items: center;
   gap: 12px;
   margin-bottom: 24px;
-  margin-top: 16px;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.checkbox-row label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px !important;
+  color: #6B6B6B !important;
+  margin: 0 !important;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.checkbox-row input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--gold) !important;
+}
+
+.checkbox-row a {
+  font-size: 13px;
+  color: #A07840;
+  text-decoration: none;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.checkbox-row a:hover {
+  color: var(--gold);
 }
 
 .form-group label {
@@ -334,7 +366,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 
 .role-btn {
   flex: 1;
-  padding: 11px;
+  padding: 12px 14px;
   border: 1.5px solid var(--border);
   border-radius: 8px;
   background: var(--white);
@@ -346,11 +378,17 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   letter-spacing: 0.04em;
   transition: all 0.2s;
   text-align: center;
+  line-height: 1.4;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .role-btn:hover {
   border-color: var(--gold-light);
   color: var(--gold-dark);
+  background: rgba(201,169,110,0.02);
 }
 
 .role-btn.active {
@@ -360,18 +398,26 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 }
 
 .alert {
-  padding: 11px 14px;
-  border-radius: 7px;
+  padding: 12px 14px;
+  border-radius: 8px;
   font-size: 13px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   background: rgba(192,57,43,0.08);
   border: 1px solid rgba(192,57,43,0.25);
   color: var(--error);
   display: none;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .alert.show {
   display: block;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .dots-deco {
@@ -387,11 +433,12 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   display: flex;
   align-items: center;
   gap: 14px;
-  margin: 32px 0;
+  margin: 32px 0 24px 0;
   font-size: 11px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--muted);
+  width: 100%;
 }
 
 .divider::before,
@@ -434,6 +481,10 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   padding: 0 !important;
 }
 
+[data-testid="stTextInput"] {
+  margin-bottom: 16px !important;
+}
+
 [data-testid="stTextInput"] input,
 [data-testid="stTextInput"] input[type="password"] {
   border: 1.5px solid var(--border) !important;
@@ -444,6 +495,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   color: var(--dark) !important;
   padding: 13px 14px !important;
   transition: all 0.2s !important;
+  width: 100% !important;
 }
 
 [data-testid="stTextInput"] input::placeholder {
@@ -524,6 +576,15 @@ hr {
 [data-testid="stAlert"] {
   border-radius: 8px !important;
   font-family: 'Inter', sans-serif !important;
+  margin-bottom: 16px !important;
+}
+
+[data-testid="stElementContainer"] {
+  margin-bottom: 0 !important;
+}
+
+[data-testid="stColumn"] {
+  padding: 0 !important;
 }
 
 /* ── RESPONSIVE DESIGN ── */
@@ -547,11 +608,12 @@ hr {
   .hero-content h2 { font-size: 34px; }
   .hero-content p { font-size: 13px; }
   .right-panel { width: 100%; padding: 40px 24px; min-height: auto; justify-content: center; align-items: center; }
-  .login-box { max-width: 100%; margin: 0 auto; }
+  .login-box { max-width: 420px; margin: 0 auto; }
   .brand { gap: 8px; margin-bottom: 40px; }
   .brand-text h1 { font-size: 18px; }
   .brand-text p { font-size: 9px; }
   .left-footer { position: relative; margin-top: 40px; }
+  [data-testid="stTextInput"] { margin-bottom: 14px !important; }
 }
 
 @media (max-width: 600px) {
@@ -569,13 +631,19 @@ hr {
   .login-header { margin-bottom: 24px; text-align: center; }
   .login-header h3 { font-size: 28px; }
   .login-header p { font-size: 12px; }
-  .role-btn { font-size: 11px; padding: 10px 8px; }
-  .checkbox-row { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .role-btn { font-size: 11px; padding: 10px 8px; min-height: 40px; }
+  .checkbox-row { flex-direction: column; align-items: flex-start; gap: 12px; justify-content: flex-start; }
+  [data-testid="stTextInput"] { margin-bottom: 12px !important; }
   [data-testid="stForm"] button[type="submit"],
   [data-testid="stFormSubmitButton"] button {
     padding: 12px !important;
     font-size: 12px !important;
+    margin-bottom: 12px !important;
   }
+  [data-testid="stButton"] button {
+    padding: 11px 12px !important;
+  }
+  .divider { margin: 28px 0 20px 0; }
   .login-footer { flex-direction: column; gap: 8px; }
   .dots-deco { width: 80px; height: 80px; }
 }
