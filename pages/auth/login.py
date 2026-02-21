@@ -517,23 +517,6 @@ LEFT_PANEL = """
     <div class="hero-eyebrow">Schedule Management</div>
     <h2>Your clinic,<br/>perfectly <span>organised</span></h2>
     <p>Streamline appointments, manage your team's calendar, and deliver seamless patient care — all in one place.</p>
-
-    <div class="stats">
-      <div class="stat-item">
-        <div class="num">∞</div>
-        <div class="label">Appointments</div>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-item">
-        <div class="num">24/7</div>
-        <div class="label">Availability</div>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-item">
-        <div class="num">100%</div>
-        <div class="label">Secure</div>
-      </div>
-    </div>
   </div>
 
   <p class="left-footer">© 2026 The Dental Bond. All rights reserved.</p>
@@ -575,13 +558,16 @@ def render() -> None:
 
         role_col1, role_col2, role_col3 = st.columns(3, gap="small")
         with role_col1:
-            if st.button("Doctor", key="role_doctor", use_container_width=True):
+            doctor_clicked = st.button("👨‍⚕️ Doctor", key="role_doctor_v2", use_container_width=True)
+            if doctor_clicked:
                 st.session_state.login_role = "admin"
         with role_col2:
-            if st.button("Receptionist", key="role_receptionist", use_container_width=True):
+            reception_clicked = st.button("👩‍💼 Receptionist", key="role_reception_v2", use_container_width=True)
+            if reception_clicked:
                 st.session_state.login_role = "frontdesk"
         with role_col3:
-            if st.button("Admin", key="role_admin", use_container_width=True):
+            admin_clicked = st.button("⚙️ Admin", key="role_admin_v2", use_container_width=True)
+            if admin_clicked:
                 st.session_state.login_role = "assistant"
 
         # Error alert
