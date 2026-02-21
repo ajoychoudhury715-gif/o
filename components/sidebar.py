@@ -170,16 +170,40 @@ def _render_duty_widget(df) -> None:
 
     active_run = get_active_duty_run(assistant)
     if active_run:
-        remaining = format_remaining_time(active_run.get("due_at"))
-        st.markdown(
-            f'<div class="duty-timer-card"><div class="duty-timer-value">{remaining}</div>'
-            f'<div style="font-size:13px;color:#64748b;margin-top:4px;">{active_run.get("duty_id","Duty")}</div></div>',
-            unsafe_allow_html=True,
-        )
-        if st.button("✅ Mark Done", use_container_width=True, key="btn_duty_done"):
-            mark_duty_done(str(active_run.get("id", "")))
-            st.toast("Duty completed!", icon="✅")
-            st.rerun()
+        from services.utils import parse_iso_ts
+        due_dt = parse_iso_ts(active_run.get("due_at"))
+        now = now_ist()
+        if due_dt:
+            total_secs = (due_dt - now).total_seconds()
+            if total_secs > 0:
+                # Show remaining time with better formatting
+                total_mins = int(total_secs // 60)
+                hours = total_mins // 60
+                mins = total_mins % 60
+                secs = int(total_secs % 60)
+
+                if hours > 0:
+                    countdown_display = f"{hours}h {mins}m {secs}s"
+                else:
+                    countdown_display = f"{mins}m {secs}s"
+
+                st.markdown(
+                    f'<div class="duty-timer-card"><div class="duty-timer-value">{countdown_display}</div>'
+                    f'<div style="font-size:13px;color:#64748b;margin-top:4px;">{active_run.get("duty_name") or active_run.get("duty_id","Duty")}</div></div>',
+                    unsafe_allow_html=True,
+                )
+            else:
+                st.warning("⏰ Time's up!")
+
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button("✅ Mark Done", use_container_width=True, key="btn_duty_done"):
+                mark_duty_done(str(active_run.get("id", "")))
+                st.toast("Duty completed!", icon="✅")
+                st.rerun()
+        with c2:
+            if st.button("🔄 Refresh", use_container_width=True, key="btn_duty_refresh"):
+                st.rerun()
     else:
         today = date_cls.today()
         assignments = get_active_duty_assignments(assistant)
@@ -195,9 +219,23 @@ def _render_duty_widget(df) -> None:
         pending = compute_pending_duties(assignments, runs, today)
         all_pending = pending["WEEKLY"] + pending["MONTHLY"]
         if all_pending:
-            duty = all_pending[0]
-            freq_label = "W" if duty.get("frequency", "").upper() == "WEEKLY" else "M"
-            st.caption(f"📋 Pending: {duty.get('name', 'Duty')} ({freq_label})")
+            # Create duty options with labels
+            duty_options = []
+            for d in all_pending:
+                freq_label = "W" if d.get("frequency", "").upper() == "WEEKLY" else "M"
+                label = f"{d.get('name', 'Duty')} ({freq_label})"
+                duty_options.append((label, d))
+
+            selected_label = st.selectbox(
+                "Select Duty",
+                [label for label, _ in duty_options],
+                key="duty_select",
+                label_visibility="collapsed"
+            )
+
+            # Get selected duty
+            duty = next(d for label, d in duty_options if label == selected_label)
+
             if st.button("▶️ Start Duty", use_container_width=True, key="btn_duty_start"):
                 start_duty_run(assistant, duty, today.isoformat())
                 st.toast(f"Duty started: {duty.get('name')}", icon="▶️")
