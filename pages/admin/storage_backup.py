@@ -9,10 +9,42 @@ import pandas as pd
 
 from services.schedule_ops import ensure_schedule_columns
 from state.save_manager import save_now
+from config.settings import USE_SUPABASE, get_supabase_config
+from data.supabase_client import get_supabase_client
+
+
+def _render_supabase_status() -> None:
+    """Display Supabase connection status."""
+    if not USE_SUPABASE:
+        st.info("⚙️ Supabase disabled (Excel-only mode)")
+        return
+
+    url, key, _, _, _ = get_supabase_config()
+    if not url or not key:
+        st.error("❌ **Supabase not configured** — Missing credentials in secrets")
+        return
+
+    # Test connection
+    client = get_supabase_client(url, key)
+    if client is None:
+        st.error("❌ **Supabase connection failed** — Could not create client")
+        return
+
+    # Try to ping a table
+    try:
+        resp = client.table("profiles").select("id").limit(1).execute()
+        st.success("✅ **Supabase connected** — All systems operational")
+    except Exception as e:
+        st.error(f"❌ **Supabase connection error** — {str(e)[:100]}")
 
 
 def render() -> None:
     st.markdown("## 💾 Storage & Backup")
+
+    # ── Supabase connection status ─────────────────────────────────────────────
+    _render_supabase_status()
+
+    st.markdown("---")
 
     df = st.session_state.get("df")
     if df is None:
