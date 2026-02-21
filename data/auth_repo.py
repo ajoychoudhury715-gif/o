@@ -137,6 +137,32 @@ def create_user(username: str, password: str, role: str) -> bool:
         return False
 
 
+def reset_password(username: str, new_password: str) -> bool:
+    """Reset password for a user."""
+    try:
+        # Hash new password
+        salt, hash_hex = _hash_password(new_password)
+        password_hash = f"{salt}:{hash_hex}"
+
+        url, key, *_ = get_supabase_config()
+        if not url or not key:
+            return False
+
+        client = get_supabase_client(url, key)
+        if not client:
+            return False
+
+        # Update password
+        result = client.table("users").update({
+            "password_hash": password_hash,
+        }).eq("username", username).execute()
+
+        return bool(result.data)
+    except Exception as e:
+        print(f"[AUTH ERROR] {e}")
+        return False
+
+
 def ensure_admin_exists() -> None:
     """Ensure a default admin account exists. Called on first run."""
     try:

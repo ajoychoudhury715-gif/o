@@ -1,18 +1,18 @@
-# pages/auth/login.py
-"""Login page for authentication."""
+# pages/auth/reset_password.py
+"""Password reset page."""
 
 import streamlit as st
-from data.auth_repo import authenticate
+from data.auth_repo import reset_password, authenticate
 
 # Apply premium styling
 st.set_page_config(
-    page_title="Login | THE DENTAL BOND",
+    page_title="Reset Password | THE DENTAL BOND",
     page_icon="🦷",
     layout="centered",
 )
 
 def render() -> None:
-    """Render the premium login page."""
+    """Render the premium password reset page."""
     # Premium CSS styling
     st.markdown("""
         <style>
@@ -21,27 +21,14 @@ def render() -> None:
             background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
         }
 
-        /* Login container styling */
-        .login-container {
+        /* Reset container styling */
+        .reset-container {
             background: transparent;
             padding: 60px 40px;
         }
 
-        /* Logo styling */
-        .logo-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 40px;
-        }
-
-        .logo-container img {
-            max-width: 200px;
-            height: auto;
-            filter: drop-shadow(0 4px 12px rgba(37, 99, 235, 0.1));
-        }
-
         /* Title styling */
-        .login-title {
+        .reset-title {
             text-align: center;
             font-size: 28px;
             font-weight: 700;
@@ -50,7 +37,7 @@ def render() -> None:
             letter-spacing: -0.5px;
         }
 
-        .login-subtitle {
+        .reset-subtitle {
             text-align: center;
             font-size: 14px;
             color: #64748b;
@@ -107,14 +94,6 @@ def render() -> None:
             border-left: 4px solid #10b981;
         }
 
-        /* Divider styling */
-        hr {
-            margin: 24px 0;
-            border: none;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
-        }
-
         /* Label styling */
         .stTextInput > label {
             font-weight: 600;
@@ -122,43 +101,69 @@ def render() -> None:
             font-size: 14px;
             margin-bottom: 8px;
         }
+
+        /* Link styling */
+        .back-link {
+            text-align: center;
+            margin-top: 24px;
+        }
+
+        .back-link a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .back-link a:hover {
+            text-decoration: underline;
+        }
         </style>
     """, unsafe_allow_html=True)
 
-    # Center the login form
+    # Center the form
     col1, col2, col3 = st.columns([1, 2, 1])
 
     with col2:
-        st.markdown('<div class="login-container">', unsafe_allow_html=True)
+        st.markdown('<div class="reset-container">', unsafe_allow_html=True)
 
         # Title
-        st.markdown('<div class="login-title">Welcome Back</div>', unsafe_allow_html=True)
-        st.markdown('<div class="login-subtitle">Sign in to your account</div>', unsafe_allow_html=True)
+        st.markdown('<div class="reset-title">Reset Password</div>', unsafe_allow_html=True)
+        st.markdown('<div class="reset-subtitle">Enter your username and new password</div>', unsafe_allow_html=True)
 
         # Form
-        username = st.text_input("Username", key="login_username", placeholder="Enter your username")
-        password = st.text_input("Password", type="password", key="login_password", placeholder="Enter your password")
-
-        # Forgot password link
-        col_forgot, _ = st.columns([1, 2])
-        with col_forgot:
-            if st.button("🔑 Forgot Password?", use_container_width=True, type="secondary", key="btn_forgot"):
-                st.session_state.show_reset_password = True
+        username = st.text_input("Username", key="reset_username", placeholder="Enter your username")
+        new_password = st.text_input("New Password", type="password", key="reset_password", placeholder="Enter new password")
+        confirm_password = st.text_input("Confirm Password", type="password", key="reset_confirm", placeholder="Confirm new password")
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        if st.button("Sign In", use_container_width=True, type="primary"):
-            if not username or not password:
-                st.error("Please enter both username and password")
-            else:
-                user = authenticate(username, password)
-                if user:
-                    st.session_state.current_user = user["username"]
-                    st.session_state.user_role = user["role"]
-                    st.success(f"Welcome, {user['username']}! 🎉")
-                    st.balloons()
-                    st.rerun()
+        col_reset, col_back = st.columns(2)
+
+        with col_reset:
+            if st.button("Reset Password", use_container_width=True, type="primary"):
+                if not username or not new_password or not confirm_password:
+                    st.error("Please fill in all fields")
+                elif new_password != confirm_password:
+                    st.error("❌ Passwords do not match")
+                elif len(new_password) < 6:
+                    st.error("❌ Password must be at least 6 characters")
                 else:
-                    st.error("❌ Invalid credentials. Please try again.")
+                    # Check if user exists by attempting to query
+                    if reset_password(username, new_password):
+                        st.success(f"✅ Password reset successfully! You can now login.")
+                        st.balloons()
+                        st.session_state.go_to_login = True
+                    else:
+                        st.error("❌ Failed to reset password. Username may not exist.")
+
+        with col_back:
+            if st.button("← Back to Login", use_container_width=True, type="secondary"):
+                st.session_state.go_to_login = True
+
+        # Handle navigation
+        if st.session_state.get("go_to_login"):
+            st.session_state.go_to_login = False
+            st.rerun()
 
         st.markdown('</div>', unsafe_allow_html=True)

@@ -16,6 +16,7 @@ STATE_SCHEMA: dict[str, Any] = {
     # User / auth
     "user_role": None,
     "current_user": None,
+    "show_reset_password": False,
 
     # Schedule data
     "df": None,

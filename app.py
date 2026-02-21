@@ -30,10 +30,14 @@ def main() -> None:
     # Ensure default admin account exists (on first run)
     ensure_admin_exists()
 
-    # Login gate: if not authenticated, show login page and stop
+    # Login gate: if not authenticated, show login or reset password page and stop
     if not st.session_state.get("user_role"):
-        from pages.auth.login import render as render_login
-        render_login()
+        if st.session_state.get("show_reset_password"):
+            from pages.auth.reset_password import render as render_reset
+            render_reset()
+        else:
+            from pages.auth.login import render as render_login
+            render_login()
         st.stop()
 
     # Load schedule into session state if not already loaded
