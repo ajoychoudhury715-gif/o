@@ -186,36 +186,22 @@ def _inject_css() -> None:
         .right-panel {
           height: 100%;
           min-height: 520px;
-          background: linear-gradient(135deg, #6c5ce7 0%, #7d6ff0 60%, #8a7cf5 100%);
+          background: transparent;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
           padding: 40px 30px;
           position: relative;
-          overflow: hidden;
+          overflow: visible;
         }
 
         .right-panel::before {
-          content: "";
-          position: absolute;
-          width: 320px;
-          height: 320px;
-          background: rgba(255,255,255,0.07);
-          border-radius: 50%;
-          top: -80px;
-          right: -80px;
+          content: none;
         }
 
         .right-panel::after {
-          content: "";
-          position: absolute;
-          width: 200px;
-          height: 200px;
-          background: rgba(255,255,255,0.06);
-          border-radius: 50%;
-          bottom: -50px;
-          left: -40px;
+          content: none;
         }
 
         .badge {
@@ -232,20 +218,6 @@ def _inject_css() -> None:
           left: 18px;
           bottom: 90px;
           z-index: 2;
-        }
-
-        .tagline {
-          color: rgba(255,255,255,0.9);
-          font-size: 13.5px;
-          font-weight: 600;
-          letter-spacing: 0.3px;
-          z-index: 1;
-          margin-top: 14px;
-          text-align: center;
-        }
-
-        .tagline span {
-          color: #ffd700;
         }
 
         @media (max-width: 900px) {
@@ -330,7 +302,6 @@ def render() -> None:
             """
             <div class="right-panel">
               <div class="badge">⚡</div>
-              <p class="tagline">Your journey starts here. <span>✦</span></p>
             </div>
             """,
             unsafe_allow_html=True,
