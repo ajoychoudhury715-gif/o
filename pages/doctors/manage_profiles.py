@@ -81,16 +81,16 @@ def _render_doctor_card(row: dict, profile_id: str, edit_key: str) -> None:
 
     st.markdown(
         f"""<div class="profile-card">
-          <div style="display:flex;justify-content:space-between;align-items:start;">
-            <div>
-              <div style="font-size:16px;font-weight:700;color:#f1f5f9;">🩺 {name}</div>
+          <div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">
+            <div style="min-width:0;flex:1;">
+              <div style="font-size:16px;font-weight:700;color:#f1f5f9;word-break:break-word;">🩺 {name}</div>
               <div style="font-size:13px;color:#94a3b8;margin-top:2px;">
                 {spec} {("· " + dept) if dept else ""}
               </div>
               {("<div style='font-size:12px;color:#94a3b8;'>📱 " + phone + "</div>") if phone else ""}
               {("<div style='font-size:12px;color:#94a3b8;'>📋 Reg: " + reg + "</div>") if reg else ""}
             </div>
-            <span style="background:{status_color}22;color:{status_color};padding:2px 10px;
+            <span style="flex-shrink:0;background:{status_color}22;color:{status_color};padding:2px 10px;
                          border-radius:12px;font-size:11px;font-weight:600;">{status_label}</span>
           </div>
         </div>""",
@@ -109,8 +109,8 @@ def _render_doctor_card(row: dict, profile_id: str, edit_key: str) -> None:
 def _get_departments(df) -> list[str]:
     if df is not None and "department" in df.columns:
         depts = df["department"].dropna().astype(str).str.strip().unique().tolist()
-        return sorted(set(depts + DEFAULT_DEPARTMENTS) - {""})
-    return sorted(DEFAULT_DEPARTMENTS)
+        return sorted(set(depts + list(DEFAULT_DEPARTMENTS.keys())) - {""})
+    return sorted(DEFAULT_DEPARTMENTS.keys())
 
 
 def _on_add(df, row: dict) -> None:

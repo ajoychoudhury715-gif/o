@@ -9,6 +9,13 @@ def inject_global_css() -> None:
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 * { font-family: 'Inter', sans-serif !important; box-sizing: border-box; }
+/* Restore Material Symbols font for Streamlit icon elements */
+[data-testid="stIconMaterial"],
+span[class*="material-symbols"],
+span[class*="materialIcon"],
+.material-symbols-rounded {
+    font-family: 'Material Symbols Rounded' !important;
+}
 
 /* ── App background ── */
 .stApp {
@@ -70,13 +77,16 @@ def inject_global_css() -> None:
 }
 .tdb-card-header {
     display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 12px;
+    margin-bottom: 12px; gap: 8px;
+}
+.tdb-card-header > div {
+    min-width: 0; flex: 1;
 }
 .tdb-patient-name {
     font-size: 17px; font-weight: 700; color: #1e293b;
 }
 .tdb-card-meta {
-    font-size: 13px; color: #64748b; margin-top: 4px;
+    font-size: 13px; color: #64748b; margin-top: 4px; word-break: break-word;
 }
 
 /* ── Status badges ── */

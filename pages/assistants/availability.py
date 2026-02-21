@@ -40,14 +40,19 @@ def render() -> None:
             key="avail_filter",
         )
 
-    today_str = now_ist().date().isoformat()
+    now = now_ist()
+    today_str = now.date().isoformat()
+    today_weekday = now.weekday()
     punch_map = get_today_punch_map(today_str)
     meta = getattr(df, "attrs", {}).get("meta", {})
     time_blocks = deserialize_time_blocks(meta.get("time_blocks", []))
+    weekly_off_map = cache.get("weekly_off_map") or {}
 
     statuses = get_all_assistant_statuses(
-        assistants, df, punch_map=punch_map,
-        time_blocks=time_blocks, today_str=today_str,
+        df, punch_map, time_blocks, today_str,
+        today_weekday=today_weekday,
+        weekly_off_map=weekly_off_map,
+        assistants=assistants,
     )
 
     # Filter
