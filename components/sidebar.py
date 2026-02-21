@@ -164,13 +164,47 @@ def _render_duty_widget(df) -> None:
     assistant = st.selectbox("Assistant", assistants, index=default_idx, key="duty_assistant_select")
     st.session_state.duty_current_assistant = assistant
 
-    from data.duty_repo import get_active_duty_run, get_active_duty_assignments, start_duty_run, mark_duty_done
+    from data.duty_repo import get_active_duty_run, get_active_duty_assignments, start_duty_run, mark_duty_done, load_duty_runs
     from services.duty_service import compute_pending_duties, format_remaining_time
     from datetime import date as date_cls
+    from services.utils import parse_iso_ts
 
+    today = date_cls.today()
+    assignments = get_active_duty_assignments(assistant)
+    runs = []
+    try:
+        runs_df = load_duty_runs()
+        if not runs_df.empty:
+            mask = runs_df["assistant"].astype(str).str.strip() == assistant
+            runs = runs_df[mask].to_dict(orient="records")
+    except Exception:
+        pass
+
+    pending = compute_pending_duties(assignments, runs, today)
+    all_pending = pending["WEEKLY"] + pending["MONTHLY"]
+
+    # Always show duty selector dropdown
+    if all_pending:
+        duty_options = []
+        for d in all_pending:
+            freq_label = "W" if d.get("frequency", "").upper() == "WEEKLY" else "M"
+            label = f"{d.get('name', 'Duty')} ({freq_label})"
+            duty_options.append((label, d))
+
+        selected_label = st.selectbox(
+            "Duty",
+            [label for label, _ in duty_options],
+            key="duty_select",
+            label_visibility="collapsed"
+        )
+        selected_duty = next(d for label, d in duty_options if label == selected_label)
+    else:
+        selected_duty = None
+        st.caption("✅ No pending duties")
+
+    # Show active run timer if running
     active_run = get_active_duty_run(assistant)
     if active_run:
-        from services.utils import parse_iso_ts
         due_dt = parse_iso_ts(active_run.get("due_at"))
         now = now_ist()
         if due_dt:
@@ -204,44 +238,12 @@ def _render_duty_widget(df) -> None:
         with c2:
             if st.button("🔄 Refresh", use_container_width=True, key="btn_duty_refresh"):
                 st.rerun()
-    else:
-        today = date_cls.today()
-        assignments = get_active_duty_assignments(assistant)
-        runs = []
-        try:
-            from data.duty_repo import load_duty_runs
-            runs_df = load_duty_runs()
-            if not runs_df.empty:
-                mask = runs_df["assistant"].astype(str).str.strip() == assistant
-                runs = runs_df[mask].to_dict(orient="records")
-        except Exception:
-            pass
-        pending = compute_pending_duties(assignments, runs, today)
-        all_pending = pending["WEEKLY"] + pending["MONTHLY"]
-        if all_pending:
-            # Create duty options with labels
-            duty_options = []
-            for d in all_pending:
-                freq_label = "W" if d.get("frequency", "").upper() == "WEEKLY" else "M"
-                label = f"{d.get('name', 'Duty')} ({freq_label})"
-                duty_options.append((label, d))
-
-            selected_label = st.selectbox(
-                "Select Duty",
-                [label for label, _ in duty_options],
-                key="duty_select",
-                label_visibility="collapsed"
-            )
-
-            # Get selected duty
-            duty = next(d for label, d in duty_options if label == selected_label)
-
-            if st.button("▶️ Start Duty", use_container_width=True, key="btn_duty_start"):
-                start_duty_run(assistant, duty, today.isoformat())
-                st.toast(f"Duty started: {duty.get('name')}", icon="▶️")
-                st.rerun()
-        else:
-            st.caption("✅ No pending duties")
+    elif selected_duty:
+        # Show start button if duty is selected but not running
+        if st.button("▶️ Start Duty", use_container_width=True, key="btn_duty_start"):
+            start_duty_run(assistant, selected_duty, today.isoformat())
+            st.toast(f"Duty started: {selected_duty.get('name')}", icon="▶️")
+            st.rerun()
 
 
 def _render_save_controls(df) -> None:
