@@ -46,7 +46,7 @@ def save_patients(df: pd.DataFrame) -> bool:
                     clean.loc[missing, "id"] = [str(uuid.uuid4()) for _ in range(int(missing.sum()))]
             for row in clean.to_dict(orient="records"):
                 if row.get("id"):
-                    client.table(SUPABASE_PATIENTS_TABLE).upsert(row, on_conflict="id").execute()
+                    client.table(SUPABASE_PATIENTS_TABLE).upsert(row).execute()
                 else:
                     client.table(SUPABASE_PATIENTS_TABLE).insert(row).execute()
             return True

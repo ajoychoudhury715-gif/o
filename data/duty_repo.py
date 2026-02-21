@@ -45,7 +45,7 @@ def _sb_upsert(table: str, df: pd.DataFrame) -> bool:
         rows = df.where(pd.notna(df), None).to_dict(orient="records")
         for row in rows:
             if row.get("id"):
-                client.table(table).upsert(row, on_conflict="id").execute()
+                client.table(table).upsert(row).execute()
             else:
                 client.table(table).insert(row).execute()
         return True

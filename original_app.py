@@ -860,7 +860,7 @@ def _attendance_status(punch_in: str, punch_out: str) -> str:
 def db_punch_in(supabase, date_str: str, assistant: str, now_time: str):
     try:
         payload = {"date": date_str, "assistant": assistant, "punch_in": now_time}
-        supabase.table("assistant_attendance").upsert(payload, on_conflict="date,assistant").execute()
+        supabase.table("assistant_attendance").upsert(payload).execute()
         try:
             db_get_one_attendance.clear()
         except Exception:
@@ -5365,7 +5365,7 @@ def save_profiles(df: pd.DataFrame, sheet_name: str) -> bool:
             for row in rows:
                 rid = row.get("id")
                 if rid:
-                    res = supabase_client.table(PROFILE_SUPABASE_TABLE).upsert(row, on_conflict="id").execute()
+                    res = supabase_client.table(PROFILE_SUPABASE_TABLE).upsert(row).execute()
                 else:
                     res = supabase_client.table(PROFILE_SUPABASE_TABLE).insert(row).execute()
                 err = getattr(res, "error", None)

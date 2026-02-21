@@ -115,7 +115,7 @@ def _save_to_supabase(df: pd.DataFrame, kind: str, profile_table: str, url: str,
 
         for row in clean_df.to_dict(orient="records"):
             if row.get("profile_id"):
-                client.table(profile_table).upsert(row, on_conflict="profile_id").execute()
+                client.table(profile_table).upsert(row).execute()
             else:
                 client.table(profile_table).insert(row).execute()
 
