@@ -41,6 +41,15 @@ def _inject_css() -> None:
           width: 100%;
         }
 
+        .login-card {
+          width: 100%;
+          background: #ffffff;
+          border-radius: 20px;
+          padding: 34px 28px;
+          box-shadow: 0 20px 50px rgba(80, 62, 180, 0.16);
+          border: 1px solid rgba(108, 92, 231, 0.12);
+        }
+
         .login-title {
           font-size: 28px;
           font-weight: 800;
@@ -166,6 +175,11 @@ def _inject_css() -> None:
           .main .block-container {
             padding: 16px !important;
           }
+
+          .login-card {
+            padding: 24px 18px;
+            border-radius: 16px;
+          }
         }
         </style>
         """,
@@ -180,7 +194,7 @@ def render() -> None:
 
     _inject_css()
 
-    st.markdown('<div class="login-panel">', unsafe_allow_html=True)
+    st.markdown('<div class="login-card"><div class="login-panel">', unsafe_allow_html=True)
     st.markdown('<div class="login-title">LOGIN</div>', unsafe_allow_html=True)
     st.markdown(
         '<p class="subtitle">Welcome back! Please sign in to continue.</p>',
@@ -208,7 +222,7 @@ def render() -> None:
     if st.button("Forgot Password?", key="forgot_password_link", type="tertiary"):
         st.session_state.show_reset_password = True
         st.rerun()
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div></div>", unsafe_allow_html=True)
 
     if st.button("Login Now", use_container_width=True, key="login_now_button", type="primary"):
         if not username or not password:
