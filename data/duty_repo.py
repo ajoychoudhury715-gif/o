@@ -62,6 +62,12 @@ def load_duties_master() -> pd.DataFrame:
             # Ensure proper column types for Streamlit data_editor compatibility
             if "duration_minutes" in df.columns:
                 df["duration_minutes"] = pd.to_numeric(df["duration_minutes"], errors="coerce").fillna(30).astype(int)
+            if "description" in df.columns:
+                df["description"] = df["description"].fillna("").astype(str)
+            if "name" in df.columns:
+                df["name"] = df["name"].fillna("").astype(str)
+            if "frequency" in df.columns:
+                df["frequency"] = df["frequency"].fillna("").astype(str)
             return df
     return load_sheet(EXCEL_DUTIES_MASTER_SHEET, DUTIES_MASTER_COLUMNS)
 
@@ -78,9 +84,16 @@ def load_duty_assignments() -> pd.DataFrame:
     if USE_SUPABASE:
         df = _sb_load(SUPABASE_DUTY_ASSIGNMENTS_TABLE)
         if not df.empty:
-            # Ensure boolean column is properly typed
+            # Ensure proper column types for Streamlit data_editor compatibility
             if "active" in df.columns:
-                df["active"] = df["active"].astype(bool)
+                # Handle various truthy/falsy values
+                df["active"] = df["active"].astype(str).str.lower().isin(['true', '1', 'yes']).astype(bool)
+            if "assistant" in df.columns:
+                df["assistant"] = df["assistant"].fillna("").astype(str)
+            if "duty_id" in df.columns:
+                df["duty_id"] = df["duty_id"].fillna("").astype(str)
+            if "duty_name" in df.columns:
+                df["duty_name"] = df["duty_name"].fillna("").astype(str)
             return df
     return load_sheet(EXCEL_DUTY_ASSIGNMENTS_SHEET, DUTY_ASSIGNMENTS_COLUMNS)
 
@@ -97,6 +110,13 @@ def load_duty_runs() -> pd.DataFrame:
     if USE_SUPABASE:
         df = _sb_load(SUPABASE_DUTY_RUNS_TABLE)
         if not df.empty:
+            # Ensure proper column types for consistency
+            text_cols = ["run_id", "id", "date", "assistant", "duty_id", "duty_name", "status", "op", "started_at", "due_at", "ended_at"]
+            for col in text_cols:
+                if col in df.columns:
+                    df[col] = df[col].fillna("").astype(str)
+            if "est_minutes" in df.columns:
+                df["est_minutes"] = pd.to_numeric(df["est_minutes"], errors="coerce").fillna(0).astype(int)
             return df
     return load_sheet(EXCEL_DUTY_RUNS_SHEET, DUTY_RUNS_COLUMNS)
 
