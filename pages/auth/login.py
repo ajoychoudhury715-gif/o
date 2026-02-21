@@ -131,6 +131,13 @@ def render() -> None:
     with col2:
         st.markdown('<div class="login-container">', unsafe_allow_html=True)
 
+        # Try to display logo, fallback to text
+        try:
+            st.image("assets/logo.png", use_container_width=True)
+            st.markdown("<br>", unsafe_allow_html=True)
+        except Exception:
+            pass
+
         # Title
         st.markdown('<div class="login-title">Welcome Back</div>', unsafe_allow_html=True)
         st.markdown('<div class="login-subtitle">Sign in to your account</div>', unsafe_allow_html=True)
