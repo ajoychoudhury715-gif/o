@@ -57,7 +57,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   background: linear-gradient(160deg, #1A1209 0%, #2E1F08 40%, #3D2A10 100%);
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
   padding: 60px 48px;
   position: relative;
@@ -105,7 +105,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   z-index: 1;
   animation: slideInLeft 0.8s ease-out;
   text-align: center;
-  margin-bottom: 80px;
+  margin-bottom: 40px;
 }
 
 @keyframes slideInLeft {
@@ -522,7 +522,7 @@ hr {
   .hero-content p { font-size: 13px; }
   .right-panel { padding: 36px 28px; width: 100%; min-height: auto; }
   .login-box { max-width: 100%; margin: 0 auto; }
-  .brand { gap: 8px; margin-bottom: 60px; }
+  .brand { gap: 8px; margin-bottom: 40px; }
   .brand-text h1 { font-size: 18px; }
   .brand-text p { font-size: 9px; }
   .left-footer { position: relative; margin-top: 40px; }
@@ -530,7 +530,7 @@ hr {
 
 @media (max-width: 600px) {
   .left-panel { padding: 20px 16px; justify-content: center; }
-  .brand { margin-bottom: 50px; }
+  .brand { margin-bottom: 30px; }
   .brand-text h1 { font-size: 16px; }
   .brand-text p { font-size: 8px; }
   .hero-eyebrow { font-size: 10px; }
