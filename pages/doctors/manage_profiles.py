@@ -86,21 +86,11 @@ def _render_doctor_card(row: dict, profile_id: str, edit_key: str) -> None:
     if reg:
         details += f"<div style='font-size:12px;color:#94a3b8;'>📋 Reg: {reg}</div>"
 
-    st.markdown(
-        f"""<div class="profile-card">
-          <div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">
-            <div style="min-width:0;flex:1;">
-              <div style="font-size:16px;font-weight:700;color:#1e293b;word-break:break-word;">🩺 {name}</div>
-              <div style="font-size:13px;color:#94a3b8;margin-top:2px;">
-                {spec} {("· " + dept) if dept else ""}
-              </div>
-              {details}
-            </div>
-            <span style="flex-shrink:0;background:{status_color}22;color:{status_color};padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;">{status_label}</span>
-          </div>
-        </div>""",
-        unsafe_allow_html=True,
-    )
+    # Build HTML on single line to avoid Streamlit markdown rendering issues
+    spec_dept = f"{spec} · {dept}" if spec and dept else (spec or dept)
+    html_content = f'<div class="profile-card" style="display:flex;justify-content:space-between;align-items:start;gap:8px;"><div style="min-width:0;flex:1;"><div style="font-size:16px;font-weight:700;color:#1e293b;word-break:break-word;">🩺 {name}</div><div style="font-size:13px;color:#94a3b8;margin-top:2px;">{spec_dept}</div>{details}</div><span style="flex-shrink:0;background:{status_color}22;color:{status_color};padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;">{status_label}</span></div>'
+
+    st.markdown(html_content, unsafe_allow_html=True)
     c1, c2 = st.columns(2)
     with c1:
         if st.button("✏️ Edit", key=f"edit_dr_btn_{profile_id}", use_container_width=True):

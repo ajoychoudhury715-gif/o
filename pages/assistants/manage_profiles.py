@@ -96,21 +96,10 @@ def _render_assistant_card(row: dict, profile_id: str, edit_key: str, df) -> Non
     if experience:
         details += f"<div style='font-size:12px;color:#94a3b8;'>⏳ {experience} yrs exp</div>"
 
-    st.markdown(
-        f"""<div class="profile-card">
-          <div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">
-            <div style="min-width:0;flex:1;">
-              <div style="font-size:16px;font-weight:700;color:#1e293b;word-break:break-word;">👤 {name}</div>
-              <div style="font-size:13px;color:#94a3b8;margin-top:2px;">
-                {role} {("· " + dept) if dept else ""}
-              </div>
-              {details}
-            </div>
-            <span style="flex-shrink:0;background:{status_color}22;color:{status_color};padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;">{status_label}</span>
-          </div>
-        </div>""",
-        unsafe_allow_html=True,
-    )
+    # Build HTML on single line to avoid Streamlit markdown rendering issues
+    role_dept = f"{role} · {dept}" if role and dept else (role or dept)
+    html_content = f'<div class="profile-card" style="display:flex;justify-content:space-between;align-items:start;gap:8px;"><div style="min-width:0;flex:1;"><div style="font-size:16px;font-weight:700;color:#1e293b;word-break:break-word;">👤 {name}</div><div style="font-size:13px;color:#94a3b8;margin-top:2px;">{role_dept}</div>{details}</div><span style="flex-shrink:0;background:{status_color}22;color:{status_color};padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;">{status_label}</span></div>'
+    st.markdown(html_content, unsafe_allow_html=True)
     c1, c2 = st.columns([1, 1])
     with c1:
         if st.button("✏️ Edit", key=f"edit_asst_btn_{profile_id}", use_container_width=True):
