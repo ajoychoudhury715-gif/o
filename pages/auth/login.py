@@ -243,11 +243,17 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   padding: 48px 60px;
   background: var(--cream);
   position: relative;
+  min-height: 100vh;
 }
 
 .login-box {
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
 .login-header {
@@ -506,16 +512,16 @@ hr {
   .left-panel { width: 45%; padding: 48px 40px; }
   .hero-content h2 { font-size: 40px; }
   .hero-content p { font-size: 13px; }
-  .right-panel { padding: 40px 48px; }
-  .login-box { max-width: 380px; }
+  .right-panel { padding: 40px 48px; min-height: 100vh; }
+  .login-box { max-width: 380px; margin: 0 auto; }
 }
 
 @media (max-width: 900px) {
   .left-panel { width: 100%; justify-content: center; padding: 40px 24px; }
   .hero-content h2 { font-size: 34px; }
   .hero-content p { font-size: 13px; }
-  .right-panel { padding: 36px 28px; width: 100%; }
-  .login-box { max-width: 100%; }
+  .right-panel { padding: 36px 28px; width: 100%; min-height: auto; }
+  .login-box { max-width: 100%; margin: 0 auto; }
   .brand { gap: 8px; margin-bottom: 60px; }
   .brand-text h1 { font-size: 18px; }
   .brand-text p { font-size: 9px; }
@@ -531,8 +537,8 @@ hr {
   .hero-content h2 { font-size: 28px; line-height: 1.2; }
   .hero-content p { font-size: 12px; }
   .left-footer { margin-top: 30px; position: relative; }
-  .right-panel { padding: 24px 16px; }
-  .login-box { max-width: 100%; padding: 0; }
+  .right-panel { padding: 24px 16px; min-height: auto; display: flex; align-items: center; justify-content: center; }
+  .login-box { width: 100%; max-width: 100%; padding: 0; margin: 0 auto; }
   .login-header { margin-bottom: 24px; }
   .login-header h3 { font-size: 28px; }
   .login-header p { font-size: 12px; }
