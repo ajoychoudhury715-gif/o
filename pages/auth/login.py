@@ -30,28 +30,17 @@ def render() -> None:
 
         /* Premium login container */
         .login-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 100px rgba(196, 165, 116, 0.1);
-            border-radius: 24px;
-            padding: 50px 60px;
+            background: transparent;
+            backdrop-filter: none;
+            border: none;
+            box-shadow: none;
+            border-radius: 0;
+            padding: 0;
             text-align: center;
-            max-width: 480px;
+            max-width: 400px;
             margin: 0 auto;
             position: relative;
-            overflow: hidden;
-        }
-
-        /* Gradient accent line */
-        .login-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #c4a574 0%, #d4b896 50%, #c4a574 100%);
+            overflow: visible;
         }
 
         /* Form group styling */
