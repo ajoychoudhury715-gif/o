@@ -18,6 +18,11 @@ def render_duty_master_editor(
         st.info("No duties defined yet.")
         duties_df = pd.DataFrame(columns=["duty_id", "name", "frequency", "duration_minutes", "description"])
 
+    # Ensure all string columns are proper string type for Streamlit
+    for col in ["duty_id", "name", "frequency", "description"]:
+        if col in duties_df.columns:
+            duties_df[col] = duties_df[col].fillna("").astype(str)
+
     edited = st.data_editor(
         duties_df,
         column_config={
@@ -62,6 +67,13 @@ def render_duty_assignments_editor(
         assignments_df = pd.DataFrame(
             columns=["assignment_id", "assistant", "duty_id", "duty_name", "active"]
         )
+
+    # Ensure proper types for Streamlit
+    for col in ["assignment_id", "assistant", "duty_id", "duty_name"]:
+        if col in assignments_df.columns:
+            assignments_df[col] = assignments_df[col].fillna("").astype(str)
+    if "active" in assignments_df.columns:
+        assignments_df["active"] = assignments_df["active"].astype(bool)
 
     edited = st.data_editor(
         assignments_df,

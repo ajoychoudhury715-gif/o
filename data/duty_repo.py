@@ -59,16 +59,21 @@ def load_duties_master() -> pd.DataFrame:
     if USE_SUPABASE:
         df = _sb_load(SUPABASE_DUTIES_MASTER_TABLE)
         if not df.empty:
-            # Rebuild dataframe with proper dtypes to fix Streamlit compatibility
+            # Rebuild dataframe with explicit dtypes
             data_dict = {}
+            dtype_dict = {}
             for col in df.columns:
                 if col in ["description", "name", "frequency", "duty_id"]:
                     data_dict[col] = df[col].fillna("").astype(str).tolist()
+                    dtype_dict[col] = str
                 elif col == "duration_minutes":
                     data_dict[col] = pd.to_numeric(df[col], errors="coerce").fillna(30).astype(int).tolist()
+                    dtype_dict[col] = int
                 else:
                     data_dict[col] = df[col].fillna("").astype(str).tolist()
-            return pd.DataFrame(data_dict)
+                    dtype_dict[col] = str
+            df = pd.DataFrame(data_dict).astype(dtype_dict)
+            return df
     return load_sheet(EXCEL_DUTIES_MASTER_SHEET, DUTIES_MASTER_COLUMNS)
 
 
