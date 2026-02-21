@@ -224,18 +224,6 @@ def _inject_css() -> None:
           text-align: center;
         }
 
-        .avatar-placeholder {
-          width: 200px;
-          height: 240px;
-          background: transparent;
-          border-radius: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin: 0 auto;
-          font-size: 70px;
-        }
-
         .badge {
           width: 46px;
           height: 46px;
@@ -348,7 +336,6 @@ def render() -> None:
             """
             <div class="right-panel">
               <div class="right-card">
-                <div class="avatar-placeholder">👩‍💼</div>
               </div>
               <div class="badge">⚡</div>
               <p class="tagline">Your journey starts here. <span>✦</span></p>
