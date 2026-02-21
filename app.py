@@ -129,14 +129,16 @@ def _route() -> None:
 
     # Admin/Settings pages
     elif category == "Admin/Settings":
-        if current_view == "Storage & Backup":
+        if current_view == "User Management":
+            from pages.admin.user_management import render
+        elif current_view == "Storage & Backup":
             from pages.admin.storage_backup import render
         elif current_view == "Notifications":
             from pages.admin.notifications import render
         elif current_view == "Duties Manager":
             from pages.admin.duties_manager import render
         else:
-            from pages.admin.storage_backup import render
+            from pages.admin.user_management import render
 
     else:
         from pages.scheduling.full_schedule import render

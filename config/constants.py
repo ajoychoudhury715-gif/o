@@ -90,7 +90,7 @@ NAV_STRUCTURE = {
     "Scheduling":     ["Full Schedule", "Schedule by OP", "Ongoing", "Upcoming"],
     "Assistants":     ["Manage Profiles", "Availability", "Auto-Allocation", "Workload", "Attendance"],
     "Doctors":        ["Manage Profiles", "Overview", "Summary", "Per-Doctor Schedule"],
-    "Admin/Settings": ["Storage & Backup", "Notifications", "Duties Manager"],
+    "Admin/Settings": ["User Management", "Storage & Backup", "Notifications", "Duties Manager"],
 }
 
 # ── Role-based navigation ─────────────────────────────────────────────────────
