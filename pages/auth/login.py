@@ -4,7 +4,7 @@
 import streamlit as st
 from data.auth_repo import authenticate
 
-# Apply premium styling
+# Apply styling
 st.set_page_config(
     page_title="Login | THE DENTAL BOND",
     page_icon="🦷",
@@ -12,142 +12,159 @@ st.set_page_config(
 )
 
 def render() -> None:
-    """Render the premium login page."""
-    # Premium CSS styling
+    """Render the professional login page."""
+    # Clean, minimal styling
     st.markdown("""
         <style>
-        /* Main background gradient */
+        /* Main background */
         .main {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            background: #ffffff;
         }
 
-        /* Login container styling */
+        .block-container {
+            padding-top: 60px;
+            padding-bottom: 60px;
+        }
+
+        /* Login container */
         .login-container {
-            background: transparent;
+            background: white;
             padding: 60px 40px;
+            text-align: center;
+            max-width: 500px;
+            margin: 0 auto;
         }
 
-        /* Logo styling */
-        .logo-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 40px;
-        }
-
-        .logo-container img {
-            max-width: 200px;
-            height: auto;
-            filter: drop-shadow(0 4px 12px rgba(37, 99, 235, 0.1));
+        /* Tooth icon */
+        .tooth-icon {
+            font-size: 80px;
+            margin-bottom: 24px;
+            display: block;
         }
 
         /* Title styling */
         .login-title {
             text-align: center;
-            font-size: 28px;
+            font-size: 32px;
             font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 8px;
-            letter-spacing: -0.5px;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+            font-family: Georgia, serif;
         }
 
         .login-subtitle {
             text-align: center;
-            font-size: 14px;
-            color: #64748b;
-            margin-bottom: 32px;
-            font-weight: 500;
+            font-size: 13px;
+            color: #666666;
+            margin-bottom: 40px;
+            font-weight: 400;
+            letter-spacing: 0.5px;
         }
 
         /* Input fields styling */
         .stTextInput > div > div > input {
-            border-radius: 12px;
-            border: 2px solid #e2e8f0;
-            padding: 12px 16px;
-            font-size: 15px;
-            transition: all 0.3s ease;
+            border-radius: 4px;
+            border: 1px solid #d0d0d0;
+            padding: 12px 14px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            background: #ffffff;
         }
 
         .stTextInput > div > div > input:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-
-        /* Button styling */
-        .stButton > button {
-            border-radius: 12px;
-            padding: 14px 24px;
-            font-size: 16px;
-            font-weight: 600;
-            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
-            border: none;
-            color: white;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
-            height: auto;
-        }
-
-        .stButton > button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 24px rgba(37, 99, 235, 0.4);
-        }
-
-        .stButton > button:active {
-            transform: translateY(0);
-        }
-
-        /* Error message styling */
-        .stAlert {
-            border-radius: 12px;
-            border-left: 4px solid #ef4444;
-        }
-
-        /* Success message styling */
-        .stSuccess {
-            border-radius: 12px;
-            border-left: 4px solid #10b981;
-        }
-
-        /* Divider styling */
-        hr {
-            margin: 24px 0;
-            border: none;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+            border-color: #999999;
+            box-shadow: none;
         }
 
         /* Label styling */
         .stTextInput > label {
-            font-weight: 600;
-            color: #1e293b;
+            font-weight: 400;
+            color: #333333;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        /* Button styling */
+        .stButton > button {
+            border-radius: 4px;
+            padding: 11px 32px;
             font-size: 14px;
-            margin-bottom: 8px;
+            font-weight: 600;
+            background: #c4a574;
+            border: none;
+            color: white;
+            transition: all 0.2s ease;
+            box-shadow: none;
+            height: auto;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .stButton > button:hover {
+            background: #b89460;
+            box-shadow: none;
+        }
+
+        .stButton > button:active {
+            background: #a88450;
+        }
+
+        /* Links styling */
+        .login-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .login-links a {
+            color: #666666;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .login-links a:hover {
+            text-decoration: underline;
+            color: #333333;
+        }
+
+        /* Error/Success styling */
+        .stAlert {
+            border-radius: 4px;
+            border-left: 4px solid #ef4444;
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
+
+        .stSuccess {
+            border-radius: 4px;
+            border-left: 4px solid #10b981;
+            font-size: 13px;
         }
         </style>
     """, unsafe_allow_html=True)
 
     # Center the login form
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([1, 2.5, 1])
 
     with col2:
         st.markdown('<div class="login-container">', unsafe_allow_html=True)
 
+        # Tooth icon
+        st.markdown('<span class="tooth-icon">🦷</span>', unsafe_allow_html=True)
+
         # Title
-        st.markdown('<div class="login-title">Welcome Back</div>', unsafe_allow_html=True)
-        st.markdown('<div class="login-subtitle">Sign in to your account</div>', unsafe_allow_html=True)
+        st.markdown('<div class="login-title">THE DENTAL BOND</div>', unsafe_allow_html=True)
+        st.markdown('<div class="login-subtitle">Implant & Micro-dentistry</div>', unsafe_allow_html=True)
 
         # Form
-        username = st.text_input("Username", key="login_username", placeholder="Enter your username")
-        password = st.text_input("Password", type="password", key="login_password", placeholder="Enter your password")
+        username = st.text_input("Username", key="login_username", placeholder="Username")
+        password = st.text_input("Password", type="password", key="login_password", placeholder="Password")
 
-        # Forgot password link
-        col_forgot, _ = st.columns([1, 2])
-        with col_forgot:
-            if st.button("🔑 Forgot Password?", width='stretch', type="secondary", key="btn_forgot"):
-                st.session_state.show_reset_password = True
+        st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
 
-        st.markdown("<br>", unsafe_allow_html=True)
-
-        if st.button("Sign In", width='stretch', type="primary"):
+        if st.button("LOG IN", width='stretch', type="primary"):
             if not username or not password:
                 st.error("Please enter both username and password")
             else:
@@ -159,6 +176,14 @@ def render() -> None:
                     st.balloons()
                     st.rerun()
                 else:
-                    st.error("❌ Invalid credentials. Please try again.")
+                    st.error("Invalid username or password")
+
+        # Links
+        st.markdown("""
+            <div class="login-links">
+                <a href="#">Forget Username/Password?</a>
+                <a href="#">Create Account</a>
+            </div>
+        """, unsafe_allow_html=True)
 
         st.markdown('</div>', unsafe_allow_html=True)
