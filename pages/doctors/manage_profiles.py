@@ -79,6 +79,13 @@ def _render_doctor_card(row: dict, profile_id: str, edit_key: str) -> None:
     status_color = "#22c55e" if active else "#ef4444"
     status_label = "Active" if active else "Inactive"
 
+    # Build optional detail rows
+    details = ""
+    if phone:
+        details += f"<div style='font-size:12px;color:#94a3b8;'>📱 {phone}</div>"
+    if reg:
+        details += f"<div style='font-size:12px;color:#94a3b8;'>📋 Reg: {reg}</div>"
+
     st.markdown(
         f"""<div class="profile-card">
           <div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">
@@ -87,8 +94,7 @@ def _render_doctor_card(row: dict, profile_id: str, edit_key: str) -> None:
               <div style="font-size:13px;color:#94a3b8;margin-top:2px;">
                 {spec} {("· " + dept) if dept else ""}
               </div>
-              {("<div style='font-size:12px;color:#94a3b8;'>📱 " + phone + "</div>") if phone else ""}
-              {("<div style='font-size:12px;color:#94a3b8;'>📋 Reg: " + reg + "</div>") if reg else ""}
+              {details}
             </div>
             <span style="flex-shrink:0;background:{status_color}22;color:{status_color};padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;">{status_label}</span>
           </div>
