@@ -508,7 +508,7 @@ LEFT_PANEL = """
   </div>
 
   <div class="hero-content">
-    <div class="hero-eyebrow">Schedule Management</div>
+    <div class="hero-eyebrow">Operations Management</div>
     <h2>Your clinic,<br/>perfectly <span>organised</span></h2>
     <p>Streamline appointments, manage your team's calendar, and deliver seamless patient care — all in one place.</p>
   </div>
