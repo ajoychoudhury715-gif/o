@@ -1,0 +1,8 @@
+{
+  "global": {
+    "cross_department_fallback": false,
+    "use_profile_role_flags": false,
+    "load_balance": false
+  },
+  "departments": {}
+}
