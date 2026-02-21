@@ -16,11 +16,18 @@ from data.excel_ops import load_sheet, save_sheet
 
 def _get_client():
     if not USE_SUPABASE:
+        print("[PUNCH DEBUG] Supabase disabled (USE_SUPABASE=False)")
         return None
     url, key, *_ = get_supabase_config()
     if not url or not key:
+        print("[PUNCH DEBUG] Supabase config missing (url or key)")
         return None
-    return get_supabase_client(url, key)
+    client = get_supabase_client(url, key)
+    if client:
+        print("[PUNCH DEBUG] Supabase client created successfully")
+    else:
+        print("[PUNCH DEBUG] Failed to create Supabase client")
+    return client
 
 
 @st.cache_data(ttl=30)
@@ -28,16 +35,24 @@ def load_attendance() -> pd.DataFrame:
     client = _get_client()
     if client:
         try:
+            print(f"[LOAD ATTENDANCE DEBUG] Querying Supabase table '{SUPABASE_ATTENDANCE_TABLE}'")
             resp = client.table(SUPABASE_ATTENDANCE_TABLE).select("*").execute()
             data = resp.data or []
+            print(f"[LOAD ATTENDANCE DEBUG] Got {len(data)} records from Supabase")
+            if data:
+                print(f"[LOAD ATTENDANCE DEBUG] Sample record: {data[0]}")
             df = pd.DataFrame(data)
             if not df.empty:
+                print(f"[LOAD ATTENDANCE DEBUG] DataFrame shape: {df.shape}, columns: {list(df.columns)}")
                 for col in ATTENDANCE_COLUMNS:
                     if col not in df.columns:
                         df[col] = ""
                 return df
-        except Exception:
-            pass
+            else:
+                print(f"[LOAD ATTENDANCE DEBUG] DataFrame is empty")
+                return df
+        except Exception as e:
+            print(f"[LOAD ATTENDANCE ERROR] Supabase query failed: {type(e).__name__}: {str(e)}")
     return load_sheet(EXCEL_ATTENDANCE_SHEET, ATTENDANCE_COLUMNS)
 
 
@@ -46,7 +61,10 @@ def get_today_punch_map(date_str: str) -> dict[str, dict[str, str]]:
     df = load_attendance()
     result: dict[str, dict[str, str]] = {}
     if df.empty:
+        print(f"[PUNCH MAP DEBUG] DataFrame empty, returning no punch records")
         return result
+
+    print(f"[PUNCH MAP DEBUG] DataFrame shape: {df.shape}, columns: {list(df.columns)}")
 
     # Normalize column names for Supabase (lowercase) vs Excel (uppercase)
     col_map = {}
@@ -69,12 +87,16 @@ def get_today_punch_map(date_str: str) -> dict[str, dict[str, str]]:
     if not pout_col:
         pout_col = "PUNCH OUT" if "PUNCH OUT" in df.columns else ("punch_out" if "punch_out" in df.columns else None)
 
+    print(f"[PUNCH MAP DEBUG] Resolved columns: date={date_col}, asst={asst_col}, pin={pin_col}, pout={pout_col}")
+
     # If essential columns missing, return empty
     if not date_col or not asst_col:
+        print(f"[PUNCH MAP ERROR] Missing essential columns!")
         return result
 
     # Filter by date
     mask = df[date_col].astype(str).str.strip() == date_str
+    print(f"[PUNCH MAP DEBUG] Found {mask.sum()} records for date {date_str}")
     for _, row in df[mask].iterrows():
         name = str(row.get(asst_col, "")).strip().upper()
         if name:
@@ -84,6 +106,7 @@ def get_today_punch_map(date_str: str) -> dict[str, dict[str, str]]:
                 "punch_in": pin,
                 "punch_out": pout,
             }
+            print(f"[PUNCH MAP DEBUG] Added {name}: punch_in={pin}, punch_out={pout}")
     return result
 
 
@@ -95,34 +118,33 @@ def punch_in(date_str: str, assistant: str, time_str: str) -> bool:
     client = _get_client()
     if client:
         try:
-            # Check if record exists (try both uppercase and lowercase to be safe)
+            # Check if record exists
             resp = client.table(SUPABASE_ATTENDANCE_TABLE).select("id").eq("date", date_str).eq("assistant", assistant_norm).limit(1).execute()
             existing = resp.data or []
+            print(f"[PUNCH IN DEBUG] Supabase query for existing record: date={date_str}, assistant={assistant_norm}, found={len(existing)} records")
 
             if existing:
-                client.table(SUPABASE_ATTENDANCE_TABLE).update({"punch_in": time_str}).eq("date", date_str).eq("assistant", assistant_norm).execute()
+                print(f"[PUNCH IN DEBUG] Updating existing record")
+                result = client.table(SUPABASE_ATTENDANCE_TABLE).update({"punch_in": time_str}).eq("date", date_str).eq("assistant", assistant_norm).execute()
+                print(f"[PUNCH IN DEBUG] Update response: {result}")
             else:
-                client.table(SUPABASE_ATTENDANCE_TABLE).insert({
+                print(f"[PUNCH IN DEBUG] Inserting new record")
+                result = client.table(SUPABASE_ATTENDANCE_TABLE).insert({
                     "date": date_str, "assistant": assistant_norm,
                     "punch_in": time_str, "punch_out": None,
                 }).execute()
+                print(f"[PUNCH IN DEBUG] Insert response: {result}")
             load_attendance.clear()  # Clear cache after successful punch
+            st.success(f"✅ {assistant_norm} punched in at {time_str}")
             return True
         except Exception as e:
-            st.warning(f"Supabase punch in failed: {str(e)[:100]}. Using Excel backup.")
+            print(f"[PUNCH IN ERROR] Supabase failed: {type(e).__name__}: {str(e)}")
+            st.error(f"❌ Supabase punch in failed: {str(e)}")
+            return False
 
-    # Excel fallback
-    df = load_sheet(EXCEL_ATTENDANCE_SHEET, ATTENDANCE_COLUMNS)
-    mask = (df["DATE"].astype(str) == date_str) & (df["ASSISTANT"].astype(str).str.upper() == assistant_norm)
-    if mask.any():
-        df.loc[mask, "PUNCH IN"] = time_str
-    else:
-        new_row = pd.DataFrame([{"DATE": date_str, "ASSISTANT": assistant_norm, "PUNCH IN": time_str, "PUNCH OUT": ""}])
-        df = pd.concat([df, new_row], ignore_index=True)
-    ok = save_sheet(df, EXCEL_ATTENDANCE_SHEET)
-    if ok:
-        load_attendance.clear()  # Clear cache after successful save
-    return ok
+    print(f"[PUNCH IN DEBUG] No Supabase client available, not attempting Excel fallback (file doesn't exist)")
+    st.error("❌ Supabase not configured and Excel backup not available")
+    return False
 
 
 def punch_out(date_str: str, assistant: str, time_str: str) -> bool:
@@ -133,22 +155,22 @@ def punch_out(date_str: str, assistant: str, time_str: str) -> bool:
     client = _get_client()
     if client:
         try:
-            client.table(SUPABASE_ATTENDANCE_TABLE).update({"punch_out": time_str}).eq("date", date_str).eq("assistant", assistant_norm).execute()
+            print(f"[PUNCH OUT DEBUG] Updating punch_out for date={date_str}, assistant={assistant_norm}, time={time_str}")
+            result = client.table(SUPABASE_ATTENDANCE_TABLE).update({"punch_out": time_str}).eq("date", date_str).eq("assistant", assistant_norm).execute()
+            print(f"[PUNCH OUT DEBUG] Update response: {result}")
+            # Verify the update actually happened
+            if hasattr(result, 'data') and result.data:
+                print(f"[PUNCH OUT DEBUG] Update successful, {len(result.data)} rows updated")
             load_attendance.clear()  # Clear cache after successful punch
+            st.success(f"✅ {assistant_norm} punched out at {time_str}")
             return True
         except Exception as e:
-            st.warning(f"Supabase punch out failed: {str(e)[:100]}. Using Excel backup.")
+            print(f"[PUNCH OUT ERROR] Supabase failed: {type(e).__name__}: {str(e)}")
+            st.error(f"❌ Supabase punch out failed: {str(e)}")
+            return False
 
-    # Excel fallback
-    df = load_sheet(EXCEL_ATTENDANCE_SHEET, ATTENDANCE_COLUMNS)
-    mask = (df["DATE"].astype(str) == date_str) & (df["ASSISTANT"].astype(str).str.upper() == assistant_norm)
-    if mask.any():
-        df.loc[mask, "PUNCH OUT"] = time_str
-        ok = save_sheet(df, EXCEL_ATTENDANCE_SHEET)
-        if ok:
-            load_attendance.clear()  # Clear cache after successful save
-        return ok
-    st.error(f"❌ No punch in record found for {assistant} on {date_str}")
+    print(f"[PUNCH OUT DEBUG] No Supabase client available")
+    st.error("❌ Supabase not configured")
     return False  # No matching record found
 
 
