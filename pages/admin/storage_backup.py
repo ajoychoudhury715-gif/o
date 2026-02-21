@@ -47,7 +47,7 @@ key = "your-supabase-key"
             return
 
         # Try to ping a table
-        resp = client.table("profiles").select("id").limit(1).execute()
+        resp = client.table("profiles").select("profile_id").limit(1).execute()
         st.success("✅ **Supabase connected** — All systems operational")
     except Exception as e:
         st.error(f"❌ **Supabase connection error** — {str(e)[:150]}")
