@@ -19,23 +19,38 @@ def _render_supabase_status() -> None:
         st.info("⚙️ Supabase disabled (Excel-only mode)")
         return
 
-    url, key, _, _, _ = get_supabase_config()
+    try:
+        url, key, _, _, _ = get_supabase_config()
+    except Exception as e:
+        st.error(f"❌ **Error reading config** — {str(e)[:100]}")
+        return
+
     if not url or not key:
-        st.error("❌ **Supabase not configured** — Missing credentials in secrets")
+        # Provide more debugging info
+        has_url = bool(url)
+        has_key = bool(key)
+        debug_info = f"(url={has_url}, key={has_key})"
+        st.error(f"❌ **Supabase not configured** — Missing credentials in secrets {debug_info}")
+        with st.expander("Debug info"):
+            st.write("Ensure `.streamlit/secrets.toml` has:")
+            st.code("""[supabase]
+url = "your-supabase-url"
+key = "your-supabase-key"
+""")
         return
 
     # Test connection
-    client = get_supabase_client(url, key)
-    if client is None:
-        st.error("❌ **Supabase connection failed** — Could not create client")
-        return
-
-    # Try to ping a table
     try:
+        client = get_supabase_client(url, key)
+        if client is None:
+            st.error("❌ **Supabase connection failed** — Could not create client")
+            return
+
+        # Try to ping a table
         resp = client.table("profiles").select("id").limit(1).execute()
         st.success("✅ **Supabase connected** — All systems operational")
     except Exception as e:
-        st.error(f"❌ **Supabase connection error** — {str(e)[:100]}")
+        st.error(f"❌ **Supabase connection error** — {str(e)[:150]}")
 
 
 def render() -> None:
