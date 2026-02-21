@@ -8,7 +8,7 @@ from data.auth_repo import authenticate
 st.set_page_config(
     page_title="The Dental Bond – Schedule Management",
     page_icon="🦷",
-    layout="centered",
+    layout="wide",
     initial_sidebar_state="collapsed",
 )
 
@@ -53,7 +53,8 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 
 /* ── LEFT PANEL ── */
 .left-panel {
-  width: 48%;
+  width: 100%;
+  min-height: 100vh;
   background: linear-gradient(160deg, #1A1209 0%, #2E1F08 40%, #3D2A10 100%);
   display: flex;
   flex-direction: column;
@@ -61,6 +62,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   padding: 56px 60px;
   position: relative;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .left-panel::before {
@@ -227,13 +229,14 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 
 /* ── RIGHT PANEL ── */
 .right-panel {
-  flex: 1;
+  width: 100%;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 48px 60px;
   background: var(--cream);
-  position: relative;
+  box-sizing: border-box;
 }
 
 .login-box {
@@ -544,24 +547,24 @@ def render() -> None:
 
     with col_right:
         st.markdown("""
-            <svg class="dots-deco" width="100" height="100" viewBox="0 0 100 100">
-                <circle cx="10" cy="10" r="3" fill="#C9A96E"/><circle cx="30" cy="10" r="3" fill="#C9A96E"/>
-                <circle cx="50" cy="10" r="3" fill="#C9A96E"/><circle cx="70" cy="10" r="3" fill="#C9A96E"/>
-                <circle cx="10" cy="30" r="3" fill="#C9A96E"/><circle cx="30" cy="30" r="3" fill="#C9A96E"/>
-                <circle cx="50" cy="30" r="3" fill="#C9A96E"/><circle cx="70" cy="30" r="3" fill="#C9A96E"/>
-                <circle cx="10" cy="50" r="3" fill="#C9A96E"/><circle cx="30" cy="50" r="3" fill="#C9A96E"/>
-                <circle cx="50" cy="50" r="3" fill="#C9A96E"/><circle cx="70" cy="50" r="3" fill="#C9A96E"/>
-                <circle cx="10" cy="70" r="3" fill="#C9A96E"/><circle cx="30" cy="70" r="3" fill="#C9A96E"/>
-                <circle cx="50" cy="70" r="3" fill="#C9A96E"/><circle cx="70" cy="70" r="3" fill="#C9A96E"/>
-            </svg>
-        """, unsafe_allow_html=True)
+            <div class="right-panel">
+                <div class="login-box">
+                    <svg class="dots-deco" width="100" height="100" viewBox="0 0 100 100">
+                        <circle cx="10" cy="10" r="3" fill="#C9A96E"/><circle cx="30" cy="10" r="3" fill="#C9A96E"/>
+                        <circle cx="50" cy="10" r="3" fill="#C9A96E"/><circle cx="70" cy="10" r="3" fill="#C9A96E"/>
+                        <circle cx="10" cy="30" r="3" fill="#C9A96E"/><circle cx="30" cy="30" r="3" fill="#C9A96E"/>
+                        <circle cx="50" cy="30" r="3" fill="#C9A96E"/><circle cx="70" cy="30" r="3" fill="#C9A96E"/>
+                        <circle cx="10" cy="50" r="3" fill="#C9A96E"/><circle cx="30" cy="50" r="3" fill="#C9A96E"/>
+                        <circle cx="50" cy="50" r="3" fill="#C9A96E"/><circle cx="70" cy="50" r="3" fill="#C9A96E"/>
+                        <circle cx="10" cy="70" r="3" fill="#C9A96E"/><circle cx="30" cy="70" r="3" fill="#C9A96E"/>
+                        <circle cx="50" cy="70" r="3" fill="#C9A96E"/><circle cx="70" cy="70" r="3" fill="#C9A96E"/>
+                    </svg>
 
-        st.markdown("""
-            <div class="login-header">
-                <div class="welcome">Welcome Back</div>
-                <h3>Sign In</h3>
-                <p>Access your dental practice management dashboard</p>
-            </div>
+                    <div class="login-header">
+                        <div class="welcome">Welcome Back</div>
+                        <h3>Sign In</h3>
+                        <p>Access your dental practice management dashboard</p>
+                    </div>
         """, unsafe_allow_html=True)
 
         # Role selector
@@ -631,6 +634,7 @@ def render() -> None:
             "<div class='login-footer'>"
             "<p>Need access? <a href='#'>Contact your admin</a></p>"
             "<p style='font-size:11px;color:#BFB8AE;margin:0;'>v2.4.1</p>"
-            "</div>",
+            "</div>"
+            "</div></div>",
             unsafe_allow_html=True,
         )
