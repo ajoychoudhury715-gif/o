@@ -215,8 +215,10 @@ def render_edit_row_form(
             in_mins = in_time.hour * 60 + in_time.minute
             out_mins = out_time_val.hour * 60 + out_time_val.minute
             initial_duration = (out_mins - in_mins) if out_mins >= in_mins else ((24 * 60) + out_mins - in_mins)
+            # Cap duration at max value of 480
+            initial_duration = min(max(1, initial_duration), 480)
 
-            duration_mins = st.number_input("Duration (minutes)", min_value=1, max_value=480, value=max(1, initial_duration))
+            duration_mins = st.number_input("Duration (minutes)", min_value=1, max_value=480, value=initial_duration)
 
             # Calculate out_time based on in_time + duration
             calculated_out = (in_mins + duration_mins) % (24 * 60)
