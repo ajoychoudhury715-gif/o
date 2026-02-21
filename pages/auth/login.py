@@ -400,11 +400,27 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   color: var(--gold);
 }
 
+/* ── Form decorative icons ── */
+.form-group label::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  background: var(--gold);
+  border-radius: 50%;
+  margin-right: 8px;
+  opacity: 0.6;
+}
+
 /* ── Streamlit overrides ── */
 [data-testid="stForm"] {
   background: transparent !important;
   border: none !important;
   padding: 0 !important;
+}
+
+[data-testid="stTextInput"] {
+  position: relative !important;
 }
 
 [data-testid="stTextInput"] input,
@@ -417,6 +433,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   color: var(--dark) !important;
   padding: 12px 16px !important;
   transition: all 0.2s !important;
+  padding-left: 40px !important;
 }
 
 [data-testid="stTextInput"] input::placeholder {
@@ -492,6 +509,26 @@ hr {
   font-family: 'Inter', sans-serif !important;
 }
 
+/* ── Secondary button (Google) ── */
+[data-testid="stButton"] button[kind="secondary"] {
+  border: 1.5px solid var(--border) !important;
+  background: var(--white) !important;
+  color: var(--dark) !important;
+  padding: 12px 14px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s !important;
+}
+
+[data-testid="stButton"] button[kind="secondary"]:hover {
+  border-color: var(--gold-light) !important;
+  background: rgba(201,169,110,0.05) !important;
+}
+
+[data-testid="stButton"] button[kind="secondary"]:active {
+  transform: translateY(1px) !important;
+}
+
 @media (max-width: 900px) {
   .left-panel { width: 100%; min-height: 280px; padding: 36px 32px; }
   .hero-content h2 { font-size: 34px; }
@@ -505,7 +542,7 @@ hr {
 if "login_error" not in st.session_state:
     st.session_state.login_error = False
 if "login_role" not in st.session_state:
-    st.session_state.login_role = "assistant"
+    st.session_state.login_role = "admin"
 
 # ── Left panel HTML ────────────────────────────────────────────────────────────
 LEFT_PANEL = """
@@ -578,13 +615,13 @@ def render() -> None:
 
         role_col1, role_col2, role_col3 = st.columns(3, gap="small")
         with role_col1:
-            if st.button("Admin", key="role_admin", use_container_width=True):
+            if st.button("Doctor", key="role_doctor", use_container_width=True):
                 st.session_state.login_role = "admin"
         with role_col2:
-            if st.button("Frontdesk", key="role_frontdesk", use_container_width=True):
+            if st.button("Receptionist", key="role_receptionist", use_container_width=True):
                 st.session_state.login_role = "frontdesk"
         with role_col3:
-            if st.button("Assistant", key="role_assistant", use_container_width=True):
+            if st.button("Admin", key="role_admin", use_container_width=True):
                 st.session_state.login_role = "assistant"
 
         # Error alert
@@ -632,8 +669,13 @@ def render() -> None:
         # Divider
         st.markdown('<div class="divider">or continue with</div>', unsafe_allow_html=True)
 
-        # Google button
-        st.button("🔵 Continue with Google", key="google_btn", use_container_width=True)
+        # Google button with styling
+        col_google, _ = st.columns([1, 0.1])
+        with col_google:
+            st.markdown(
+                "<button style='width:100%;padding:12px;border:1.5px solid #E2D9CA;border-radius:8px;background:#fff;cursor:pointer;font-size:13px;font-family:\"Inter\",sans-serif;font-weight:500;color:#1A1A1A;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s;'>Continue with Google</button>",
+                unsafe_allow_html=True,
+            )
 
         # Footer
         st.markdown(
