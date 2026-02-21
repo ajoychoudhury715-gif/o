@@ -19,14 +19,17 @@ def _inject_css() -> None:
 
         html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
           background: #e8e6f5;
-          min-height: 100vh;
+          height: 100vh;
           font-family: 'Segoe UI', sans-serif;
+          overflow: hidden !important;
         }
 
         .block-container {
           padding-top: 0 !important;
-          padding-bottom: 20px !important;
+          padding-bottom: 0 !important;
           max-width: 940px !important;
+          height: 100vh !important;
+          overflow: hidden !important;
         }
 
         .login-card {
