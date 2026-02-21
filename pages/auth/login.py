@@ -133,7 +133,7 @@ def render() -> None:
 
         # Try to display logo, fallback to text
         try:
-            st.image("assets/logo.png", width='stretch')
+            st.image("assets/logo.svg", width='stretch')
             st.markdown("<br>", unsafe_allow_html=True)
         except Exception:
             pass

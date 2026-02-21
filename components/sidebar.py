@@ -26,7 +26,7 @@ def _render_header() -> None:
     now = now_ist()
     # Display logo if it exists
     try:
-        st.image("assets/logo.png", width='stretch')
+        st.image("assets/logo.svg", width='stretch')
     except Exception:
         st.markdown(
             '<div class="sidebar-title">🦷 THE DENTAL BOND</div>',

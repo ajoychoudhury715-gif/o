@@ -1,0 +1,64 @@
+<svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="toothGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e8f4fd;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d0e8fb;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="highlightGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.6" />
+      <stop offset="50%" style="stop-color:#ffffff;stop-opacity:0.2" />
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0" />
+    </linearGradient>
+    <filter id="shadowFilter">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-opacity="0.15" />
+    </filter>
+    <filter id="glowFilter">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background circle glow -->
+  <circle cx="100" cy="100" r="95" fill="none" stroke="#2563eb" stroke-width="1" opacity="0.1"/>
+
+  <!-- Main tooth shape with premium look -->
+  <g filter="url(#shadowFilter)">
+    <!-- Tooth body -->
+    <path d="M 80 40 Q 75 60, 75 100 Q 75 140, 85 160 L 115 160 Q 125 140, 125 100 Q 125 60, 120 40 Q 120 30, 110 25 L 90 25 Q 80 30, 80 40 Z"
+          fill="url(#toothGradient)" stroke="#2563eb" stroke-width="1.5"/>
+
+    <!-- Highlight on tooth (3D effect) -->
+    <path d="M 88 40 Q 87 65, 87 95 Q 87 120, 92 150 L 100 150 Q 95 125, 95 95 Q 95 60, 95 40 Z"
+          fill="url(#highlightGradient)" opacity="0.8"/>
+
+    <!-- Gum line -->
+    <ellipse cx="100" cy="160" rx="17" ry="8" fill="#ef4444" opacity="0.15"/>
+
+    <!-- Root lines for detail -->
+    <line x1="90" y1="160" x2="88" y2="175" stroke="#2563eb" stroke-width="0.8" opacity="0.3"/>
+    <line x1="100" y1="160" x2="100" y2="175" stroke="#2563eb" stroke-width="0.8" opacity="0.3"/>
+    <line x1="110" y1="160" x2="112" y2="175" stroke="#2563eb" stroke-width="0.8" opacity="0.3"/>
+  </g>
+
+  <!-- Decorative circles representing care/protection -->
+  <g opacity="0.4" filter="url(#glowFilter)">
+    <circle cx="60" cy="75" r="3" fill="#3b82f6"/>
+    <circle cx="140" cy="75" r="3" fill="#3b82f6"/>
+    <circle cx="55" cy="120" r="2.5" fill="#3b82f6" opacity="0.6"/>
+    <circle cx="145" cy="120" r="2.5" fill="#3b82f6" opacity="0.6"/>
+  </g>
+
+  <!-- Premium accent lines -->
+  <g stroke="#2563eb" stroke-width="1" opacity="0.2">
+    <line x1="65" y1="100" x2="75" y2="100"/>
+    <line x1="125" y1="100" x2="135" y2="100"/>
+  </g>
+
+  <!-- Text -->
+  <text x="100" y="210" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" text-anchor="middle" fill="#1e293b" letter-spacing="1">
+    THE DENTAL BOND
+  </text>
+</svg>
