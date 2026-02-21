@@ -12,13 +12,17 @@ st.set_page_config(
 )
 
 def render() -> None:
-    """Render the premium login page."""
+    """Render the premium login page matching HTML design."""
 
     # Initialize session state
     if "login_role" not in st.session_state:
         st.session_state.login_role = "assistant"
     if "login_error" not in st.session_state:
         st.session_state.login_error = ""
+    if "show_password" not in st.session_state:
+        st.session_state.show_password = False
+    if "remember_me" not in st.session_state:
+        st.session_state.remember_me = False
 
     # Global CSS styling
     st.markdown("""
@@ -41,6 +45,7 @@ def render() -> None:
           margin: 0 !important;
           padding: 0 !important;
           background: var(--cream) !important;
+          height: 100% !important;
         }
 
         [data-testid="stMainBlockContainer"] {
@@ -48,7 +53,12 @@ def render() -> None:
           max-width: 100% !important;
         }
 
-        .login-container {
+        [data-testid="stVerticalBlock"] {
+          gap: 0 !important;
+        }
+
+        /* Layout container */
+        .login-page {
           display: flex;
           min-height: 100vh;
           gap: 0;
@@ -60,7 +70,6 @@ def render() -> None:
           display: flex;
           flex-direction: column;
           justify-content: flex-start;
-          align-items: flex-start;
           padding: 56px 60px;
           position: relative;
           overflow: hidden;
@@ -164,9 +173,10 @@ def render() -> None:
 
         .form-group {
           margin-bottom: 20px;
+          position: relative;
         }
 
-        .form-group label {
+        .form-group > div:first-child {
           display: block;
           font-size: 11px;
           font-weight: 600;
@@ -241,6 +251,43 @@ def render() -> None:
           color: var(--gold);
         }
 
+        .remember-me-container {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin: 20px 0;
+          cursor: pointer;
+        }
+
+        .remember-me-container input[type="checkbox"] {
+          appearance: none;
+          width: 16px;
+          height: 16px;
+          border: 1.5px solid var(--border);
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.2s;
+          flex-shrink: 0;
+        }
+
+        .remember-me-container input[type="checkbox"]:checked {
+          background: var(--gold);
+          border-color: var(--gold);
+        }
+
+        .forgot-link {
+          font-size: 13px;
+          color: var(--gold-dark);
+          text-decoration: none;
+          font-weight: 500;
+          transition: color 0.2s;
+          display: inline-block;
+        }
+
+        .forgot-link:hover {
+          color: var(--gold);
+        }
+
         /* Streamlit overrides */
         [data-testid="stButton"] button {
           background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold) 100%) !important;
@@ -255,6 +302,7 @@ def render() -> None:
           font-size: 13px !important;
           transition: all 0.2s !important;
           width: 100% !important;
+          height: auto !important;
         }
 
         [data-testid="stButton"] button:hover {
@@ -263,11 +311,20 @@ def render() -> None:
           box-shadow: 0 6px 24px rgba(160,120,64,0.45) !important;
         }
 
+        [data-testid="stButton"] button:active {
+          transform: translateY(0) !important;
+        }
+
+        [data-testid="stTextInput"] {
+          margin-bottom: 0 !important;
+        }
+
         [data-testid="stTextInput"] input {
           border: 1.5px solid var(--border) !important;
           border-radius: 8px !important;
           padding: 13px 14px !important;
           font-size: 14px !important;
+          transition: border-color 0.2s, box-shadow 0.2s !important;
         }
 
         [data-testid="stTextInput"] input:focus {
@@ -275,15 +332,19 @@ def render() -> None:
           box-shadow: 0 0 0 3px rgba(201,169,110,0.15) !important;
         }
 
+        [data-testid="stTextInput"] input::placeholder {
+          color: #BFB8AE !important;
+        }
+
         @media (max-width: 900px) {
-          .login-container { flex-direction: column; }
+          .login-page { flex-direction: column; }
           .left-panel { width: 100%; min-height: 200px; }
           .right-panel { padding: 36px 28px; }
         }
         </style>
     """, unsafe_allow_html=True)
 
-    # Main layout container
+    # Main layout
     col_left, col_right = st.columns([1.2, 1], gap="large")
 
     # LEFT PANEL
@@ -335,10 +396,9 @@ def render() -> None:
             </div>
         """, unsafe_allow_html=True)
 
-        # Role selector label
+        # Role selector
         st.markdown('<div style="font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#6B6B6B;margin-bottom:8px;">Sign in as</div>', unsafe_allow_html=True)
 
-        # Role buttons
         role_col1, role_col2, role_col3 = st.columns(3, gap="small")
         with role_col1:
             if st.button("Admin", key="role_admin", use_container_width=True):
@@ -356,13 +416,56 @@ def render() -> None:
         if st.session_state.login_error:
             st.markdown(f'<div class="alert">{st.session_state.login_error}</div>', unsafe_allow_html=True)
 
-        # Email
-        st.markdown('<div class="form-group"><label>Email Address</label></div>', unsafe_allow_html=True)
+        # Email input with icon
+        st.markdown("""
+            <div class="form-group">
+                <label>Email Address</label>
+            </div>
+        """, unsafe_allow_html=True)
         email = st.text_input("", key="login_email", placeholder="you@thedentalbond.com", label_visibility="collapsed")
 
-        # Password
-        st.markdown('<div class="form-group"><label>Password</label></div>', unsafe_allow_html=True)
-        password = st.text_input("", key="login_password", placeholder="Enter your password", type="password", label_visibility="collapsed")
+        # Password input with toggle
+        st.markdown("""
+            <div class="form-group">
+                <label>Password</label>
+            </div>
+        """, unsafe_allow_html=True)
+
+        pwd_col1, pwd_col2 = st.columns([0.9, 0.1], gap="small")
+        with pwd_col1:
+            password = st.text_input(
+                "",
+                key="login_password",
+                placeholder="Enter your password",
+                type="password" if not st.session_state.show_password else "default",
+                label_visibility="collapsed"
+            )
+        with pwd_col2:
+            if st.button("👁" if not st.session_state.show_password else "👁‍🗨", key="pwd_toggle", use_container_width=True):
+                st.session_state.show_password = not st.session_state.show_password
+                st.rerun()
+
+        # Remember me and forgot password
+        st.markdown("""
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0; gap: 10px;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: #6B6B6B; user-select: none; margin: 0;">
+                    <input type="checkbox" id="rememberMe" style="appearance: none; width: 16px; height: 16px; border: 1.5px solid #E2D9CA; border-radius: 4px; cursor: pointer; transition: all 0.2s; flex-shrink: 0;" />
+                    Remember me
+                </label>
+                <a href="#" style="font-size: 13px; color: #A07840; text-decoration: none; font-weight: 500;">Forgot password?</a>
+            </div>
+            <script>
+            document.getElementById('rememberMe').addEventListener('change', function() {
+                if (this.checked) {
+                    this.style.background = '#C9A96E';
+                    this.style.borderColor = '#C9A96E';
+                } else {
+                    this.style.background = '#fff';
+                    this.style.borderColor = '#E2D9CA';
+                }
+            });
+            </script>
+        """, unsafe_allow_html=True)
 
         # Sign in button
         if st.button("Sign In", key="btn_login", use_container_width=True):
