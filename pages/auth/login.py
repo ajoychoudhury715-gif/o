@@ -240,7 +240,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  padding: 48px 40px 48px 20px;
+  padding: 48px 40px 48px 0px;
   background: var(--cream);
   position: relative;
   min-height: 100vh;
@@ -510,7 +510,7 @@ hr {
 /* ── RESPONSIVE DESIGN ── */
 @media (min-width: 1440px) and (max-width: 1920px) {
   .left-panel { width: 50%; padding: 60px 48px; }
-  .right-panel { padding: 48px 40px 48px 20px; justify-content: flex-start; align-items: center; }
+  .right-panel { padding: 48px 40px 48px 0px; justify-content: flex-start; align-items: center; }
   .login-box { max-width: 420px; margin: 0; }
 }
 
@@ -518,7 +518,7 @@ hr {
   .left-panel { width: 50%; padding: 48px 40px; }
   .hero-content h2 { font-size: 40px; }
   .hero-content p { font-size: 13px; }
-  .right-panel { padding: 40px 30px 40px 15px; min-height: 100vh; justify-content: flex-start; }
+  .right-panel { padding: 40px 30px 40px 0px; min-height: 100vh; justify-content: flex-start; }
   .login-box { max-width: 380px; margin: 0; }
 }
 
@@ -526,7 +526,7 @@ hr {
   .left-panel { width: 100%; justify-content: center; padding: 40px 24px; }
   .hero-content h2 { font-size: 34px; }
   .hero-content p { font-size: 13px; }
-  .right-panel { padding: 36px 20px; width: 100%; min-height: auto; justify-content: flex-start; }
+  .right-panel { padding: 36px 20px 36px 0px; width: 100%; min-height: auto; justify-content: flex-start; }
   .login-box { max-width: 100%; margin: 0; }
   .brand { gap: 8px; margin-bottom: 40px; }
   .brand-text h1 { font-size: 18px; }
@@ -543,7 +543,7 @@ hr {
   .hero-content h2 { font-size: 28px; line-height: 1.2; }
   .hero-content p { font-size: 12px; }
   .left-footer { margin-top: 30px; position: relative; }
-  .right-panel { padding: 24px 12px; min-height: auto; display: flex; align-items: center; justify-content: flex-start; }
+  .right-panel { padding: 24px 12px 24px 0px; min-height: auto; display: flex; align-items: center; justify-content: flex-start; }
   .login-box { width: 100%; max-width: 100%; padding: 0; margin: 0; }
   .login-header { margin-bottom: 24px; }
   .login-header h3 { font-size: 28px; }
