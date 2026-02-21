@@ -59,6 +59,9 @@ def load_duties_master() -> pd.DataFrame:
     if USE_SUPABASE:
         df = _sb_load(SUPABASE_DUTIES_MASTER_TABLE)
         if not df.empty:
+            # Ensure proper column types for Streamlit data_editor compatibility
+            if "duration_minutes" in df.columns:
+                df["duration_minutes"] = pd.to_numeric(df["duration_minutes"], errors="coerce").fillna(30).astype(int)
             return df
     return load_sheet(EXCEL_DUTIES_MASTER_SHEET, DUTIES_MASTER_COLUMNS)
 
@@ -75,6 +78,9 @@ def load_duty_assignments() -> pd.DataFrame:
     if USE_SUPABASE:
         df = _sb_load(SUPABASE_DUTY_ASSIGNMENTS_TABLE)
         if not df.empty:
+            # Ensure boolean column is properly typed
+            if "active" in df.columns:
+                df["active"] = df["active"].astype(bool)
             return df
     return load_sheet(EXCEL_DUTY_ASSIGNMENTS_SHEET, DUTY_ASSIGNMENTS_COLUMNS)
 
