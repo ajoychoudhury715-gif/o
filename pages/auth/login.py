@@ -243,6 +243,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   margin-bottom: 36px;
   animation: fadeIn 0.8s ease-out;
   text-align: center;
+  width: 100%;
 }
 
 @keyframes fadeIn {
@@ -489,12 +490,45 @@ hr {
   font-family: 'Inter', sans-serif !important;
 }
 
+/* ── RESPONSIVE DESIGN ── */
+@media (max-width: 1200px) {
+  .left-panel { width: 45%; padding: 48px 40px; }
+  .hero-content h2 { font-size: 40px; }
+  .hero-content p { font-size: 13px; }
+  .right-panel { padding: 40px 48px; }
+  .login-box { max-width: 380px; }
+}
+
 @media (max-width: 900px) {
-  .left-panel { width: 100%; min-height: 280px; padding: 36px 32px; }
+  .left-panel { width: 100%; min-height: 320px; padding: 36px 32px; }
   .hero-content h2 { font-size: 34px; }
-  .right-panel { padding: 36px 28px; }
-  .stats { gap: 24px; margin-top: 28px; }
-  .login-box { padding: 0 16px; }
+  .hero-content p { font-size: 13px; }
+  .right-panel { padding: 36px 28px; width: 100%; }
+  .login-box { max-width: 100%; }
+  .brand { gap: 10px; }
+  .brand-text h1 { font-size: 18px; }
+  .brand-text p { font-size: 9px; }
+}
+
+@media (max-width: 600px) {
+  .left-panel { min-height: 240px; padding: 24px 16px; }
+  .brand-text h1 { font-size: 16px; }
+  .hero-eyebrow { font-size: 10px; }
+  .hero-content h2 { font-size: 28px; line-height: 1.2; }
+  .hero-content p { font-size: 12px; max-width: 100%; }
+  .right-panel { padding: 24px 16px; }
+  .login-box { max-width: 100%; padding: 0; }
+  .login-header { margin-bottom: 24px; }
+  .login-header h3 { font-size: 28px; }
+  .login-header p { font-size: 12px; }
+  .role-btn { font-size: 11px; padding: 9px; }
+  [data-testid="stForm"] button[type="submit"],
+  [data-testid="stFormSubmitButton"] button {
+    padding: 12px !important;
+    font-size: 12px !important;
+  }
+  .login-footer { flex-direction: column; gap: 8px; }
+  .dots-deco { width: 80px; height: 80px; }
 }
 </style>
 """, unsafe_allow_html=True)
