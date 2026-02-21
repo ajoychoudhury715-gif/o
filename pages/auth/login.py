@@ -85,8 +85,8 @@ html, body, [class*="css"] {
 
 .brand {
     display: flex;
-    align-items: center;
-    gap: 14px;
+    align-items: flex-start;
+    gap: 0;
     position: relative;
     z-index: 1;
     animation: slideInLeft 0.8s ease-out;
@@ -97,17 +97,6 @@ html, body, [class*="css"] {
     to { opacity: 1; transform: translateX(0); }
 }
 
-.brand-icon {
-    width: 48px;
-    height: 48px;
-    filter: drop-shadow(0 8px 16px rgba(201,169,110,0.2));
-    animation: rotateIn 1s ease-out;
-}
-
-@keyframes rotateIn {
-    from { opacity: 0; transform: rotate(-10deg) scale(0.8); }
-    to { opacity: 1; transform: rotate(0) scale(1); }
-}
 
 .brand-name {
     font-family: 'Cormorant Garamond', serif;
@@ -453,17 +442,6 @@ if "login_role" not in st.session_state:
 LEFT_PANEL = """
 <div class="left-panel">
   <div class="brand">
-    <svg class="brand-icon" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M26 4C18 4 12 10 12 18c0 4 1.5 8 3 12 1.5 4 3 8 3 12a2 2 0 0 0 4 0c0-3 1-6 2-8h2c1 2 2 5 2 8a2 2 0 0 0 4 0c0-4 1.5-8 3-12 1.5-4 3-8 3-12 0-8-6-14-14-14z" fill="url(#g1)" opacity="0.95"/>
-      <path d="M20 16 L26 10 L32 16" stroke="#E8D5B0" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.6"/>
-      <path d="M26 10 L26 30" stroke="#E8D5B0" stroke-width="1" stroke-linecap="round" fill="none" opacity="0.5"/>
-      <defs>
-        <linearGradient id="g1" x1="12" y1="4" x2="40" y2="44" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stop-color="#E8D5B0"/>
-          <stop offset="100%" stop-color="#8B6340"/>
-        </linearGradient>
-      </defs>
-    </svg>
     <div>
       <p class="brand-name">The Dental Bond</p>
       <p class="brand-sub">Implant &amp; Micro-Dentistry</p>
