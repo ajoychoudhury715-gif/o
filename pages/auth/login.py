@@ -582,7 +582,7 @@ def render() -> None:
     if "login_role" not in st.session_state:
         st.session_state.login_role = "admin"
 
-    col_left, col_right = st.columns([1, 1], gap="small")
+    col_left, col_right = st.columns([1, 1], gap="none")
 
     with col_left:
         st.markdown(LEFT_PANEL, unsafe_allow_html=True)
