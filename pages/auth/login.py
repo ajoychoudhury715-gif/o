@@ -12,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# ── Custom CSS (from premium template) ──────────────────────────────────────────
+# ── Custom CSS – Premium Centered Card Design ──────────────────────────────────
 st.markdown("""
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -32,9 +32,10 @@ st.markdown("""
 
 html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   font-family: 'Inter', 'Segoe UI', sans-serif !important;
-  background-color: var(--cream) !important;
+  background: linear-gradient(135deg, #F5F0EA 0%, #E8D5B0 100%) !important;
   margin: 0 !important;
   padding: 0 !important;
+  min-height: 100vh !important;
 }
 
 #MainMenu, footer, header { visibility: hidden; }
@@ -44,312 +45,105 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   max-width: 100% !important;
   margin: 0 !important;
   width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 100vh !important;
 }
 
 .main {
   max-width: 100% !important;
   width: 100% !important;
-  padding: 0 !important;
+  padding: 20px !important;
   margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
-/* ── LOGIN WRAPPER ── */
+/* ── LOGIN CARD CONTAINER ── */
 .login-container {
-  display: flex;
-  min-height: 100vh;
   width: 100%;
-}
-
-/* ── LEFT PANEL ── */
-.left-panel {
-  display: none;
-}
-
-.left-panel::before {
-  content: '';
-  position: absolute;
-  top: -120px; right: -120px;
-  width: 420px; height: 420px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(201,169,110,0.18) 0%, transparent 70%);
-  animation: float 15s ease-in-out infinite;
-}
-
-.left-panel::after {
-  content: '';
-  position: absolute;
-  bottom: -80px; left: -80px;
-  width: 320px; height: 320px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(201,169,110,0.12) 0%, transparent 70%);
-  animation: float-reverse 20s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(15px); }
-}
-
-@keyframes float-reverse {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-15px); }
-}
-
-.brand {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  position: relative;
-  z-index: 1;
-  animation: slideInLeft 0.8s ease-out;
-  text-align: center;
-  margin-bottom: 32px;
+  min-height: 100vh;
+}
+
+.login-card {
+  background: var(--white);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(26, 26, 26, 0.15), 0 0 0 1px rgba(201, 169, 110, 0.1);
   width: 100%;
+  max-width: 480px;
+  padding: 60px 48px;
+  animation: slideUp 0.6s ease-out;
 }
 
-@keyframes slideInLeft {
-  from { opacity: 0; transform: translateX(-30px); }
-  to { opacity: 1; transform: translateX(0); }
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.brand-text h1 {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 24px;
-  font-weight: 700;
-  color: #FFFFFF;
-  letter-spacing: 0.08em;
-  line-height: 1.1;
-  margin: 0;
+/* ── HEADER & BRANDING ── */
+.card-header {
   text-align: center;
+  margin-bottom: 40px;
+  animation: fadeIn 0.8s ease-out;
 }
 
-.brand-text p {
-  font-size: 10px;
-  font-weight: 400;
-  color: rgba(201,169,110,0.75);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  margin: 4px 0 0 0;
-  text-align: center;
-}
-
-.hero-content {
-  position: relative;
-  z-index: 1;
-  animation: fadeInUp 0.8s ease-out 0.2s both;
-  text-align: center;
-  width: 100%;
-  max-width: 420px;
-  margin: 0 auto;
-}
-
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.hero-eyebrow {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: var(--gold);
-  margin-bottom: 20px;
-  display: block;
-  text-align: center;
-  width: 100%;
-}
-
-.hero-content h2 {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 48px;
-  font-weight: 600;
-  color: var(--white);
-  line-height: 1.2;
-  margin: 0 0 20px 0;
-  text-align: center;
-  letter-spacing: -0.5px;
-}
-
-.hero-content h2 span {
-  color: var(--gold);
-  font-weight: 700;
-}
-
-.hero-content p {
-  font-size: 14px;
-  font-weight: 300;
-  color: rgba(255,255,255,0.6);
-  line-height: 1.7;
-  max-width: 360px;
-  margin: 0 auto;
-  text-align: center;
-  letter-spacing: 0.3px;
-}
-
-.stats {
-  display: flex;
-  gap: 40px;
-  margin-top: 44px;
-  position: relative;
-  z-index: 1;
-}
-
-.stat-item {
-  text-align: left;
-}
-
-.stat-item .num {
+.card-logo {
   font-family: 'Cormorant Garamond', serif;
   font-size: 32px;
   font-weight: 700;
-  color: var(--gold);
-  line-height: 1;
-  margin: 0;
+  color: var(--dark);
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
 }
 
-.stat-item .label {
+.card-tagline {
   font-size: 11px;
-  color: rgba(255,255,255,0.45);
-  letter-spacing: 0.1em;
-  margin: 4px 0 0 0;
-}
-
-.stat-divider {
-  width: 1px;
-  background: rgba(201,169,110,0.25);
-  align-self: stretch;
-}
-
-.left-footer {
-  font-size: 11px;
-  color: rgba(255,255,255,0.3);
-  position: absolute;
-  bottom: 30px;
-  left: 0;
-  right: 0;
-  text-align: center;
-  z-index: 1;
-  margin: 0;
-  letter-spacing: 0.5px;
-  font-weight: 300;
-}
-
-/* ── RIGHT PANEL ── */
-.right-panel {
-  flex: 1;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 48px 40px;
-  background: var(--cream);
-  position: relative;
-  min-height: 100vh;
-}
-
-.login-box {
-  width: 100%;
-  max-width: 420px;
-  margin: 0 auto;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0;
-}
-
-.login-header {
-  margin-bottom: 24px;
-  animation: fadeIn 0.8s ease-out;
-  text-align: center;
-  width: 100%;
-}
-
-.login-form-wrapper {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.login-header .welcome {
-  font-size: 11px;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--gold-dark);
-  font-weight: 500;
-  margin: 0;
+  font-weight: 600;
+  margin-bottom: 16px;
 }
 
-.login-header h3 {
+.card-title {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 36px;
+  font-size: 28px;
   font-weight: 600;
   color: var(--dark);
-  margin: 6px 0 0 0;
-  line-height: 1.1;
+  line-height: 1.2;
+  margin-bottom: 8px;
 }
 
-.login-header p {
+.card-subtitle {
   font-size: 13px;
   color: var(--muted);
-  margin: 8px 0 0 0;
   font-weight: 300;
+  line-height: 1.5;
+}
+
+/* ── FORM STYLING ── */
+.form-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
 .form-group {
-  margin-bottom: 0;
+  margin-bottom: 18px;
   position: relative;
-}
-
-.checkbox-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
-  margin-top: 0;
   width: 100%;
-}
-
-.checkbox-row label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px !important;
-  color: #6B6B6B !important;
-  margin: 0 !important;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.checkbox-row input[type="checkbox"] {
-  cursor: pointer;
-  width: 16px;
-  height: 16px;
-  accent-color: var(--gold) !important;
-}
-
-.checkbox-row a {
-  font-size: 13px;
-  color: #A07840;
-  text-decoration: none;
-  font-weight: 500;
-  white-space: nowrap;
-  transition: all 0.2s;
-}
-
-.checkbox-row a:hover {
-  color: var(--gold);
 }
 
 .form-group label {
@@ -359,55 +153,59 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted);
-  margin: 0 0 8px 0;
+  margin-bottom: 8px;
 }
 
 .role-selector {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 28px;
+  margin-top: 0;
 }
 
 .role-btn {
-  flex: 1;
-  padding: 12px 14px;
+  padding: 13px 12px;
   border: 1.5px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--white);
   cursor: pointer;
   font-size: 12px;
   font-family: 'Inter', sans-serif;
   font-weight: 500;
   color: var(--muted);
-  letter-spacing: 0.04em;
-  transition: all 0.2s;
+  letter-spacing: 0.03em;
+  transition: all 0.3s ease;
   text-align: center;
-  line-height: 1.4;
-  min-height: 44px;
+  min-height: 48px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 4px;
 }
 
 .role-btn:hover {
-  border-color: var(--gold-light);
+  border-color: var(--gold);
   color: var(--gold-dark);
-  background: rgba(201,169,110,0.02);
+  background: rgba(201, 169, 110, 0.05);
+  transform: translateY(-2px);
 }
 
 .role-btn.active {
   border-color: var(--gold);
-  background: rgba(201,169,110,0.08);
+  background: rgba(201, 169, 110, 0.12);
   color: var(--gold-dark);
+  box-shadow: 0 4px 16px rgba(201, 169, 110, 0.2);
 }
 
 .alert {
-  padding: 10px 12px;
-  border-radius: 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
   font-size: 13px;
-  margin-bottom: 12px;
-  background: rgba(192,57,43,0.08);
-  border: 1px solid rgba(192,57,43,0.25);
+  margin-bottom: 20px;
+  background: rgba(192, 57, 43, 0.08);
+  border: 1.5px solid rgba(192, 57, 43, 0.25);
   color: var(--error);
   display: none;
   width: 100%;
@@ -420,24 +218,61 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 }
 
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.dots-deco {
-  position: fixed;
-  top: 40px;
-  right: 40px;
-  opacity: 0.18;
-  pointer-events: none;
-  z-index: 1;
+.checkbox-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0 24px 0;
+  width: 100%;
+}
+
+.checkbox-row label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.checkbox-row input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--gold);
+}
+
+.checkbox-row a {
+  font-size: 13px;
+  color: var(--gold-dark);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.checkbox-row a:hover {
+  color: var(--gold);
 }
 
 .divider {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 20px 0 16px 0;
+  margin: 28px 0 24px 0;
   font-size: 11px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -453,28 +288,31 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   background: var(--border);
 }
 
-.login-footer {
-  margin-top: 20px;
-  padding-top: 16px;
+.card-footer {
+  margin-top: 24px;
+  padding-top: 20px;
   border-top: 1px solid var(--border);
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   font-size: 12px;
   color: var(--muted);
+  text-align: center;
 }
 
-.login-footer p {
+.card-footer p {
   margin: 0;
+  line-height: 1.5;
 }
 
-.login-footer a {
+.card-footer a {
   color: var(--gold-dark);
   text-decoration: none;
   font-weight: 500;
+  transition: all 0.2s;
 }
 
-.login-footer a:hover {
+.card-footer a:hover {
   color: var(--gold);
 }
 
@@ -486,19 +324,19 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 }
 
 [data-testid="stTextInput"] {
-  margin-bottom: 12px !important;
+  margin-bottom: 0 !important;
 }
 
 [data-testid="stTextInput"] input,
 [data-testid="stTextInput"] input[type="password"] {
   border: 1.5px solid var(--border) !important;
-  border-radius: 8px !important;
-  background: var(--white) !important;
+  border-radius: 10px !important;
+  background: #FAFAF8 !important;
   font-family: 'Inter', sans-serif !important;
   font-size: 14px !important;
   color: var(--dark) !important;
   padding: 13px 14px !important;
-  transition: all 0.2s !important;
+  transition: all 0.3s !important;
   width: 100% !important;
 }
 
@@ -508,7 +346,8 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 
 [data-testid="stTextInput"] input:focus {
   border-color: var(--gold) !important;
-  box-shadow: 0 0 0 3px rgba(201,169,110,0.15) !important;
+  background: var(--white) !important;
+  box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.1) !important;
 }
 
 [data-testid="stTextInput"] label {
@@ -526,23 +365,24 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold) 100%) !important;
   color: white !important;
   border: none !important;
-  border-radius: 8px !important;
+  border-radius: 10px !important;
   padding: 14px !important;
   font-size: 13px !important;
   font-weight: 600 !important;
   letter-spacing: 0.15em !important;
   text-transform: uppercase !important;
   font-family: 'Inter', sans-serif !important;
-  box-shadow: 0 4px 20px rgba(160,120,64,0.35) !important;
-  transition: all 0.2s !important;
+  box-shadow: 0 8px 24px rgba(160, 120, 64, 0.3) !important;
+  transition: all 0.3s !important;
   cursor: pointer !important;
+  margin-bottom: 12px !important;
 }
 
 [data-testid="stForm"] button[type="submit"]:hover,
 [data-testid="stFormSubmitButton"] button:hover {
-  opacity: 0.92 !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 6px 24px rgba(160,120,64,0.45) !important;
+  opacity: 0.94 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 12px 32px rgba(160, 120, 64, 0.4) !important;
 }
 
 [data-testid="stCheckbox"] label {
@@ -556,17 +396,19 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   border: 1.5px solid var(--border) !important;
   background: var(--white) !important;
   color: var(--dark) !important;
-  padding: 12px 14px !important;
+  padding: 13px 14px !important;
   font-size: 13px !important;
   font-weight: 500 !important;
-  transition: all 0.2s !important;
-  border-radius: 8px !important;
+  transition: all 0.3s !important;
+  border-radius: 10px !important;
   font-family: 'Inter', sans-serif !important;
+  margin-bottom: 0 !important;
 }
 
 [data-testid="stButton"] button:hover {
-  border-color: var(--gold-light) !important;
-  background: rgba(201,169,110,0.05) !important;
+  border-color: var(--gold) !important;
+  background: rgba(201, 169, 110, 0.06) !important;
+  color: var(--gold-dark) !important;
 }
 
 [data-testid="stButton"] button:active {
@@ -578,7 +420,7 @@ hr {
 }
 
 [data-testid="stAlert"] {
-  border-radius: 8px !important;
+  border-radius: 10px !important;
   font-family: 'Inter', sans-serif !important;
   margin-bottom: 12px !important;
 }
@@ -593,28 +435,25 @@ hr {
 
 /* ── RESPONSIVE DESIGN ── */
 @media (max-width: 1200px) {
-  .right-panel { padding: 40px 30px; }
-  .login-box { max-width: 380px; margin: 0 auto; }
+  .login-card { padding: 50px 40px; max-width: 460px; }
 }
 
 @media (max-width: 900px) {
-  .right-panel { padding: 32px 24px; }
-  .login-box { max-width: 420px; margin: 0 auto; }
-  [data-testid="stTextInput"] { margin-bottom: 10px !important; }
-  .login-header { margin-bottom: 20px; }
-  .role-selector { margin-bottom: 14px; }
-  .divider { margin: 16px 0 12px 0; }
+  .login-card { padding: 45px 36px; max-width: 440px; }
+  .card-header { margin-bottom: 36px; }
 }
 
 @media (max-width: 600px) {
-  .right-panel { padding: 24px 16px; }
-  .login-box { width: 100%; max-width: 100%; padding: 0; margin: 0 auto; }
-  .login-header { margin-bottom: 18px; text-align: center; }
-  .login-header h3 { font-size: 28px; }
-  .login-header p { font-size: 12px; }
-  .role-btn { font-size: 11px; padding: 10px 8px; min-height: 40px; }
-  .checkbox-row { flex-direction: column; align-items: flex-start; gap: 8px; justify-content: flex-start; margin-bottom: 12px; }
-  [data-testid="stTextInput"] { margin-bottom: 10px !important; }
+  .login-card { padding: 36px 28px; max-width: 100%; margin: 20px; }
+  .card-logo { font-size: 28px; margin-bottom: 10px; }
+  .card-title { font-size: 24px; margin-bottom: 6px; }
+  .card-subtitle { font-size: 12px; }
+  .card-header { margin-bottom: 32px; }
+  .role-selector { gap: 10px; margin-bottom: 24px; }
+  .role-btn { font-size: 11px; padding: 11px 10px; min-height: 44px; }
+  .form-group { margin-bottom: 16px; }
+  .checkbox-row { margin: 14px 0 20px 0; flex-direction: column; align-items: flex-start; gap: 10px; }
+  [data-testid="stTextInput"] { margin-bottom: 14px !important; }
   [data-testid="stForm"] button[type="submit"],
   [data-testid="stFormSubmitButton"] button {
     padding: 12px !important;
@@ -622,30 +461,16 @@ hr {
     margin-bottom: 10px !important;
   }
   [data-testid="stButton"] button {
-    padding: 11px 12px !important;
+    padding: 12px 12px !important;
     margin-bottom: 10px !important;
   }
-  .divider { margin: 14px 0 12px 0; gap: 10px; }
-  .role-selector { margin-bottom: 12px; gap: 8px; }
-  .login-footer { flex-direction: column; gap: 8px; margin-top: 20px; }
-  .dots-deco { width: 80px; height: 80px; }
+  .divider { margin: 24px 0 20px 0; gap: 10px; }
+  .card-footer { margin-top: 20px; padding-top: 18px; font-size: 11px; }
 }
 </style>
 """, unsafe_allow_html=True)
 
-# ── Left panel HTML ────────────────────────────────────────────────────────────
-LEFT_PANEL = """
-<div class="left-panel">
-  <div class="brand">
-    <div class="brand-text">
-      <h1>The Dental Bond</h1>
-      <p>Implant &amp; Micro-Dentistry</p>
-    </div>
-  </div>
-
-  <p class="left-footer">© 2026 The Dental Bond. All rights reserved.</p>
-</div>
-"""
+# ── No longer needed with centered card design ────────────────────────────────
 
 # ── Main layout ────────────────────────────────────────────────────────────────
 def render() -> None:
@@ -655,46 +480,18 @@ def render() -> None:
     if "login_role" not in st.session_state:
         st.session_state.login_role = "admin"
 
-    st.markdown("""<div class="login-container"><div class="right-panel">""", unsafe_allow_html=True)
+    # Open card container
+    st.markdown("""<div class="login-container"><div class="login-card">""", unsafe_allow_html=True)
 
-    # Decorative dots
+    # Card header
     st.markdown("""
-        <svg class="dots-deco" width="100" height="100" viewBox="0 0 100 100">
-            <circle cx="10" cy="10" r="3" fill="#C9A96E"/><circle cx="30" cy="10" r="3" fill="#C9A96E"/>
-            <circle cx="50" cy="10" r="3" fill="#C9A96E"/><circle cx="70" cy="10" r="3" fill="#C9A96E"/>
-            <circle cx="10" cy="30" r="3" fill="#C9A96E"/><circle cx="30" cy="30" r="3" fill="#C9A96E"/>
-            <circle cx="50" cy="30" r="3" fill="#C9A96E"/><circle cx="70" cy="30" r="3" fill="#C9A96E"/>
-            <circle cx="10" cy="50" r="3" fill="#C9A96E"/><circle cx="30" cy="50" r="3" fill="#C9A96E"/>
-            <circle cx="50" cy="50" r="3" fill="#C9A96E"/><circle cx="70" cy="50" r="3" fill="#C9A96E"/>
-            <circle cx="10" cy="70" r="3" fill="#C9A96E"/><circle cx="30" cy="70" r="3" fill="#C9A96E"/>
-            <circle cx="50" cy="70" r="3" fill="#C9A96E"/><circle cx="70" cy="70" r="3" fill="#C9A96E"/>
-        </svg>
-    """, unsafe_allow_html=True)
-
-    st.markdown("""
-        <div class="login-header">
-            <div class="welcome">Welcome Back</div>
-            <h3>Sign In</h3>
-            <p>Access your dental practice management dashboard</p>
+        <div class="card-header">
+            <div class="card-logo">🦷</div>
+            <div class="card-tagline">The Dental Bond</div>
+            <div class="card-title">Welcome Back</div>
+            <div class="card-subtitle">Access your dental practice management dashboard</div>
         </div>
     """, unsafe_allow_html=True)
-
-    # Role selector
-    st.markdown('<label style="display:block;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#6B6B6B;margin-bottom:8px;">Sign in as</label>', unsafe_allow_html=True)
-
-    role_col1, role_col2, role_col3 = st.columns(3, gap="small")
-    with role_col1:
-        doctor_clicked = st.button("👨‍⚕️ Doctor", key="role_doctor_v2", use_container_width=True)
-        if doctor_clicked:
-            st.session_state.login_role = "admin"
-    with role_col2:
-        reception_clicked = st.button("👩‍💼 Receptionist", key="role_reception_v2", use_container_width=True)
-        if reception_clicked:
-            st.session_state.login_role = "frontdesk"
-    with role_col3:
-        admin_clicked = st.button("⚙️ Admin", key="role_admin_v2", use_container_width=True)
-        if admin_clicked:
-            st.session_state.login_role = "assistant"
 
     # Error alert
     error_placeholder = st.empty()
@@ -702,20 +499,35 @@ def render() -> None:
         with error_placeholder.container():
             st.markdown(f'<div class="alert show">{st.session_state.login_error}</div>', unsafe_allow_html=True)
 
-    # Form
-    email = st.text_input("Email Address", key="login_email", placeholder="you@thedentalbond.com")
+    # Role selector
+    st.markdown('<label style="display:block;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#6B6B6B;margin-bottom:12px;">Sign in as</label>', unsafe_allow_html=True)
 
-    password = st.text_input("Password", key="login_password", placeholder="Enter your password", type="password")
+    role_col1, role_col2, role_col3 = st.columns(3, gap="small")
+    with role_col1:
+        doctor_clicked = st.button("👨‍⚕️\nDoctor", key="role_doctor_v2", use_container_width=True)
+        if doctor_clicked:
+            st.session_state.login_role = "admin"
+    with role_col2:
+        reception_clicked = st.button("👩‍💼\nReceptionist", key="role_reception_v2", use_container_width=True)
+        if reception_clicked:
+            st.session_state.login_role = "frontdesk"
+    with role_col3:
+        admin_clicked = st.button("⚙️\nAdmin", key="role_admin_v2", use_container_width=True)
+        if admin_clicked:
+            st.session_state.login_role = "assistant"
+
+    # Form inputs
+    email = st.text_input("Email Address", key="login_email", placeholder="you@thedentalbond.com")
+    password = st.text_input("Password", key="login_password", placeholder="••••••••", type="password")
 
     # Remember me and Forgot password
     st.markdown(
         "<div class='checkbox-row'>"
         "<label style='display:flex;align-items:center;gap:6px;font-size:13px;color:#6B6B6B;margin:0;'>"
-        "<input type='checkbox' id='remember' style='cursor:pointer;' />"
+        "<input type='checkbox' id='remember' />"
         "<span>Remember me</span>"
         "</label>"
-        "<a href='#' style='font-size:13px;color:#A07840;text-decoration:none;font-weight:500;white-space:nowrap;'>"
-        "Forgot password?</a>"
+        "<a href='#'>Forgot password?</a>"
         "</div>",
         unsafe_allow_html=True,
     )
@@ -735,7 +547,7 @@ def render() -> None:
                 st.balloons()
                 st.rerun()
             else:
-                st.session_state.login_error = "⚠️ Incorrect email or password. Please try again."
+                st.session_state.login_error = "⚠️ Incorrect email or password."
                 st.rerun()
 
     # Divider
@@ -746,9 +558,8 @@ def render() -> None:
 
     # Footer
     st.markdown(
-        "<div class='login-footer'>"
-        "<p>Need access? <a href='#'>Contact your admin</a></p>"
-        "<p style='font-size:11px;color:#BFB8AE;margin:0;'>v2.4.1</p>"
+        "<div class='card-footer'>"
+        "<p>Need access? <a href='#'>Contact your admin</a> | v2.4.1</p>"
         "</div>"
         "</div></div>",
         unsafe_allow_html=True,
