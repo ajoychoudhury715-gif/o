@@ -35,7 +35,7 @@ def render() -> None:
             border: 1px solid rgba(255, 255, 255, 0.2);
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 100px rgba(196, 165, 116, 0.1);
             border-radius: 24px;
-            padding: 80px 60px;
+            padding: 50px 60px;
             text-align: center;
             max-width: 480px;
             margin: 0 auto;
@@ -52,36 +52,6 @@ def render() -> None:
             right: 0;
             height: 4px;
             background: linear-gradient(90deg, #c4a574 0%, #d4b896 50%, #c4a574 100%);
-        }
-
-        /* Logo styling */
-        .logo-img {
-            max-width: 140px;
-            height: auto;
-            margin: 0 auto 32px;
-            filter: drop-shadow(0 10px 25px rgba(196, 165, 116, 0.15));
-            display: block;
-        }
-
-        /* Title styling */
-        .login-title {
-            text-align: center;
-            font-size: 42px;
-            font-weight: 800;
-            color: #0f172a;
-            margin-bottom: 12px;
-            letter-spacing: -1px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        .login-subtitle {
-            text-align: center;
-            font-size: 14px;
-            color: #64748b;
-            margin-bottom: 48px;
-            font-weight: 500;
-            letter-spacing: 1.2px;
-            text-transform: uppercase;
         }
 
         /* Form group styling */
@@ -155,8 +125,8 @@ def render() -> None:
             display: flex;
             justify-content: space-between;
             gap: 20px;
-            margin-top: 32px;
-            padding-top: 24px;
+            margin-top: 24px;
+            padding-top: 16px;
             border-top: 1px solid #e2e8f0;
         }
 
@@ -208,21 +178,11 @@ def render() -> None:
     with col2:
         st.markdown('<div class="login-container">', unsafe_allow_html=True)
 
-        # Logo
-        try:
-            st.image("assets/logo.png", use_column_width=True)
-        except Exception:
-            st.markdown('<span style="font-size: 100px; margin-bottom: 24px; display: block;">🦷</span>', unsafe_allow_html=True)
-
-        # Title and subtitle
-        st.markdown('<div class="login-title">THE DENTAL BOND</div>', unsafe_allow_html=True)
-        st.markdown('<div class="login-subtitle">Implant & Micro-dentistry</div>', unsafe_allow_html=True)
-
         # Form inputs with enhanced styling
         username = st.text_input("Username", key="login_username", placeholder="Enter your username")
         password = st.text_input("Password", type="password", key="login_password", placeholder="Enter your password")
 
-        st.markdown("<div style='height: 4px;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
 
         # Login button
         if st.button("LOG IN", width='stretch', type="primary"):
