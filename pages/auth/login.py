@@ -109,12 +109,13 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   position: relative;
   z-index: 1;
   animation: slideInLeft 0.8s ease-out;
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 32px;
+  width: 100%;
 }
 
 @keyframes slideInLeft {
@@ -124,21 +125,23 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 
 .brand-text h1 {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
-  color: #E8D5B0;
-  letter-spacing: 0.04em;
-  line-height: 1.2;
+  color: #FFFFFF;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
   margin: 0;
+  text-align: center;
 }
 
 .brand-text p {
   font-size: 10px;
   font-weight: 400;
-  color: rgba(201,169,110,0.65);
-  letter-spacing: 0.18em;
+  color: rgba(201,169,110,0.75);
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  margin: 2px 0 0 0;
+  margin: 4px 0 0 0;
+  text-align: center;
 }
 
 .hero-content {
@@ -148,6 +151,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   text-align: center;
   width: 100%;
   max-width: 420px;
+  margin: 0 auto;
 }
 
 @keyframes fadeInUp {
@@ -158,14 +162,13 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 .hero-eyebrow {
   font-size: 11px;
   font-weight: 500;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.25em;
   text-transform: uppercase;
   color: var(--gold);
-  margin-bottom: 18px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  justify-content: center;
+  margin-bottom: 20px;
+  display: block;
+  text-align: center;
+  width: 100%;
 }
 
 .hero-content h2 {
@@ -173,21 +176,26 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   font-size: 48px;
   font-weight: 600;
   color: var(--white);
-  line-height: 1.15;
+  line-height: 1.2;
   margin: 0 0 20px 0;
+  text-align: center;
+  letter-spacing: -0.5px;
 }
 
 .hero-content h2 span {
   color: var(--gold);
+  font-weight: 700;
 }
 
 .hero-content p {
   font-size: 14px;
   font-weight: 300;
-  color: rgba(255,255,255,0.55);
-  line-height: 1.75;
-  max-width: 340px;
-  margin: 0;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.7;
+  max-width: 360px;
+  margin: 0 auto;
+  text-align: center;
+  letter-spacing: 0.3px;
 }
 
 .stats {
@@ -226,7 +234,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 
 .left-footer {
   font-size: 11px;
-  color: rgba(255,255,255,0.25);
+  color: rgba(255,255,255,0.3);
   position: absolute;
   bottom: 30px;
   left: 0;
@@ -234,6 +242,8 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   text-align: center;
   z-index: 1;
   margin: 0;
+  letter-spacing: 0.5px;
+  font-weight: 300;
 }
 
 /* ── RIGHT PANEL ── */
