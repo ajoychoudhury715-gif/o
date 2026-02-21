@@ -3615,7 +3615,7 @@ def _date_from_any(val):
     return None
 # Always update 'now' at the top of the main script body for correct time blocking
 now = now_ist()
-date_line_str = now.strftime('%B %d, %Y - %H:%M:%S')
+date_line_str = now.strftime('%B %d, %Y - %I:%M:%S %p')
 if st.session_state.get("nav_category") != "Dashboard":
     st.markdown(f"""
         <style>
@@ -3747,10 +3747,12 @@ def _coerce_to_time_obj(time_value: Any) -> Optional[time_type]:
         s = " ".join(time_value.strip().split())
         if s == "" or s.upper() in {"N/A", "NAT", "NONE"}:
             return None
-        # 24-hour formats (e.g., 09:30, 09:30:00)
-        for fmt in ("%H:%M", "%H:%M:%S"):
-            try:
-                dt = datetime.strptime(s, fmt)
+        # 12-hour formats (e.g., 09:30 AM, 9:30PM, 09:30:00 PM)
+        if re.search(r"\b(AM|PM)\b", s, flags=re.IGNORECASE) or re.search(r"(AM|PM)$", s, flags=re.IGNORECASE):
+            s_norm = re.sub(r"\s*(AM|PM)\s*$", r" \1", s, flags=re.IGNORECASE).upper()
+            for fmt in ("%I:%M %p", "%I:%M:%S %p"):
+                try:
+                    dt = datetime.strptime(s_norm, fmt)
                     return time_type(dt.hour, dt.minute)
                 except ValueError:
                     pass
@@ -3870,7 +3872,7 @@ def time_obj_to_str_12hr(t: Any) -> str:
         return "N/A"
     try:
         if isinstance(t, time_type):
-            return t.strftime("%H:%M")
+            return t.strftime("%I:%M %p")
         elif isinstance(t, str):
             return t
     except (ValueError, AttributeError):
@@ -8096,7 +8098,7 @@ if category == "Scheduling":
             _render_full_edit_dialog_body()
     def _fmt_time(val) -> str:
         if isinstance(val, time_type):
-            return val.strftime("%H:%M")
+            return val.strftime("%I:%M %p").lstrip("0")
         return _clean_text(val)
     def _update_row_status(row_id, patient_name, in_time_val, new_status):
         df_source = df_raw if "df_raw" in globals() else df
