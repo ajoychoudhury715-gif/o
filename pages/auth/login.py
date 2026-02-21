@@ -153,7 +153,7 @@ def render() -> None:
 
         # Logo
         try:
-            st.image("assets/logo.svg", width='200')
+            st.image("assets/logo.png", width='200')
         except Exception:
             st.markdown('<span class="tooth-icon">🦷</span>', unsafe_allow_html=True)
 

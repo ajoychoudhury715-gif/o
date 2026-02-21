@@ -25,7 +25,7 @@ def render_sidebar(df) -> None:
 def _render_header() -> None:
     now = now_ist()
     try:
-        st.image("assets/logo.svg", width='180')
+        st.image("assets/logo.png", width='180')
     except Exception:
         st.markdown(
             '<div class="sidebar-title">🦷 THE DENTAL BOND</div>',
