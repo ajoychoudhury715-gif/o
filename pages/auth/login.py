@@ -95,11 +95,13 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 
 .brand {
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 14px;
   position: relative;
   z-index: 1;
   animation: slideInLeft 0.8s ease-out;
+  text-align: center;
 }
 
 @keyframes slideInLeft {
