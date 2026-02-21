@@ -97,18 +97,29 @@ def render_add_appointment_form(
                 doctor = st.selectbox("Doctor *", [""] + doctors)
                 op = st.selectbox("OP Room", [""] + op_rooms)
             with c2:
-                in_time = st.time_input("In Time *")
+                # Digital clock time picker for In Time
+                st.markdown("**In Time*** 🕐")
+                t_col1, t_col2, t_col3 = st.columns([2, 1, 2])
+                with t_col1:
+                    in_hour = st.number_input("Hour", min_value=0, max_value=23, value=9, step=1, key="in_hour_add")
+                with t_col2:
+                    st.markdown("<div style='text-align:center;padding-top:32px;font-size:20px;font-weight:bold;'>:</div>", unsafe_allow_html=True)
+                with t_col3:
+                    in_minute = st.number_input("Minute", min_value=0, max_value=59, value=0, step=5, key="in_minute_add")
+
+                import datetime
+                in_time = datetime.time(int(in_hour), int(in_minute))
+                st.markdown(f"<div style='text-align:center;font-size:18px;font-weight:bold;color:#3b82f6;'>{in_time.strftime('%H:%M')}</div>", unsafe_allow_html=True)
+
                 duration_mins = st.number_input("Duration (minutes)", min_value=1, max_value=480, value=30)
                 procedure = st.text_input("Procedure")
 
             # Calculate out_time based on in_time + duration
-            from datetime import timedelta
             out_time = (
                 (int(in_time.hour * 60 + in_time.minute) + int(duration_mins)) % (24 * 60)
             )
             out_hour = out_time // 60
             out_minute = out_time % 60
-            import datetime
             out_time = datetime.time(out_hour, out_minute)
 
             c3, c4, c5 = st.columns(3)

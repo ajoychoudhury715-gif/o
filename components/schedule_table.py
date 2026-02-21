@@ -182,7 +182,20 @@ def render_edit_row_form(
         with c2:
             in_time_val = _parse_time_str(str(row.get("In Time", "") or ""))
             out_time_val = _parse_time_str(str(row.get("Out Time", "") or ""))
-            in_time = st.time_input("In Time *", value=in_time_val)
+
+            # Digital clock time picker for In Time
+            st.markdown("**In Time*** 🕐")
+            t_col1, t_col2, t_col3 = st.columns([2, 1, 2])
+            with t_col1:
+                in_hour = st.number_input("Hour", min_value=0, max_value=23, value=in_time_val.hour, step=1, key=f"in_hour_edit_{row_id}")
+            with t_col2:
+                st.markdown("<div style='text-align:center;padding-top:32px;font-size:20px;font-weight:bold;'>:</div>", unsafe_allow_html=True)
+            with t_col3:
+                in_minute = st.number_input("Minute", min_value=0, max_value=59, value=in_time_val.minute, step=5, key=f"in_minute_edit_{row_id}")
+
+            import datetime
+            in_time = datetime.time(int(in_hour), int(in_minute))
+            st.markdown(f"<div style='text-align:center;font-size:18px;font-weight:bold;color:#3b82f6;'>{in_time.strftime('%H:%M')}</div>", unsafe_allow_html=True)
 
             # Calculate duration from in_time and out_time
             in_mins = in_time.hour * 60 + in_time.minute
@@ -195,7 +208,6 @@ def render_edit_row_form(
             calculated_out = (in_mins + duration_mins) % (24 * 60)
             out_hour = calculated_out // 60
             out_minute = calculated_out % 60
-            import datetime
             out_time = datetime.time(out_hour, out_minute)
 
             procedure = st.text_input(
