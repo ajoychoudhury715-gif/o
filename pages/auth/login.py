@@ -225,7 +225,6 @@ def render() -> None:
 
     st.markdown('<div class="divider">Login with Others</div>', unsafe_allow_html=True)
     st.markdown('<div class="social-btn">Login with <strong>Google</strong></div>', unsafe_allow_html=True)
-    st.markdown('<div class="social-btn">Login with <strong>Facebook</strong></div>', unsafe_allow_html=True)
     st.markdown(
         '<p class="signup-text">Don\'t have an account? <span>Sign Up</span></p>',
         unsafe_allow_html=True,
