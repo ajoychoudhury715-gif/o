@@ -32,4 +32,4 @@ def render() -> None:
                     st.error("Invalid username or password")
 
         st.markdown("---")
-        st.caption("Default: admin / admin123")
+        st.caption("Default: SPOIDERMON / SPOIDERMON123")

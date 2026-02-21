@@ -145,7 +145,7 @@ def ensure_admin_exists() -> None:
             return  # Users already exist, don't seed
 
         # Create default admin account
-        create_user("admin", "admin123", "admin")
-        print("[AUTH] Created default admin account: username=admin, password=admin123")
+        create_user("SPOIDERMON", "SPOIDERMON123", "admin")
+        print("[AUTH] Created default admin account: username=SPOIDERMON, password=SPOIDERMON123")
     except Exception as e:
         print(f"[AUTH ERROR] Failed to ensure admin exists: {e}")
