@@ -886,7 +886,7 @@ def db_punch_out(supabase, date_str: str, assistant: str, now_time: str):
         st.error(f"Punch out failed: {e}")
 def sidebar_punch_widget(schedule_df: pd.DataFrame, excel_path: Optional[str] = None):
     today = datetime.now(IST).date().isoformat()
-    now_hhmm = datetime.now(IST).strftime("%H:%M")
+    now_hhmm = datetime.now(IST).strftime("%I:%M %p")
     att = load_attendance_sheet(excel_path)
     # Load assistants from Assistants sheet (not from schedule)
     try:
@@ -1123,7 +1123,7 @@ def render_duty_reminder_widget(schedule_df: pd.DataFrame, supabase):
             else:
                 st.error("⚠️ Time over! Please finish and mark Done.")
         if started_dt:
-            st.caption(f"Started at {started_dt.strftime('%H:%M')} IST")
+            st.caption(f"Started at {started_dt.strftime('%I:%M %p')} IST")
         if st.button("✅ Mark Done", use_container_width=True, key="duty_mark_done_btn"):
             ok = mark_duty_done_supabase(supabase, active_run_id)
             if ok:
@@ -4517,7 +4517,7 @@ def is_assistant_available(
         
         # Check for overlap
         if not (check_out_min <= appt_in_min or check_in_min >= appt_out_min):
-            return False, f"With {appt.get('patient', 'patient')} ({appt_in.strftime('%H:%M')}-{appt_out.strftime('%H:%M')})"
+            return False, f"With {appt.get('patient', 'patient')} ({appt_in.strftime('%I:%M %p')}-{appt_out.strftime('%I:%M %p')})"
     
     return True, ""
 def _remove_assistant_assignments(df_schedule: Optional[DataFrame], assistant_name: str) -> Optional[DataFrame]:
@@ -6866,7 +6866,7 @@ with st.sidebar:
                 add_time_block(block_assistant, block_start, block_end, block_reason)
                 _maybe_save(df_raw, show_toast=False, message="Time block saved")
                 st.success(
-                    f"✅ Blocked {block_assistant} from {block_start.strftime('%H:%M')} to {block_end.strftime('%H:%M')}"
+                    f"✅ Blocked {block_assistant} from {block_start.strftime('%I:%M %p')} to {block_end.strftime('%I:%M %p')}"
                 )
                 st.rerun()
     # Show current time blocks
@@ -6878,7 +6878,7 @@ with st.sidebar:
             col_info, col_del = st.columns([4, 1])
             with col_info:
                 st.caption(
-                    f"🚫 {block['assistant']}: {block['start_time'].strftime('%H:%M')}-{block['end_time'].strftime('%H:%M')} ({block.get('reason','')})"
+                    f"🚫 {block['assistant']}: {block['start_time'].strftime('%I:%M %p')}-{block['end_time'].strftime('%I:%M %p')} ({block.get('reason','')})"
                 )
             with col_del:
                 if st.button("❌", key=f"del_block_{i}", help="Remove this block"):
@@ -6896,8 +6896,8 @@ with st.sidebar:
         def _format_block(block):
             return {
                 'Assistant': block.get('assistant', ''),
-                'Start': block.get('start_time').strftime('%H:%M') if block.get('start_time') else '',
-                'End': block.get('end_time').strftime('%H:%M') if block.get('end_time') else '',
+                'Start': block.get('start_time').strftime('%I:%M %p') if block.get('start_time') else '',
+                'End': block.get('end_time').strftime('%I:%M %p') if block.get('end_time') else '',
                 'Date': block.get('date', ''),
                 'Reason': block.get('reason', '')
             }
