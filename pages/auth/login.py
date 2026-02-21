@@ -57,10 +57,12 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   background: linear-gradient(160deg, #1A1209 0%, #2E1F08 40%, #3D2A10 100%);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding: 56px 60px;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 60px 48px;
   position: relative;
   overflow: hidden;
+  min-height: 100vh;
 }
 
 .left-panel::before {
@@ -97,11 +99,13 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
+  justify-content: center;
+  gap: 8px;
   position: relative;
   z-index: 1;
   animation: slideInLeft 0.8s ease-out;
   text-align: center;
+  margin-bottom: 80px;
 }
 
 @keyframes slideInLeft {
@@ -132,6 +136,9 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   position: relative;
   z-index: 1;
   animation: fadeInUp 0.8s ease-out 0.2s both;
+  text-align: center;
+  width: 100%;
+  max-width: 420px;
 }
 
 @keyframes fadeInUp {
@@ -218,7 +225,11 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 .left-footer {
   font-size: 11px;
   color: rgba(255,255,255,0.25);
-  position: relative;
+  position: absolute;
+  bottom: 30px;
+  left: 0;
+  right: 0;
+  text-align: center;
   z-index: 1;
   margin: 0;
 }
@@ -500,22 +511,26 @@ hr {
 }
 
 @media (max-width: 900px) {
-  .left-panel { width: 100%; min-height: 320px; padding: 36px 32px; }
+  .left-panel { width: 100%; justify-content: center; padding: 40px 24px; }
   .hero-content h2 { font-size: 34px; }
   .hero-content p { font-size: 13px; }
   .right-panel { padding: 36px 28px; width: 100%; }
   .login-box { max-width: 100%; }
-  .brand { gap: 10px; }
+  .brand { gap: 8px; margin-bottom: 60px; }
   .brand-text h1 { font-size: 18px; }
   .brand-text p { font-size: 9px; }
+  .left-footer { position: relative; margin-top: 40px; }
 }
 
 @media (max-width: 600px) {
-  .left-panel { min-height: 240px; padding: 24px 16px; }
+  .left-panel { padding: 20px 16px; justify-content: center; }
+  .brand { margin-bottom: 50px; }
   .brand-text h1 { font-size: 16px; }
+  .brand-text p { font-size: 8px; }
   .hero-eyebrow { font-size: 10px; }
   .hero-content h2 { font-size: 28px; line-height: 1.2; }
-  .hero-content p { font-size: 12px; max-width: 100%; }
+  .hero-content p { font-size: 12px; }
+  .left-footer { margin-top: 30px; position: relative; }
   .right-panel { padding: 24px 16px; }
   .login-box { max-width: 100%; padding: 0; }
   .login-header { margin-bottom: 24px; }
