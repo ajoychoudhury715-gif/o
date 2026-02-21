@@ -209,7 +209,8 @@ def _render_save_controls(df) -> None:
     save_disabled = bool(st.session_state.get("is_saving")) or bool(st.session_state.get("save_conflict"))
     if st.button("💾 Save Now", use_container_width=True, disabled=save_disabled, key="btn_save_now"):
         from state.save_manager import maybe_save
-        df_to_save = st.session_state.get("unsaved_df") or df
+        unsaved = st.session_state.get("unsaved_df")
+        df_to_save = unsaved if unsaved is not None else df
         if df_to_save is not None:
             result = maybe_save(df_to_save, message="Saved!", force=True)
             if result:
@@ -237,7 +238,8 @@ def _render_save_controls(df) -> None:
         with c2:
             if st.button("⚠️ Force Save", use_container_width=True, key="btn_conflict_force"):
                 from state.save_manager import save_now
-                df_to_save = st.session_state.get("unsaved_df") or df
+                unsaved = st.session_state.get("unsaved_df")
+                df_to_save = unsaved if unsaved is not None else df
                 if df_to_save is not None:
                     save_now(df_to_save, ignore_conflict=True)
                     st.rerun()
