@@ -1,290 +1,360 @@
 # pages/auth/login.py
-"""Modern professional login page inspired by Auth0."""
+"""Custom split login page."""
 
 import streamlit as st
 from data.auth_repo import authenticate
 
-# ── Page config ────────────────────────────────────────────────────────────────
-st.set_page_config(
-    page_title="The Dental Bond – Schedule Management",
-    page_icon="🦷",
-    layout="centered",
-    initial_sidebar_state="collapsed",
-)
 
-# ── Professional Modern CSS ────────────────────────────────────────────────────
-st.markdown("""
-<style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+def _inject_css() -> None:
+    st.markdown(
+        """
+        <style>
+        #MainMenu, footer, header {
+          visibility: hidden;
+        }
 
-html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-}
+        html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
+          background: #e8e6f5;
+          min-height: 100vh;
+          font-family: 'Segoe UI', sans-serif;
+        }
 
-#MainMenu, footer, header {
-  visibility: hidden;
-}
+        .block-container {
+          padding-top: 20px !important;
+          padding-bottom: 20px !important;
+          max-width: 940px !important;
+        }
 
-.block-container {
-  padding: 0 !important;
-  max-width: 100% !important;
-  width: 100% !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  min-height: 100vh !important;
-}
+        .login-card {
+          width: 100%;
+          min-height: 520px;
+          border-radius: 24px;
+          overflow: hidden;
+          box-shadow: 0 20px 60px rgba(100, 80, 220, 0.18);
+          background: #fff;
+        }
 
-.main {
-  padding: 20px !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
+        .left-panel {
+          padding: 40px 34px 24px;
+        }
 
-/* Login Card */
-.login-wrapper {
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.08);
-  width: 100%;
-  max-width: 340px;
-  padding: 36px 28px;
-}
+        .login-title {
+          font-size: 28px;
+          font-weight: 800;
+          letter-spacing: 2px;
+          color: #1a1a2e;
+          text-align: center;
+          margin-bottom: 6px;
+        }
 
-.login-header {
-  text-align: center;
-  margin-bottom: 28px;
-}
+        .subtitle {
+          text-align: center;
+          color: #888;
+          font-size: 13px;
+          margin-bottom: 26px;
+        }
 
-.login-logo {
-  font-size: 32px;
-  margin-bottom: 12px;
-  display: block;
-}
+        .field-icon {
+          font-size: 15px;
+          color: #9e9cb8;
+          margin: 8px 0 4px 10px;
+          position: relative;
+          z-index: 3;
+        }
 
-.login-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin-bottom: 6px;
-  letter-spacing: -0.5px;
-}
+        .left-panel [data-testid="stTextInput"] {
+          margin-top: -24px;
+          margin-bottom: 12px;
+        }
 
-.login-subtitle {
-  font-size: 13px;
-  color: #6b7684;
-  font-weight: 400;
-  line-height: 1.4;
-}
+        .left-panel [data-testid="stTextInput"] label {
+          display: none !important;
+        }
 
-.login-divider {
-  margin: 28px 0;
-  border: none;
-  border-top: 1px solid #e1e6eb;
-}
+        .left-panel [data-testid="stTextInput"] input {
+          width: 100% !important;
+          padding: 14px 16px 14px 44px !important;
+          border: none !important;
+          background: #f0eefa !important;
+          border-radius: 10px !important;
+          font-size: 14px !important;
+          color: #333 !important;
+          outline: none !important;
+          box-shadow: none !important;
+        }
 
-.login-footer {
-  margin-top: 16px;
-  text-align: center;
-  font-size: 11px;
-  color: #9da5b0;
-  line-height: 1.5;
-}
+        .left-panel [data-testid="stTextInput"] input::placeholder {
+          color: #aaa !important;
+        }
 
-.login-footer a {
-  color: #007bff;
-  text-decoration: none;
-  font-weight: 500;
-}
+        .left-panel [data-testid="stTextInput"] input:focus {
+          background: #e4dff5 !important;
+          border: none !important;
+          box-shadow: none !important;
+        }
 
-.login-footer a:hover {
-  color: #0056b3;
-  text-decoration: underline;
-}
+        .forgot-wrap {
+          text-align: right;
+          margin-top: -2px;
+          margin-bottom: 14px;
+        }
 
-/* Form Elements */
-[data-testid="stTextInput"] label {
-  font-size: 12px !important;
-  font-weight: 600 !important;
-  color: #1a1a1a !important;
-  letter-spacing: 0.3px !important;
-  margin-bottom: 6px !important;
-  text-transform: none !important;
-}
+        .forgot-wrap button {
+          background: transparent !important;
+          border: none !important;
+          color: #6c5ce7 !important;
+          font-size: 12px !important;
+          padding: 0 !important;
+          height: auto !important;
+          min-height: auto !important;
+        }
 
-[data-testid="stTextInput"] input {
-  background-color: #f7fafb !important;
-  border: 1px solid #e1e6eb !important;
-  border-radius: 6px !important;
-  font-size: 13px !important;
-  padding: 9px 12px !important;
-  color: #1a1a1a !important;
-  transition: all 0.2s ease !important;
-  font-family: inherit !important;
-}
+        .left-panel [data-testid="stButton"] button {
+          width: 100%;
+          padding: 14px !important;
+          background: #6c5ce7 !important;
+          color: #fff !important;
+          border: none !important;
+          border-radius: 10px !important;
+          font-size: 15px !important;
+          font-weight: 700 !important;
+          letter-spacing: 0.5px !important;
+          transition: background 0.2s, transform 0.15s !important;
+        }
 
-[data-testid="stTextInput"] input::placeholder {
-  color: #b4bcc4 !important;
-  font-weight: 400 !important;
-}
+        .left-panel [data-testid="stButton"] button:hover {
+          background: #5a4bd1 !important;
+          transform: translateY(-1px) !important;
+        }
 
-[data-testid="stTextInput"] input:focus {
-  border-color: #007bff !important;
-  background-color: white !important;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1) !important;
-  outline: none !important;
-}
+        .divider {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin: 20px 0 14px;
+          color: #bbb;
+          font-size: 13px;
+          font-weight: 700;
+        }
 
-[data-testid="stElementContainer"] {
-  margin-bottom: 14px !important;
-}
+        .divider::before,
+        .divider::after {
+          content: "";
+          flex: 1;
+          height: 1px;
+          background: #e5e5e5;
+        }
 
-/* Buttons */
-[data-testid="stButton"] button {
-  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
-  color: white !important;
-  border: none !important;
-  border-radius: 6px !important;
-  font-size: 13px !important;
-  font-weight: 600 !important;
-  padding: 10px 14px !important;
-  letter-spacing: 0.2px !important;
-  transition: all 0.3s ease !important;
-  cursor: pointer !important;
-  width: 100% !important;
-  box-shadow: 0 2px 5px 0 rgba(0, 123, 255, 0.2) !important;
-  margin-bottom: 0 !important;
-}
+        .social-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          width: 100%;
+          padding: 11px;
+          border: 1.5px solid #ece9fb;
+          border-radius: 10px;
+          background: #fff;
+          font-size: 13.5px;
+          font-weight: 500;
+          color: #333;
+          margin-bottom: 10px;
+          text-align: center;
+        }
 
-[data-testid="stButton"] button:hover {
-  opacity: 0.95 !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px 0 rgba(0, 123, 255, 0.3) !important;
-}
+        .social-btn:hover {
+          background: #f7f4ff;
+          border-color: #c0b5f0;
+        }
 
-[data-testid="stButton"] button:active {
-  transform: translateY(0) !important;
-}
+        .signup-text {
+          text-align: center;
+          font-size: 13px;
+          color: #888;
+          margin-top: 20px;
+        }
 
-/* Error/Alert */
-[data-testid="stAlert"] {
-  background-color: #fff3cd !important;
-  border: 1px solid #ffe69c !important;
-  border-radius: 6px !important;
-  color: #856404 !important;
-  padding: 12px 14px !important;
-  margin-bottom: 20px !important;
-  font-size: 13px !important;
-}
+        .signup-text span {
+          color: #6c5ce7;
+          font-weight: 600;
+        }
 
-.stAlert > div > div {
-  color: #856404 !important;
-}
+        .right-panel {
+          height: 100%;
+          min-height: 520px;
+          background: linear-gradient(135deg, #6c5ce7 0%, #7d6ff0 60%, #8a7cf5 100%);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 40px 30px;
+          position: relative;
+          overflow: hidden;
+        }
 
-[data-testid="stToastContainer"] {
-  font-size: 13px !important;
-}
+        .right-panel::before {
+          content: "";
+          position: absolute;
+          width: 320px;
+          height: 320px;
+          background: rgba(255,255,255,0.07);
+          border-radius: 50%;
+          top: -80px;
+          right: -80px;
+        }
 
-/* Columns */
-[data-testid="stColumn"] {
-  padding: 0 !important;
-}
+        .right-panel::after {
+          content: "";
+          position: absolute;
+          width: 200px;
+          height: 200px;
+          background: rgba(255,255,255,0.06);
+          border-radius: 50%;
+          bottom: -50px;
+          left: -40px;
+        }
 
-/* Success Message */
-div[data-testid="stToast"] {
-  background: #d4edda !important;
-  color: #155724 !important;
-}
+        .right-card {
+          background: rgba(255,255,255,0.15);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255,255,255,0.25);
+          border-radius: 20px;
+          padding: 20px;
+          z-index: 1;
+          text-align: center;
+        }
 
-/* Responsive */
-@media (max-width: 600px) {
-  .login-wrapper {
-    padding: 32px 20px;
-    max-width: 100%;
-  }
+        .avatar-placeholder {
+          width: 200px;
+          height: 240px;
+          background: rgba(255,255,255,0.2);
+          border-radius: 14px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto;
+          font-size: 70px;
+        }
 
-  .login-title {
-    font-size: 18px;
-  }
+        .badge {
+          width: 46px;
+          height: 46px;
+          background: #fff;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 20px;
+          box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+          position: absolute;
+          left: 18px;
+          bottom: 90px;
+          z-index: 2;
+        }
 
-  .login-subtitle {
-    font-size: 12px;
-  }
-}
-</style>
-""", unsafe_allow_html=True)
+        .tagline {
+          color: rgba(255,255,255,0.9);
+          font-size: 13.5px;
+          font-weight: 600;
+          letter-spacing: 0.3px;
+          z-index: 1;
+          margin-top: 14px;
+          text-align: center;
+        }
+
+        .tagline span {
+          color: #ffd700;
+        }
+
+        @media (max-width: 900px) {
+          .right-panel {
+            min-height: 220px;
+          }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
-# ── Main layout ────────────────────────────────────────────────────────────────
 def render() -> None:
-    """Render the professional login page."""
-    # Initialize session state
+    """Render split login page."""
     if "login_error" not in st.session_state:
         st.session_state.login_error = False
 
-    # Login card wrapper
-    st.markdown("""<div class="login-wrapper">""", unsafe_allow_html=True)
+    _inject_css()
 
-    # Header
-    st.markdown("""
-        <div class="login-header">
-            <span class="login-logo">🦷</span>
-            <div class="login-title">The Dental Bond</div>
-            <div class="login-subtitle">Schedule Management System</div>
-        </div>
-    """, unsafe_allow_html=True)
+    st.markdown('<div class="login-card">', unsafe_allow_html=True)
+    left_col, right_col = st.columns([1.45, 1], gap="small")
 
-    # Error message
-    if st.session_state.login_error:
-        st.warning(st.session_state.login_error)
+    with left_col:
+        st.markdown('<div class="left-panel">', unsafe_allow_html=True)
+        st.markdown('<div class="login-title">LOGIN</div>', unsafe_allow_html=True)
+        st.markdown(
+            '<p class="subtitle">Welcome back! Please sign in to continue.</p>',
+            unsafe_allow_html=True,
+        )
 
-    # Form inputs
-    email = st.text_input(
-        "Email Address",
-        key="login_email",
-        placeholder="you@example.com"
-    )
+        if st.session_state.login_error:
+            st.warning(st.session_state.login_error)
 
-    password = st.text_input(
-        "Password",
-        key="login_password",
-        placeholder="••••••••",
-        type="password"
-    )
+        st.markdown('<div class="field-icon">👤</div>', unsafe_allow_html=True)
+        username = st.text_input(
+            "Username",
+            key="login_username",
+            placeholder="Username",
+            label_visibility="collapsed",
+        )
 
-    # Sign in button
-    if st.button("Sign In", use_container_width=True):
-        if not email or not password:
-            st.session_state.login_error = "Please enter your email and password."
+        st.markdown('<div class="field-icon">🔒</div>', unsafe_allow_html=True)
+        password = st.text_input(
+            "Password",
+            key="login_password",
+            placeholder="Password",
+            type="password",
+            label_visibility="collapsed",
+        )
+
+        st.markdown('<div class="forgot-wrap">', unsafe_allow_html=True)
+        if st.button("Forgot Password?", key="forgot_password_link", use_container_width=False):
+            st.session_state.show_reset_password = True
             st.rerun()
-        else:
-            user = authenticate(email, password)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        if st.button("Login Now", use_container_width=True, key="login_now_button"):
+            if not username or not password:
+                st.session_state.login_error = "Please enter your username and password."
+                st.rerun()
+            user = authenticate(username, password)
             if user:
                 st.session_state.current_user = user["username"]
                 st.session_state.user_role = user["role"]
                 st.session_state.login_error = False
-                st.success("Signed in successfully!")
                 st.rerun()
-            else:
-                st.session_state.login_error = "Invalid email or password. Please try again."
-                st.rerun()
+            st.session_state.login_error = "Invalid username or password. Please try again."
+            st.rerun()
 
-    # Footer
-    st.markdown("""
-        <div class="login-divider"></div>
-        <div class="login-footer">
-            Need access? <a href="#">Contact your admin</a><br>
-            v2.4.1
-        </div>
-    """, unsafe_allow_html=True)
+        st.markdown('<div class="divider">Login with Others</div>', unsafe_allow_html=True)
+        st.markdown('<div class="social-btn">G Login with <strong>Google</strong></div>', unsafe_allow_html=True)
+        st.markdown('<div class="social-btn">f Login with <strong>Facebook</strong></div>', unsafe_allow_html=True)
+        st.markdown(
+            '<p class="signup-text">Don\'t have an account? <span>Sign Up</span></p>',
+            unsafe_allow_html=True,
+        )
+        st.markdown("</div>", unsafe_allow_html=True)
 
-    st.markdown("""</div>""", unsafe_allow_html=True)
+    with right_col:
+        st.markdown(
+            """
+            <div class="right-panel">
+              <div class="right-card">
+                <div class="avatar-placeholder">👩‍💼</div>
+              </div>
+              <div class="badge">⚡</div>
+              <p class="tagline">Your journey starts here. <span>✦</span></p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    st.markdown("</div>", unsafe_allow_html=True)
