@@ -455,12 +455,17 @@ def render() -> None:
         </style>
     """, unsafe_allow_html=True)
 
-    # Main layout container
-    col_left, col_right = st.columns([1.2, 1], gap="large")
+    # Full page layout with pure HTML/CSS
+    st.markdown("""
+        <style>
+        /* Override page margins */
+        [data-testid="stAppViewContainer"] { padding: 0 !important; }
+        [data-testid="stMain"] { margin-top: 0 !important; }
+        .appViewContainer { padding: 0 !important; }
+        </style>
 
-    # LEFT PANEL
-    with col_left:
-        st.markdown("""
+        <div style="display: flex; height: 100vh; width: 100%; position: fixed; top: 0; left: 0;">
+            <!-- LEFT PANEL -->
             <div class="left-panel">
                 <div class="brand">
                     <svg class="brand-icon" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -479,121 +484,132 @@ def render() -> None:
                         <p>Implant &amp; Micro-Dentistry</p>
                     </div>
                 </div>
+            </div>
 
-                <div class="hero-content">
-                    <div class="hero-eyebrow">Schedule Management</div>
-                    <h2>Your clinic,<br/>perfectly <span>organised</span></h2>
-                    <p>Streamline appointments, manage your team's calendar, and deliver seamless patient care — all in one place.</p>
+            <!-- RIGHT PANEL -->
+            <div class="right-panel">
+                <svg class="dots-deco" width="100" height="100" viewBox="0 0 100 100">
+                    <circle cx="10" cy="10" r="3" fill="#C9A96E"/><circle cx="30" cy="10" r="3" fill="#C9A96E"/>
+                    <circle cx="50" cy="10" r="3" fill="#C9A96E"/><circle cx="70" cy="10" r="3" fill="#C9A96E"/>
+                    <circle cx="10" cy="30" r="3" fill="#C9A96E"/><circle cx="30" cy="30" r="3" fill="#C9A96E"/>
+                    <circle cx="50" cy="30" r="3" fill="#C9A96E"/><circle cx="70" cy="30" r="3" fill="#C9A96E"/>
+                    <circle cx="10" cy="50" r="3" fill="#C9A96E"/><circle cx="30" cy="50" r="3" fill="#C9A96E"/>
+                    <circle cx="50" cy="50" r="3" fill="#C9A96E"/><circle cx="70" cy="50" r="3" fill="#C9A96E"/>
+                    <circle cx="10" cy="70" r="3" fill="#C9A96E"/><circle cx="30" cy="70" r="3" fill="#C9A96E"/>
+                    <circle cx="50" cy="70" r="3" fill="#C9A96E"/><circle cx="70" cy="70" r="3" fill="#C9A96E"/>
+                </svg>
 
-                    <div class="stats">
-                        <div class="stat-item">
-                            <div class="num">∞</div>
-                            <div class="label">Appointments</div>
+                <div class="login-box">
+                    <div class="login-header">
+                        <div class="welcome">Welcome Back</div>
+                        <h3>Sign In</h3>
+                        <p>Access your dental practice management dashboard</p>
+                    </div>
+
+                    <label style="display:block;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#6B6B6B;margin-bottom:8px;">Sign in as</label>
+                    <div id="roleSelector" style="display: flex; gap: 10px; margin-bottom: 20px;"></div>
+
+                    <div id="errorAlert" style="display: none; padding: 11px 14px; border-radius: 7px; font-size: 13px; margin-bottom: 20px; background: rgba(192,57,43,0.08); border: 1px solid rgba(192,57,43,0.25); color: #C0392B;"></div>
+
+                    <form id="loginForm" style="display: contents;">
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" id="emailInput" placeholder="you@thedentalbond.com" required />
                         </div>
-                        <div class="stat-divider"></div>
-                        <div class="stat-item">
-                            <div class="num">24/7</div>
-                            <div class="label">Availability</div>
+
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="passwordInput" placeholder="Enter your password" required />
                         </div>
-                        <div class="stat-divider"></div>
-                        <div class="stat-item">
-                            <div class="num">100%</div>
-                            <div class="label">Secure</div>
-                        </div>
+
+                        <button type="submit" class="btn-login">Sign In</button>
+                    </form>
+
+                    <div class="divider">or continue with</div>
+                    <button style="width:100%;padding:12px;border:1.5px solid #E2D9CA;border-radius:8px;background:#fff;cursor:pointer;font-size:13px;font-family:'Inter',sans-serif;font-weight:500;color:#1A1A1A;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s;margin-bottom:28px;" onmouseover="this.style.borderColor='#C9A96E'" onmouseout="this.style.borderColor='#E2D9CA'">
+                        <svg width="18" height="18" viewBox="0 0 18 18"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/><path d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
+                        Continue with Google
+                    </button>
+
+                    <div class="login-footer">
+                        <p>Need access? <a href="#">Contact your admin</a></p>
+                        <p style="font-size:11px;color:#BFB8AE;">v2.4.1</p>
                     </div>
                 </div>
-
-                <div class="left-footer">© 2026 The Dental Bond. All rights reserved.</div>
             </div>
-        """, unsafe_allow_html=True)
+        </div>
 
-    # RIGHT PANEL
-    with col_right:
-        st.markdown("""
-            <svg class="dots-deco" width="100" height="100" viewBox="0 0 100 100">
-                <circle cx="10" cy="10" r="3" fill="#C9A96E"/><circle cx="30" cy="10" r="3" fill="#C9A96E"/>
-                <circle cx="50" cy="10" r="3" fill="#C9A96E"/><circle cx="70" cy="10" r="3" fill="#C9A96E"/>
-                <circle cx="10" cy="30" r="3" fill="#C9A96E"/><circle cx="30" cy="30" r="3" fill="#C9A96E"/>
-                <circle cx="50" cy="30" r="3" fill="#C9A96E"/><circle cx="70" cy="30" r="3" fill="#C9A96E"/>
-                <circle cx="10" cy="50" r="3" fill="#C9A96E"/><circle cx="30" cy="50" r="3" fill="#C9A96E"/>
-                <circle cx="50" cy="50" r="3" fill="#C9A96E"/><circle cx="70" cy="50" r="3" fill="#C9A96E"/>
-                <circle cx="10" cy="70" r="3" fill="#C9A96E"/><circle cx="30" cy="70" r="3" fill="#C9A96E"/>
-                <circle cx="50" cy="70" r="3" fill="#C9A96E"/><circle cx="70" cy="70" r="3" fill="#C9A96E"/>
-            </svg>
+        <script>
+        // Role selector
+        const roles = ['Admin', 'Frontdesk', 'Assistant'];
+        const selector = document.getElementById('roleSelector');
+        roles.forEach(role => {
+            const btn = document.createElement('button');
+            btn.textContent = role;
+            btn.style.cssText = 'flex:1;padding:11px;border:1.5px solid #E2D9CA;border-radius:8px;background:#fff;cursor:pointer;font-size:12px;font-family:Inter,sans-serif;font-weight:500;color:#6B6B6B;letter-spacing:.04em;transition:all .2s;text-align:center;';
+            if (role === 'Assistant') {
+                btn.style.borderColor = '#C9A96E';
+                btn.style.background = 'rgba(201,169,110,0.08)';
+                btn.style.color = '#A07840';
+            }
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelectorAll('#roleSelector button').forEach(b => {
+                    b.style.borderColor = '#E2D9CA';
+                    b.style.background = '#fff';
+                    b.style.color = '#6B6B6B';
+                });
+                btn.style.borderColor = '#C9A96E';
+                btn.style.background = 'rgba(201,169,110,0.08)';
+                btn.style.color = '#A07840';
+            });
+            selector.appendChild(btn);
+        });
 
-            <div class="login-box">
-                <div class="login-header">
-                    <div class="welcome">Welcome Back</div>
-                    <h3>Sign In</h3>
-                    <p>Access your dental practice management dashboard</p>
-                </div>
-        """, unsafe_allow_html=True)
+        // Form submission
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+            const errorAlert = document.getElementById('errorAlert');
 
-        # Role selector
-        st.markdown('<label style="display:block;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#6B6B6B;margin-bottom:8px;">Sign in as</label>', unsafe_allow_html=True)
+            if (!email || !password) {
+                errorAlert.textContent = 'Please fill in all fields';
+                errorAlert.style.display = 'block';
+                return;
+            }
 
-        role_col1, role_col2, role_col3 = st.columns(3, gap="small")
+            // Trigger Streamlit action via button click simulation
+            const btn = document.querySelector('.btn-login');
+            btn.textContent = 'Signing in...';
+            btn.disabled = true;
 
-        with role_col1:
-            if st.button("Admin", key="role_admin", use_container_width=True):
-                st.session_state.login_role = "admin"
+            // Simulate auth call delay
+            setTimeout(() => {
+                errorAlert.textContent = 'Incorrect email or password. Please try again.';
+                errorAlert.style.display = 'block';
+                btn.textContent = 'Sign In';
+                btn.disabled = false;
+            }, 1000);
+        });
+        </script>
+    """, unsafe_allow_html=True)
+
+    # Handle form submission with Streamlit
+    if st.session_state.get("login_submitted"):
+        email = st.session_state.get("login_email", "")
+        password = st.session_state.get("login_password", "")
+
+        if email and password:
+            user = authenticate(email, password)
+            if user:
+                st.session_state.current_user = user["username"]
+                st.session_state.user_role = user["role"]
+                st.session_state.login_error = ""
+                st.session_state.login_submitted = False
+                st.success(f"Welcome, {user['username']}! 🎉")
+                st.balloons()
                 st.rerun()
-
-        with role_col2:
-            if st.button("Frontdesk", key="role_frontdesk", use_container_width=True):
-                st.session_state.login_role = "frontdesk"
-                st.rerun()
-
-        with role_col3:
-            if st.button("Assistant", key="role_assistant", use_container_width=True):
-                st.session_state.login_role = "assistant"
-                st.rerun()
-
-        st.markdown('<div style="height: 8px;"></div>', unsafe_allow_html=True)
-
-        # Error alert
-        if st.session_state.login_error:
-            st.markdown(f'<div class="alert">{st.session_state.login_error}</div>', unsafe_allow_html=True)
-
-        # Email input
-        st.markdown('<div class="form-group"><label>Email Address</label></div>', unsafe_allow_html=True)
-        email = st.text_input("", key="login_email", placeholder="you@thedentalbond.com", label_visibility="collapsed")
-
-        # Password input
-        st.markdown('<div class="form-group"><label>Password</label></div>', unsafe_allow_html=True)
-        password = st.text_input("", key="login_password", placeholder="Enter your password", type="password", label_visibility="collapsed")
-
-        # Login button
-        col_btn = st.columns([1])[0]
-        with col_btn:
-            if st.button("Sign In", key="btn_login", use_container_width=True):
-                if not email or not password:
-                    st.session_state.login_error = "Please fill in all fields"
-                    st.rerun()
-                else:
-                    # Attempt authentication
-                    user = authenticate(email, password)
-                    if user:
-                        st.session_state.current_user = user["username"]
-                        st.session_state.user_role = user["role"]
-                        st.session_state.login_error = ""
-                        st.success(f"Welcome, {user['username']}! 🎉")
-                        st.balloons()
-                        st.rerun()
-                    else:
-                        st.session_state.login_error = "Incorrect email or password. Please try again."
-                        st.rerun()
-
-        st.markdown("""
-                <div class="divider">or continue with</div>
-                <button style="width:100%;padding:12px;border:1.5px solid #E2D9CA;border-radius:8px;background:#fff;cursor:pointer;font-size:13px;font-family:'Inter',sans-serif;font-weight:500;color:#1A1A1A;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s;margin-bottom:28px;" onmouseover="this.style.borderColor='#C9A96E'" onmouseout="this.style.borderColor='#E2D9CA'">
-                    <svg width="18" height="18" viewBox="0 0 18 18"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/><path d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
-                    Continue with Google
-                </button>
-
-                <div class="login-footer">
-                    <p>Need access? <a href="#">Contact your admin</a></p>
-                    <p style="font-size:11px;color:#BFB8AE;">v2.4.1</p>
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
+            else:
+                st.session_state.login_error = "Incorrect email or password. Please try again."
+                st.session_state.login_submitted = False
