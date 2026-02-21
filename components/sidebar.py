@@ -105,20 +105,26 @@ def _render_punch_widget(df) -> None:
     c1, c2 = st.columns(2)
     with c1:
         if st.button("✅ Punch In", use_container_width=True, disabled=bool(pin), key="btn_punch_in"):
-            punch_in(date_str, assistant, now_hhmm)
-            st.toast(f"{assistant} punched in at {now_hhmm}", icon="✅")
+            ok = punch_in(date_str, assistant, now_hhmm)
+            if ok:
+                st.toast(f"{assistant} punched in at {now_hhmm}", icon="✅")
+            else:
+                st.error(f"❌ Punch in failed for {assistant}")
             st.rerun()
     with c2:
         if st.button("⏹ Punch Out", use_container_width=True, disabled=(not pin) or bool(pout), key="btn_punch_out"):
-            punch_out(date_str, assistant, now_hhmm)
-            st.toast(f"{assistant} punched out at {now_hhmm}", icon="⏹")
-            # Remove from schedule
-            from services.schedule_ops import remove_assistant_from_schedule
-            from state.save_manager import maybe_save
-            updated = remove_assistant_from_schedule(df, assistant)
-            if updated is not None:
-                st.session_state.df = updated
-                maybe_save(updated, message=f"{assistant} removed after punch out")
+            ok = punch_out(date_str, assistant, now_hhmm)
+            if ok:
+                st.toast(f"{assistant} punched out at {now_hhmm}", icon="⏹")
+                # Remove from schedule
+                from services.schedule_ops import remove_assistant_from_schedule
+                from state.save_manager import maybe_save
+                updated = remove_assistant_from_schedule(df, assistant)
+                if updated is not None:
+                    st.session_state.df = updated
+                    maybe_save(updated, message=f"{assistant} removed after punch out")
+            else:
+                st.error(f"❌ Punch out failed for {assistant}")
             st.rerun()
 
     with st.expander("Admin"):
