@@ -6,6 +6,8 @@ from typing import Callable
 import datetime
 import streamlit as st
 
+from services.utils import time_to_12h
+
 
 def render_time_block_editor(
     time_blocks: list[dict],
@@ -98,8 +100,8 @@ def _render_block_row(block: dict, idx: int, on_remove: Callable[[int], None]) -
 
     start = block.get("start_time")
     end = block.get("end_time")
-    start_str = start.strftime("%H:%M") if isinstance(start, datetime.time) else str(start)[:5]
-    end_str = end.strftime("%H:%M") if isinstance(end, datetime.time) else str(end)[:5]
+    start_str = time_to_12h(start) if isinstance(start, datetime.time) else str(start)[:5]
+    end_str = time_to_12h(end) if isinstance(end, datetime.time) else str(end)[:5]
 
     c1, c2 = st.columns([5, 1])
     with c1:
@@ -133,8 +135,8 @@ def render_time_block_summary(time_blocks: list[dict], today_str: str | None = N
         assistant = str(b.get("assistant", ""))
         start = b.get("start_time")
         end = b.get("end_time")
-        start_str = start.strftime("%H:%M") if isinstance(start, datetime.time) else str(start)[:5]
-        end_str = end.strftime("%H:%M") if isinstance(end, datetime.time) else str(end)[:5]
+        start_str = time_to_12h(start) if isinstance(start, datetime.time) else str(start)[:5]
+        end_str = time_to_12h(end) if isinstance(end, datetime.time) else str(end)[:5]
         reason = str(b.get("reason", "Blocked"))
         lines.append(f"🚫 **{assistant}** {start_str}–{end_str} _{reason}_")
     st.markdown("\n\n".join(lines))

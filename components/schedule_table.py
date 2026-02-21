@@ -7,7 +7,7 @@ import pandas as pd
 import streamlit as st
 
 from config.constants import STATUS_OPTIONS, SCHEDULE_COLUMNS
-from services.utils import is_blank
+from services.utils import is_blank, coerce_to_time_obj, time_to_12h
 
 
 # Columns to show in the table view (subset of all columns for readability)
@@ -30,6 +30,14 @@ def _safe_str_col(df: pd.DataFrame, col: str) -> pd.Series:
     if col in df.columns:
         return df[col].fillna("").astype(str)
     return pd.Series([""] * len(df), index=df.index)
+
+
+def _fmt_time_12h(val) -> str:
+    """Format time string or time object to 12-hour AM/PM format."""
+    t = coerce_to_time_obj(val)
+    if t is None:
+        return str(val or "")
+    return time_to_12h(t)
 
 
 def render_schedule_table(
@@ -62,10 +70,10 @@ def render_schedule_table(
 
     display_df = df[display_cols].copy()
 
-    # Normalise time columns to string
+    # Normalise time columns to string and format as 12-hour
     for col in ("In Time", "Out Time"):
         if col in display_df.columns:
-            display_df[col] = display_df[col].fillna("").astype(str)
+            display_df[col] = display_df[col].fillna("").astype(str).apply(_fmt_time_12h)
 
     # Build column_config
     doctors_opts = sorted(doctors or [])

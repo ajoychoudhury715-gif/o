@@ -7,7 +7,7 @@ import pandas as pd
 import datetime
 
 from data.attendance_repo import load_attendance, get_today_punch_map
-from services.utils import now_ist
+from services.utils import now_ist, time_to_12h, coerce_to_time_obj
 from services.profiles_cache import get_profiles_cache
 
 
@@ -34,13 +34,17 @@ def render() -> None:
                     pin = pdata.get("punch_in", "")
                     pout = pdata.get("punch_out", "")
 
+                    # Convert to 12-hour format for display
+                    pin_12h = time_to_12h(coerce_to_time_obj(pin)) if pin else ""
+                    pout_12h = time_to_12h(coerce_to_time_obj(pout)) if pout else ""
+
                     if pin and pout:
                         color = "#22c55e"
-                        label = f"✅ {pin[:5]} – {pout[:5]}"
+                        label = f"✅ {pin_12h} – {pout_12h}"
                         bg = "rgba(34,197,94,0.1)"
                     elif pin:
                         color = "#3b82f6"
-                        label = f"🟢 In @ {pin[:5]}"
+                        label = f"🟢 In @ {pin_12h}"
                         bg = "rgba(59,130,246,0.1)"
                     else:
                         color = "#ef4444"

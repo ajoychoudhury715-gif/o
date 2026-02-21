@@ -80,6 +80,19 @@ def time_to_hhmm(t: Optional[time_type]) -> str:
     return f"{t.hour:02d}:{t.minute:02d}"
 
 
+def time_to_12h(t: Optional[time_type]) -> str:
+    """Format time in 12-hour AM/PM format. Example: '2:30 PM'"""
+    if t is None:
+        return ""
+    hour = t.hour
+    minute = t.minute
+    period = "AM" if hour < 12 else "PM"
+    hour_12 = hour if hour <= 12 else hour - 12
+    if hour_12 == 0:
+        hour_12 = 12
+    return f"{hour_12}:{minute:02d} {period}"
+
+
 def is_blank(value: Any) -> bool:
     """Return True if value is effectively empty/null."""
     if value is None:

@@ -7,14 +7,14 @@ import streamlit as st
 
 from config.constants import STATUS_OPTIONS
 from components.theme import status_badge_html, assign_pill_html
-from services.utils import coerce_to_time_obj
+from services.utils import coerce_to_time_obj, time_to_12h
 
 
 def _fmt_time(val) -> str:
     t = coerce_to_time_obj(val)
     if t is None:
         return str(val or "")
-    return t.strftime("%H:%M")
+    return time_to_12h(t)
 
 
 def render_schedule_card(

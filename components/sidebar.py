@@ -5,7 +5,7 @@ from __future__ import annotations
 import streamlit as st
 
 from config.constants import NAV_STRUCTURE, NAV_ICONS
-from services.utils import now_ist
+from services.utils import now_ist, time_to_12h
 
 
 def render_sidebar(df) -> None:
@@ -29,7 +29,7 @@ def _render_header() -> None:
         unsafe_allow_html=True,
     )
     st.markdown(
-        f'<div class="live-pill"><span class="live-dot"></span>LIVE — {now.strftime("%H:%M")}</div>',
+        f'<div class="live-pill"><span class="live-dot"></span>LIVE — {time_to_12h(now.time())}</div>',
         unsafe_allow_html=True,
     )
 
@@ -87,7 +87,10 @@ def _render_punch_widget(df) -> None:
     assistant = st.selectbox("Select Assistant", assistants, key="sb_assistant")
     now = now_ist()
     date_str = now.date().isoformat()
-    now_hhmm = now.strftime("%H:%M")
+    from services.utils import coerce_to_time_obj
+    now_time_obj = coerce_to_time_obj(now.time())
+    now_12h = time_to_12h(now_time_obj)
+    now_hhmm = now.strftime("%H:%M")  # Keep 24h version for database storage
 
     from data.attendance_repo import get_today_punch_map, punch_in, punch_out, reset_attendance
     punch_map = get_today_punch_map(date_str)
@@ -95,10 +98,14 @@ def _render_punch_widget(df) -> None:
     pin = pdata.get("punch_in", "")
     pout = pdata.get("punch_out", "")
 
+    # Convert stored times to 12-hour format for display
+    pin_12h = time_to_12h(coerce_to_time_obj(pin)) if pin else ""
+    pout_12h = time_to_12h(coerce_to_time_obj(pout)) if pout else ""
+
     if pin and not pout:
-        st.success(f"✅ PUNCHED IN at {pin[:5]}")
+        st.success(f"✅ PUNCHED IN at {pin_12h}")
     elif pin and pout:
-        st.info(f"📋 COMPLETED • In {pin[:5]} • Out {pout[:5]}")
+        st.info(f"📋 COMPLETED • In {pin_12h} • Out {pout_12h}")
     else:
         st.warning("⚠️ Not punched in")
 
@@ -107,7 +114,7 @@ def _render_punch_widget(df) -> None:
         if st.button("✅ Punch In", use_container_width=True, disabled=bool(pin), key="btn_punch_in"):
             ok = punch_in(date_str, assistant, now_hhmm)
             if ok:
-                st.toast(f"{assistant} punched in at {now_hhmm}", icon="✅")
+                st.toast(f"{assistant} punched in at {now_12h}", icon="✅")
             else:
                 st.error(f"❌ Punch in failed for {assistant}")
             st.rerun()
@@ -115,7 +122,7 @@ def _render_punch_widget(df) -> None:
         if st.button("⏹ Punch Out", use_container_width=True, disabled=(not pin) or bool(pout), key="btn_punch_out"):
             ok = punch_out(date_str, assistant, now_hhmm)
             if ok:
-                st.toast(f"{assistant} punched out at {now_hhmm}", icon="⏹")
+                st.toast(f"{assistant} punched out at {now_12h}", icon="⏹")
                 # Remove from schedule
                 from services.schedule_ops import remove_assistant_from_schedule
                 from state.save_manager import maybe_save
