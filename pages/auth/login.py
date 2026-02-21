@@ -594,11 +594,9 @@ def render() -> None:
                 st.markdown(f'<div class="alert show">{st.session_state.login_error}</div>', unsafe_allow_html=True)
 
         # Form
-        st.markdown('<div class="form-group"><label>Email Address</label></div>', unsafe_allow_html=True)
-        email = st.text_input("", key="login_email", placeholder="you@thedentalbond.com", label_visibility="collapsed")
+        email = st.text_input("Email Address", key="login_email", placeholder="you@thedentalbond.com")
 
-        st.markdown('<div class="form-group"><label>Password</label></div>', unsafe_allow_html=True)
-        password = st.text_input("", key="login_password", placeholder="Enter your password", type="password", label_visibility="collapsed")
+        password = st.text_input("Password", key="login_password", placeholder="Enter your password", type="password")
 
         # Remember me and Forgot password
         col_chk, col_link = st.columns([1, 1])
