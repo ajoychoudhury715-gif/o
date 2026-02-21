@@ -667,16 +667,17 @@ def render() -> None:
         password = st.text_input("Password", key="login_password", placeholder="Enter your password", type="password")
 
         # Remember me and Forgot password
-        col_chk, col_link = st.columns([1, 1])
-        with col_chk:
-            remember = st.checkbox("Remember me", key="remember_me")
-        with col_link:
-            st.markdown(
-                "<div style='text-align:right;padding-top:6px;'>"
-                "<a href='#' style='font-size:13px;color:#A07840;text-decoration:none;font-weight:500;'>"
-                "Forgot password?</a></div>",
-                unsafe_allow_html=True,
-            )
+        st.markdown(
+            "<div class='checkbox-row'>"
+            "<label style='display:flex;align-items:center;gap:6px;font-size:13px;color:#6B6B6B;margin:0;'>"
+            "<input type='checkbox' id='remember' style='cursor:pointer;' />"
+            "<span>Remember me</span>"
+            "</label>"
+            "<a href='#' style='font-size:13px;color:#A07840;text-decoration:none;font-weight:500;white-space:nowrap;'>"
+            "Forgot password?</a>"
+            "</div>",
+            unsafe_allow_html=True,
+        )
 
         # Sign in button
         if st.button("Sign In", key="btn_login", use_container_width=True):
@@ -700,9 +701,7 @@ def render() -> None:
         st.markdown('<div class="divider">or continue with</div>', unsafe_allow_html=True)
 
         # Google button
-        col_google = st.columns([1, 0.05])[0]
-        with col_google:
-            st.button("Continue with Google", key="google_btn", use_container_width=True)
+        st.button("Continue with Google", key="google_btn", use_container_width=True)
 
         # Footer
         st.markdown(
