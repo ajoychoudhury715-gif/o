@@ -30,8 +30,8 @@ def _inject_css() -> None:
           min-height: 520px;
           border-radius: 24px;
           overflow: hidden;
-          box-shadow: 0 20px 60px rgba(100, 80, 220, 0.18);
-          background: #fff;
+          box-shadow: none;
+          background: transparent;
         }
 
         .left-panel {
