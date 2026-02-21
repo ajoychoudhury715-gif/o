@@ -480,87 +480,89 @@ def render() -> None:
     if "login_role" not in st.session_state:
         st.session_state.login_role = "admin"
 
-    # Open card container
-    st.markdown("""<div class="login-container"><div class="login-card">""", unsafe_allow_html=True)
+    # Use a container to wrap all card content
+    with st.container(border=False):
+        # Open card container
+        st.markdown("""<div class="login-container"><div class="login-card">""", unsafe_allow_html=True)
 
-    # Card header
-    st.markdown("""
-        <div class="card-header">
-            <div class="card-logo">🦷</div>
-            <div class="card-tagline">The Dental Bond</div>
-            <div class="card-title">Welcome Back</div>
-            <div class="card-subtitle">Access your dental practice management dashboard</div>
-        </div>
-    """, unsafe_allow_html=True)
+        # Card header
+        st.markdown("""
+            <div class="card-header">
+                <div class="card-logo">🦷</div>
+                <div class="card-tagline">The Dental Bond</div>
+                <div class="card-title">Welcome Back</div>
+                <div class="card-subtitle">Access your dental practice management dashboard</div>
+            </div>
+        """, unsafe_allow_html=True)
 
-    # Error alert
-    error_placeholder = st.empty()
-    if st.session_state.login_error:
-        with error_placeholder.container():
-            st.markdown(f'<div class="alert show">{st.session_state.login_error}</div>', unsafe_allow_html=True)
+        # Error alert
+        error_placeholder = st.empty()
+        if st.session_state.login_error:
+            with error_placeholder.container():
+                st.markdown(f'<div class="alert show">{st.session_state.login_error}</div>', unsafe_allow_html=True)
 
-    # Role selector
-    st.markdown('<label style="display:block;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#6B6B6B;margin-bottom:12px;">Sign in as</label>', unsafe_allow_html=True)
+        # Role selector label
+        st.markdown('<label style="display:block;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#6B6B6B;margin-bottom:12px;">Sign in as</label>', unsafe_allow_html=True)
 
-    role_col1, role_col2, role_col3 = st.columns(3, gap="small")
-    with role_col1:
-        doctor_clicked = st.button("👨‍⚕️\nDoctor", key="role_doctor_v2", use_container_width=True)
-        if doctor_clicked:
-            st.session_state.login_role = "admin"
-    with role_col2:
-        reception_clicked = st.button("👩‍💼\nReceptionist", key="role_reception_v2", use_container_width=True)
-        if reception_clicked:
-            st.session_state.login_role = "frontdesk"
-    with role_col3:
-        admin_clicked = st.button("⚙️\nAdmin", key="role_admin_v2", use_container_width=True)
-        if admin_clicked:
-            st.session_state.login_role = "assistant"
+        role_col1, role_col2, role_col3 = st.columns(3, gap="small")
+        with role_col1:
+            doctor_clicked = st.button("👨‍⚕️\nDoctor", key="role_doctor_v2", use_container_width=True)
+            if doctor_clicked:
+                st.session_state.login_role = "admin"
+        with role_col2:
+            reception_clicked = st.button("👩‍💼\nReceptionist", key="role_reception_v2", use_container_width=True)
+            if reception_clicked:
+                st.session_state.login_role = "frontdesk"
+        with role_col3:
+            admin_clicked = st.button("⚙️\nAdmin", key="role_admin_v2", use_container_width=True)
+            if admin_clicked:
+                st.session_state.login_role = "assistant"
 
-    # Form inputs
-    email = st.text_input("Email Address", key="login_email", placeholder="you@thedentalbond.com")
-    password = st.text_input("Password", key="login_password", placeholder="••••••••", type="password")
+        # Form inputs
+        email = st.text_input("Email Address", key="login_email", placeholder="you@thedentalbond.com")
+        password = st.text_input("Password", key="login_password", placeholder="••••••••", type="password")
 
-    # Remember me and Forgot password
-    st.markdown(
-        "<div class='checkbox-row'>"
-        "<label style='display:flex;align-items:center;gap:6px;font-size:13px;color:#6B6B6B;margin:0;'>"
-        "<input type='checkbox' id='remember' />"
-        "<span>Remember me</span>"
-        "</label>"
-        "<a href='#'>Forgot password?</a>"
-        "</div>",
-        unsafe_allow_html=True,
-    )
+        # Remember me and Forgot password
+        st.markdown(
+            "<div class='checkbox-row'>"
+            "<label style='display:flex;align-items:center;gap:6px;font-size:13px;color:#6B6B6B;margin:0;'>"
+            "<input type='checkbox' id='remember' />"
+            "<span>Remember me</span>"
+            "</label>"
+            "<a href='#'>Forgot password?</a>"
+            "</div>",
+            unsafe_allow_html=True,
+        )
 
-    # Sign in button
-    if st.button("Sign In", key="btn_login", use_container_width=True):
-        if not email or not password:
-            st.session_state.login_error = "⚠️ Please enter your email and password."
-            st.rerun()
-        else:
-            user = authenticate(email, password)
-            if user:
-                st.session_state.current_user = user["username"]
-                st.session_state.user_role = user["role"]
-                st.session_state.login_error = False
-                st.success(f"✅ Signed in successfully!")
-                st.balloons()
+        # Sign in button
+        if st.button("Sign In", key="btn_login", use_container_width=True):
+            if not email or not password:
+                st.session_state.login_error = "⚠️ Please enter your email and password."
                 st.rerun()
             else:
-                st.session_state.login_error = "⚠️ Incorrect email or password."
-                st.rerun()
+                user = authenticate(email, password)
+                if user:
+                    st.session_state.current_user = user["username"]
+                    st.session_state.user_role = user["role"]
+                    st.session_state.login_error = False
+                    st.success(f"✅ Signed in successfully!")
+                    st.balloons()
+                    st.rerun()
+                else:
+                    st.session_state.login_error = "⚠️ Incorrect email or password."
+                    st.rerun()
 
-    # Divider
-    st.markdown('<div class="divider">or continue with</div>', unsafe_allow_html=True)
+        # Divider
+        st.markdown('<div class="divider">or continue with</div>', unsafe_allow_html=True)
 
-    # Google button
-    st.button("Continue with Google", key="google_btn", use_container_width=True)
+        # Google button
+        st.button("Continue with Google", key="google_btn", use_container_width=True)
 
-    # Footer
-    st.markdown(
-        "<div class='card-footer'>"
-        "<p>Need access? <a href='#'>Contact your admin</a> | v2.4.1</p>"
-        "</div>"
-        "</div></div>",
-        unsafe_allow_html=True,
-    )
+        # Footer and close card
+        st.markdown(
+            "<div class='card-footer'>"
+            "<p>Need access? <a href='#'>Contact your admin</a> | v2.4.1</p>"
+            "</div>"
+            "</div></div>",
+            unsafe_allow_html=True,
+        )
