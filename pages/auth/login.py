@@ -511,23 +511,6 @@ LEFT_PANEL = """
     <div class="hero-eyebrow">Schedule Management</div>
     <h2>Your clinic,<br/>perfectly <span>organised</span></h2>
     <p>Streamline appointments, manage your team's calendar, and deliver seamless patient care — all in one place.</p>
-
-    <div class="stats">
-      <div class="stat-item">
-        <div class="num">∞</div>
-        <div class="label">Appointments</div>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-item">
-        <div class="num">24/7</div>
-        <div class="label">Availability</div>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-item">
-        <div class="num">100%</div>
-        <div class="label">Secure</div>
-      </div>
-    </div>
   </div>
 
   <p class="left-footer">© 2026 The Dental Bond. All rights reserved.</p>
