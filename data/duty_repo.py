@@ -67,8 +67,11 @@ def load_duties_master() -> pd.DataFrame:
                     data_dict[col] = df[col].fillna("").astype(str).tolist()
                     dtype_dict[col] = str
                 elif col == "duration_minutes":
-                    data_dict[col] = pd.to_numeric(df[col], errors="coerce").fillna(30).astype(int).tolist()
-                    dtype_dict[col] = int
+                    # Convert to numeric, fill NaN, then convert to int
+                    numeric_col = pd.to_numeric(df[col], errors="coerce")
+                    numeric_col = numeric_col.fillna(30)
+                    data_dict[col] = numeric_col.astype('Int64').tolist()  # Use Int64 (nullable integer)
+                    dtype_dict[col] = 'Int64'
                 else:
                     data_dict[col] = df[col].fillna("").astype(str).tolist()
                     dtype_dict[col] = str
@@ -115,15 +118,21 @@ def load_duty_runs() -> pd.DataFrame:
         if not df.empty:
             # Rebuild dataframe with proper dtypes
             data_dict = {}
+            dtype_dict = {}
             text_cols = ["run_id", "id", "date", "assistant", "duty_id", "duty_name", "status", "op", "started_at", "due_at", "ended_at"]
             for col in df.columns:
                 if col == "est_minutes":
-                    data_dict[col] = pd.to_numeric(df[col], errors="coerce").fillna(0).astype(int).tolist()
+                    numeric_col = pd.to_numeric(df[col], errors="coerce")
+                    numeric_col = numeric_col.fillna(0)
+                    data_dict[col] = numeric_col.astype('Int64').tolist()
+                    dtype_dict[col] = 'Int64'
                 elif col in text_cols:
                     data_dict[col] = df[col].fillna("").astype(str).tolist()
+                    dtype_dict[col] = str
                 else:
                     data_dict[col] = df[col].fillna("").astype(str).tolist()
-            return pd.DataFrame(data_dict)
+                    dtype_dict[col] = str
+            return pd.DataFrame(data_dict).astype(dtype_dict)
     return load_sheet(EXCEL_DUTY_RUNS_SHEET, DUTY_RUNS_COLUMNS)
 
 
