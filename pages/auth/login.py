@@ -497,12 +497,6 @@ hr {
 </style>
 """, unsafe_allow_html=True)
 
-# ── Session state ──────────────────────────────────────────────────────────────
-if "login_error" not in st.session_state:
-    st.session_state.login_error = False
-if "login_role" not in st.session_state:
-    st.session_state.login_role = "admin"
-
 # ── Left panel HTML ────────────────────────────────────────────────────────────
 LEFT_PANEL = """
 <div class="left-panel">
@@ -525,6 +519,12 @@ LEFT_PANEL = """
 
 # ── Main layout ────────────────────────────────────────────────────────────────
 def render() -> None:
+    # Initialize session state
+    if "login_error" not in st.session_state:
+        st.session_state.login_error = False
+    if "login_role" not in st.session_state:
+        st.session_state.login_role = "admin"
+
     col_left, col_right = st.columns([1, 1.1], gap="small")
 
     with col_left:
