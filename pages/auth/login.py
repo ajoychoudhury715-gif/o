@@ -215,11 +215,11 @@ def _inject_css() -> None:
         }
 
         .right-card {
-          background: rgba(255,255,255,0.15);
-          backdrop-filter: blur(10px);
-          border: 1px solid rgba(255,255,255,0.25);
-          border-radius: 20px;
-          padding: 20px;
+          background: transparent;
+          backdrop-filter: none;
+          border: none;
+          border-radius: 0;
+          padding: 0;
           z-index: 1;
           text-align: center;
         }
@@ -227,8 +227,8 @@ def _inject_css() -> None:
         .avatar-placeholder {
           width: 200px;
           height: 240px;
-          background: rgba(255,255,255,0.2);
-          border-radius: 14px;
+          background: transparent;
+          border-radius: 0;
           display: flex;
           align-items: center;
           justify-content: center;
