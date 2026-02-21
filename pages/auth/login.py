@@ -165,14 +165,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
   display: flex;
   align-items: center;
   gap: 10px;
-}
-
-.hero-eyebrow::before {
-  content: '';
-  display: block;
-  width: 28px;
-  height: 1px;
-  background: var(--gold);
+  justify-content: center;
 }
 
 .hero-content h2 {
