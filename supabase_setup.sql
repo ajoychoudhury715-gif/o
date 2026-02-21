@@ -191,6 +191,32 @@ DO $$ BEGIN
 END $$;
 
 
+-- ── 8. Users (Login & Auth) ───────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS users (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    username        TEXT UNIQUE NOT NULL,
+    password_hash   TEXT NOT NULL,     -- format: {salt_hex}:{pbkdf2_sha256_hex}
+    role            TEXT NOT NULL DEFAULT 'assistant',
+    is_active       BOOLEAN DEFAULT true,
+    created_at      TIMESTAMPTZ DEFAULT now(),
+    updated_at      TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE tablename = 'users'
+      AND policyname = 'allow_all_users'
+  ) THEN
+    CREATE POLICY allow_all_users
+      ON users FOR ALL
+      USING (true) WITH CHECK (true);
+  END IF;
+END $$;
+
+
 -- ── Done ──────────────────────────────────────────────────────────────────────
--- All 7 tables created with permissive RLS policies.
+-- All 8 tables created with permissive RLS policies.
 -- Your app is ready to connect.

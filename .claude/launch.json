@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dental-app",
+      "runtimeExecutable": "/bin/bash",
+      "runtimeArgs": ["-c", "cd /Users/spoidermon/Desktop/O && python3 -m streamlit run app.py --server.port 8501 --server.headless true"],
+      "port": 8501
+    }
+  ]
+}

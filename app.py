@@ -17,6 +17,7 @@ from state.session import init_session_state
 from components.theme import inject_global_css
 from components.sidebar import render_sidebar
 from config.constants import NAV_STRUCTURE
+from data.auth_repo import ensure_admin_exists
 
 
 def main() -> None:
@@ -25,6 +26,15 @@ def main() -> None:
 
     # Inject global CSS theme
     inject_global_css()
+
+    # Ensure default admin account exists (on first run)
+    ensure_admin_exists()
+
+    # Login gate: if not authenticated, show login page and stop
+    if not st.session_state.get("user_role"):
+        from pages.auth.login import render as render_login
+        render_login()
+        st.stop()
 
     # Load schedule into session state if not already loaded
     _ensure_schedule_loaded()

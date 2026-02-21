@@ -13,9 +13,9 @@ STATE_SCHEMA: dict[str, Any] = {
     "nav_doctors": "Manage Profiles",
     "nav_admin": "Storage/Backup",
 
-    # User / auth (placeholder)
-    "user_role": "admin",
-    "current_user": "admin",
+    # User / auth
+    "user_role": None,
+    "current_user": None,
 
     # Schedule data
     "df": None,

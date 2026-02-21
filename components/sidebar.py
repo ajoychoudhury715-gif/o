@@ -4,7 +4,7 @@
 from __future__ import annotations
 import streamlit as st
 
-from config.constants import NAV_STRUCTURE, NAV_ICONS
+from config.constants import NAV_STRUCTURE, NAV_ICONS, ROLE_NAV
 from services.utils import now_ist, time_to_12h
 
 
@@ -33,19 +33,45 @@ def _render_header() -> None:
         unsafe_allow_html=True,
     )
 
+    # User info and logout
+    user_role = st.session_state.get("user_role")
+    current_user = st.session_state.get("current_user")
+    if user_role and current_user:
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            role_emoji = "👑" if user_role == "admin" else ("🎫" if user_role == "frontdesk" else "👨‍⚕️")
+            st.caption(f"{role_emoji} {current_user.title()}")
+        with col2:
+            if st.button("🚪", key="btn_logout", help="Logout"):
+                st.session_state.user_role = None
+                st.session_state.current_user = None
+                st.rerun()
+
 
 def _render_navigation() -> None:
     st.markdown("**📍 Navigation**")
+
+    # Get allowed categories based on user role
+    user_role = st.session_state.get("user_role", "assistant")
+    role_nav = ROLE_NAV.get(user_role, ROLE_NAV["assistant"])
+    allowed_categories = list(role_nav.keys())
+
+    # Validate and set category
+    current_cat = st.session_state.get("nav_category", "Scheduling")
+    if current_cat not in allowed_categories:
+        current_cat = allowed_categories[0]
+    st.session_state.nav_category = current_cat
+
     category = st.selectbox(
         "Category",
-        list(NAV_STRUCTURE.keys()),
-        index=list(NAV_STRUCTURE.keys()).index(st.session_state.get("nav_category", "Scheduling")),
+        allowed_categories,
+        index=allowed_categories.index(current_cat),
         key="nav_category_select",
         label_visibility="collapsed",
     )
     st.session_state.nav_category = category
 
-    sub_views = NAV_STRUCTURE[category]
+    sub_views = role_nav[category]
     # Determine current sub-view key
     sub_key_map = {
         "Scheduling": "nav_sched",
@@ -54,14 +80,14 @@ def _render_navigation() -> None:
         "Admin/Settings": "nav_admin",
     }
     sub_key = sub_key_map.get(category, "nav_sched")
-    current_sub = st.session_state.get(sub_key, sub_views[0])
+    current_sub = st.session_state.get(sub_key, sub_views[0] if sub_views else "")
     if current_sub not in sub_views:
-        current_sub = sub_views[0]
+        current_sub = sub_views[0] if sub_views else ""
 
     sub_view = st.radio(
         "View",
         sub_views,
-        index=sub_views.index(current_sub),
+        index=sub_views.index(current_sub) if current_sub in sub_views else 0,
         key=f"nav_radio_{category}",
         label_visibility="collapsed",
     )
@@ -134,11 +160,13 @@ def _render_punch_widget(df) -> None:
                 st.error(f"❌ Punch out failed for {assistant}")
             st.rerun()
 
-    with st.expander("Admin"):
-        if st.button("♻️ Reset today", use_container_width=True, key="btn_punch_reset"):
-            reset_attendance(date_str, assistant)
-            st.toast("Reset done", icon="♻️")
-            st.rerun()
+    # Admin-only reset button
+    if st.session_state.get("user_role") == "admin":
+        with st.expander("Admin"):
+            if st.button("♻️ Reset today", use_container_width=True, key="btn_punch_reset"):
+                reset_attendance(date_str, assistant)
+                st.toast("Reset done", icon="♻️")
+                st.rerun()
 
 
 def _render_duty_widget(df) -> None:
@@ -247,6 +275,10 @@ def _render_duty_widget(df) -> None:
 
 
 def _render_save_controls(df) -> None:
+    # Only show save controls to admin
+    if st.session_state.get("user_role") != "admin":
+        return
+
     st.markdown("### 💾 Save")
     st.session_state.auto_save_enabled = st.checkbox(
         "Auto-save",

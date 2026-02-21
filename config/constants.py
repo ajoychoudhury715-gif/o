@@ -93,6 +93,19 @@ NAV_STRUCTURE = {
     "Admin/Settings": ["Storage & Backup", "Notifications", "Duties Manager"],
 }
 
+# ── Role-based navigation ─────────────────────────────────────────────────────
+ROLE_NAV = {
+    "admin": NAV_STRUCTURE,  # Full access to all categories
+    "frontdesk": {
+        "Scheduling":     ["Full Schedule", "Schedule by OP", "Ongoing", "Upcoming"],
+        "Assistants":     ["Attendance"],
+    },
+    "assistant": {
+        "Scheduling":     ["Full Schedule", "Ongoing", "Upcoming"],
+        "Assistants":     ["Attendance"],
+    },
+}
+
 NAV_ICONS = {
     "Scheduling":     "📅",
     "Assistants":     "👥",
