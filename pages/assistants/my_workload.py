@@ -11,6 +11,7 @@ from services.profiles_cache import (
     get_department_for_doctor,
     get_all_doctors,
 )
+from services.utils import coerce_to_time_obj, time_to_12h
 
 
 def render() -> None:
@@ -112,6 +113,15 @@ def render() -> None:
 
     if endo_appointments:
         endo_df = pd.DataFrame(endo_appointments)
+        # Format times to 12-hour format
+        if "In Time" in endo_df.columns:
+            endo_df["In Time"] = endo_df["In Time"].apply(
+                lambda x: time_to_12h(coerce_to_time_obj(x)) if x else ""
+            )
+        if "Out Time" in endo_df.columns:
+            endo_df["Out Time"] = endo_df["Out Time"].apply(
+                lambda x: time_to_12h(coerce_to_time_obj(x)) if x else ""
+            )
         display_cols = [c for c in [
             "Patient Name", "In Time", "Out Time", "DR.", "OP", "Procedure", "STATUS"
         ] if c in endo_df.columns]
@@ -130,6 +140,15 @@ def render() -> None:
 
     if prostho_appointments:
         prostho_df = pd.DataFrame(prostho_appointments)
+        # Format times to 12-hour format
+        if "In Time" in prostho_df.columns:
+            prostho_df["In Time"] = prostho_df["In Time"].apply(
+                lambda x: time_to_12h(coerce_to_time_obj(x)) if x else ""
+            )
+        if "Out Time" in prostho_df.columns:
+            prostho_df["Out Time"] = prostho_df["Out Time"].apply(
+                lambda x: time_to_12h(coerce_to_time_obj(x)) if x else ""
+            )
         display_cols = [c for c in [
             "Patient Name", "In Time", "Out Time", "DR.", "OP", "Procedure", "STATUS"
         ] if c in prostho_df.columns]
