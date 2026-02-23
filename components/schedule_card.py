@@ -86,7 +86,8 @@ def render_add_appointment_form(
     doctors: list[str],
     assistants: list[str],
     op_rooms: list[str],
-    on_save: Callable[[dict], None],
+    selected_date=None,
+    on_save: Callable[[dict], None] = None,
 ) -> None:
     """Render the Add Appointment form."""
     with st.expander("➕ Add Appointment", expanded=False):
@@ -145,7 +146,11 @@ def render_add_appointment_form(
                     st.error("Patient Name and Doctor are required.")
                 else:
                     import uuid
+                    # Format the date for the DATE column
+                    date_str = selected_date.isoformat() if selected_date else ""
+                    
                     row = {
+                        "DATE": date_str,
                         "Patient ID": str(uuid.uuid4())[:8],
                         "Patient Name": patient_name,
                         "In Time": in_time.strftime("%H:%M") if in_time else "",

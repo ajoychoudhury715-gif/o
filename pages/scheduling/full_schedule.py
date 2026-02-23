@@ -45,6 +45,21 @@ def render() -> None:
     assistants = sorted(cache.get("assistants_list") or [])
     op_rooms = sorted(OP_ROOMS)
 
+    # ── Initialize selected date in session state ───────────────────────────────
+    from datetime import date
+    if "selected_schedule_date" not in st.session_state:
+        st.session_state.selected_schedule_date = date.today()
+
+    # ── Date Picker ────────────────────────────────────────────────────────────
+    st.markdown("### 📆 Select Date")
+    selected_date = st.date_input(
+        "Choose a date",
+        value=st.session_state.selected_schedule_date,
+        key="sched_date_picker",
+        label_visibility="collapsed",
+    )
+    st.session_state.selected_schedule_date = selected_date
+
     # ── Toolbar ────────────────────────────────────────────────────────────────
     col_view, col_search, col_alloc, col_refresh = st.columns([2, 3, 2, 1])
     with col_view:
@@ -85,8 +100,16 @@ def render() -> None:
             on_remove=lambda i: _remove_time_block(df, i, time_blocks),
         )
 
-    # ── Filter ─────────────────────────────────────────────────────────────────
+    # ── Filter by date ──────────────────────────────────────────────────────────
+    date_str = selected_date.isoformat() if selected_date else ""
     view_df = df.copy()
+    
+    # Filter by selected date (show appointments with matching date OR empty/null dates for backward compatibility)
+    if date_str and "DATE" in view_df.columns:
+        date_col = view_df.get("DATE", "").astype(str).str.strip()
+        view_df = view_df[(date_col == date_str) | (date_col == "")]
+    
+    # ── Filter by search query ──────────────────────────────────────────────────
     if search_q.strip():
         q = search_q.strip().lower()
         mask = (
@@ -102,10 +125,16 @@ def render() -> None:
         doctors=doctors,
         assistants=assistants,
         op_rooms=op_rooms,
+        selected_date=selected_date,
         on_save=lambda row: _on_add_appointment(df, row),
     )
 
-    st.markdown(f"**{len(view_df)} appointment(s)**")
+    st.markdown(f"**{len(view_df)} appointment(s) on {selected_date.strftime('%A, %B %d, %Y')}**")
+
+    # ── Check if no appointments exist for the selected date ──────────────────
+    if len(view_df) == 0:
+        st.info("✨ No appointments scheduled for this date.")
+        return
 
     # ── Render view ────────────────────────────────────────────────────────────
     if view_mode == "🃏 Cards":

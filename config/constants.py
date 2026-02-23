@@ -48,7 +48,7 @@ TERMINAL_STATUSES = {"DONE", "COMPLETED", "CANCELLED", "SHIFTED"}
 
 # ── Schedule Columns ──────────────────────────────────────────────────────────
 SCHEDULE_COLUMNS = [
-    "Patient ID", "Patient Name", "In Time", "Out Time", "Procedure", "DR.",
+    "DATE", "Patient ID", "Patient Name", "In Time", "Out Time", "Procedure", "DR.",
     "FIRST", "SECOND", "Third", "CASE PAPER", "OP",
     "SUCTION", "CLEANING", "STATUS", "REMINDER_ROW_ID",
     "REMINDER_SNOOZE_UNTIL", "REMINDER_DISMISSED",

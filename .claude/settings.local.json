@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(pip3 show:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(curl:*)"
+    ]
+  }
+}
