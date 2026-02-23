@@ -117,7 +117,70 @@ def _render_appointment_cards(appointments: list, specialty_color: str) -> None:
 
 
 def render() -> None:
-    st.markdown("## 👤 My Workload (Current Assignments)")
+    # ── Section heading styles ──────────────────────────────────────────────
+    st.markdown("""
+    <style>
+    .section-heading {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        padding: 20px 24px;
+        margin: 0 0 24px 0;
+        color: white;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border: none;
+    }
+
+    .section-heading h1 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+
+    .section-heading-summary {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+
+    .section-heading-summary h2 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+
+    @media (max-width: 768px) {
+        .section-heading {
+            padding: 16px 20px;
+            margin: 0 0 20px 0;
+        }
+
+        .section-heading h1 {
+            font-size: 24px;
+        }
+
+        .section-heading-summary h2 {
+            font-size: 18px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .section-heading {
+            padding: 14px 16px;
+            margin: 0 0 16px 0;
+        }
+
+        .section-heading h1 {
+            font-size: 20px;
+        }
+
+        .section-heading-summary h2 {
+            font-size: 16px;
+        }
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""<div class="section-heading"><h1>👤 My Workload (Current Assignments)</h1></div>""", unsafe_allow_html=True)
 
     # Check if user is logged in
     current_user = st.session_state.get("current_user")
@@ -201,7 +264,7 @@ def render() -> None:
         # Skip appointments with unknown specialty (don't default)
 
     # ── Display Summary Cards (Mobile-Optimized Container) ──────────────────────
-    st.markdown("### 📋 Today's Assignment Summary")
+    st.markdown("""<div class="section-heading section-heading-summary"><h2>📋 Today's Assignment Summary</h2></div>""", unsafe_allow_html=True)
 
     total_count = len(my_appointments)
     endo_count = len(endo_appointments)
