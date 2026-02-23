@@ -75,19 +75,27 @@ def render() -> None:
     endo_appointments = []
     prostho_appointments = []
 
+    from services.utils import norm_name
+
     for appt in my_appointments:
         doctor = str(appt.get("DR.", "")).strip().upper()
-        from services.utils import norm_name
         doctor_key = norm_name(doctor)
         specialty = doctor_dept_map.get(doctor_key, "").upper()
 
+        # If specialty not found in doctor mapping, try to infer from procedure or OP
+        if not specialty:
+            procedure = str(appt.get("Procedure", "")).strip().upper()
+            if "ENDO" in procedure:
+                specialty = "ENDO"
+            elif "PROSTHO" in procedure or "CROWN" in procedure or "BRIDGE" in procedure:
+                specialty = "PROSTHO"
+
+        # Assign to appropriate list based on determined specialty
         if specialty == "ENDO":
             endo_appointments.append(appt)
         elif specialty == "PROSTHO":
             prostho_appointments.append(appt)
-        else:
-            # Default to ENDO if specialty is unknown
-            endo_appointments.append(appt)
+        # Skip appointments with unknown specialty (don't default)
 
     # ── Display Summary Metrics ────────────────────────────────────────────────
     st.markdown("### 📋 Today's Assignment Summary")
