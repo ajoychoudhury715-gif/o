@@ -59,7 +59,7 @@ def _render_add_user() -> None:
     with col2:
         role = st.selectbox(
             "Role",
-            ["assistant", "frontdesk", "admin"],
+            ["assistant", "doctor", "frontdesk", "admin"],
             help="User role determines access level"
         )
 
@@ -187,7 +187,14 @@ def _render_view_users() -> None:
         cols = st.columns([2, 2, 2, 1, 1])
 
         cols[0].markdown(f"`{username}`")
-        cols[1].markdown(f"🎫 {role}" if role == "frontdesk" else f"👨‍⚕️ {role}")
+        if role == "frontdesk":
+            cols[1].markdown(f"🎫 {role}")
+        elif role == "doctor":
+            cols[1].markdown(f"🩺 {role}")
+        elif role == "admin":
+            cols[1].markdown(f"⚙️ {role}")
+        else:
+            cols[1].markdown(f"👤 {role}")
         cols[2].markdown(status_badge)
 
         # Reset password button
