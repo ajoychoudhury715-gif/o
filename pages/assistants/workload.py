@@ -70,7 +70,7 @@ def render() -> None:
     display_df = workload_df[workload_df["Appointments"] > 0].sort_values("Hours Busy", ascending=False)
 
     # Display key columns with hours information
-    display_cols = ["Assistant", "Appointments", "Hours Busy", "Hours Available"]
+    display_cols = ["Assistant", "Appointments", "Hours Busy", "Hours Available", "Overtime (After 7 PM)"]
     st.dataframe(
         display_df[display_cols],
         width='stretch',
@@ -80,6 +80,7 @@ def render() -> None:
             "Appointments": st.column_config.NumberColumn(width="small"),
             "Hours Busy": st.column_config.NumberColumn(format="%.2f hrs", width="small"),
             "Hours Available": st.column_config.NumberColumn(format="%.2f hrs", width="small"),
+            "Overtime (After 7 PM)": st.column_config.NumberColumn(format="%.2f hrs", width="small"),
         }
     )
 

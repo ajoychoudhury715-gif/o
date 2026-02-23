@@ -175,12 +175,14 @@ def compute_workload_summary(df_schedule: pd.DataFrame, assistants: list[str]) -
 
         hours_busy = total_minutes_busy / 60
         hours_available = CLINIC_HOURS - hours_busy
+        overtime_hours = max(0, hours_busy - CLINIC_HOURS)
 
         rows.append({
             "Assistant": a,
             "Appointments": total,
             "Hours Busy": round(hours_busy, 2),
             "Hours Available": round(max(0, hours_available), 2),
+            "Overtime (After 7 PM)": round(overtime_hours, 2),
             "As First": as_first,
             "As Second": as_second,
             "As Third": as_third,
