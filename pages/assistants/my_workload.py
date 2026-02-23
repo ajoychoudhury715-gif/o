@@ -14,6 +14,108 @@ from services.profiles_cache import (
 from services.utils import coerce_to_time_obj, time_to_12h
 
 
+def _render_appointment_cards(appointments: list, specialty_color: str) -> None:
+    """Render appointments as mobile-friendly cards."""
+    # CSS for appointment cards
+    st.markdown(f"""
+    <style>
+    .appointment-card {{
+        background: white;
+        border-left: 4px solid {specialty_color};
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        transition: all 0.2s;
+    }}
+    .appointment-card:hover {{
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        transform: translateX(2px);
+    }}
+    .appt-patient {{
+        font-size: 16px;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 8px;
+    }}
+    .appt-time {{
+        font-size: 13px;
+        color: #64748b;
+        margin-bottom: 6px;
+    }}
+    .appt-details {{
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        font-size: 12px;
+        margin-top: 10px;
+    }}
+    .appt-detail-item {{
+        background: #f8fafc;
+        padding: 6px 8px;
+        border-radius: 4px;
+        color: #475569;
+    }}
+    .appt-detail-label {{
+        font-weight: 600;
+        color: #64748b;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }}
+    .appt-status {{
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-top: 8px;
+    }}
+    .appt-status-processing {{
+        background: #dbeafe;
+        color: #1e40af;
+    }}
+    .appt-status-done {{
+        background: #dcfce7;
+        color: #166534;
+    }}
+    </style>
+    """, unsafe_allow_html=True)
+
+    # Render each appointment as a card
+    for i, appt in enumerate(appointments):
+        patient = str(appt.get("Patient Name", "—")).strip()
+        in_time = str(appt.get("In Time", "—")).strip()
+        out_time = str(appt.get("Out Time", "—")).strip()
+        doctor = str(appt.get("DR.", "—")).strip()
+        op = str(appt.get("OP", "—")).strip()
+        procedure = str(appt.get("Procedure", "")).strip()
+        status = str(appt.get("STATUS", "PENDING")).strip().upper()
+
+        status_class = "appt-status-processing" if status != "DONE" else "appt-status-done"
+        time_range = f"{in_time} – {out_time}" if in_time != "—" and out_time != "—" else "No time"
+
+        st.markdown(f"""
+        <div class="appointment-card">
+            <div class="appt-patient">👤 {patient}</div>
+            <div class="appt-time">⏱ {time_range}</div>
+            {f'<div class="appt-time">📋 {procedure}</div>' if procedure else ''}
+            <div class="appt-details">
+                <div class="appt-detail-item">
+                    <div class="appt-detail-label">Doctor</div>
+                    {doctor}
+                </div>
+                <div class="appt-detail-item">
+                    <div class="appt-detail-label">OP Room</div>
+                    {op}
+                </div>
+            </div>
+            <div class="appt-status appt-status-{status.lower()}">{status}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+
 def render() -> None:
     st.markdown("## 👤 My Workload (Current Assignments)")
 
@@ -174,57 +276,43 @@ def render() -> None:
 
     st.markdown("---")
 
-    # ── Endo Appointments ──────────────────────────────────────────────────────
+    # ── Endo Appointments (Card View) ─────────────────────────────────────────
     st.markdown("### 🦷 Endodontics (Endo)")
 
     if endo_appointments:
-        endo_df = pd.DataFrame(endo_appointments)
         # Format times to 12-hour format
-        if "In Time" in endo_df.columns:
-            endo_df["In Time"] = endo_df["In Time"].apply(
-                lambda x: time_to_12h(coerce_to_time_obj(x)) if x else ""
-            )
-        if "Out Time" in endo_df.columns:
-            endo_df["Out Time"] = endo_df["Out Time"].apply(
-                lambda x: time_to_12h(coerce_to_time_obj(x)) if x else ""
-            )
-        display_cols = [c for c in [
-            "Patient Name", "In Time", "Out Time", "DR.", "OP", "Procedure", "STATUS"
-        ] if c in endo_df.columns]
-        st.dataframe(
-            endo_df[display_cols],
-            width='stretch',
-            hide_index=True,
-        )
+        formatted_endo = []
+        for appt in endo_appointments:
+            appt_copy = appt.copy()
+            if "In Time" in appt_copy:
+                appt_copy["In Time"] = time_to_12h(coerce_to_time_obj(appt_copy["In Time"]))
+            if "Out Time" in appt_copy:
+                appt_copy["Out Time"] = time_to_12h(coerce_to_time_obj(appt_copy["Out Time"]))
+            formatted_endo.append(appt_copy)
+
+        _render_appointment_cards(formatted_endo, "#667eea")
     else:
-        st.info("No Endo patients assigned today.")
+        st.info("✅ No Endo patients assigned today.")
 
     st.markdown("---")
 
-    # ── Prostho Appointments ───────────────────────────────────────────────────
+    # ── Prostho Appointments (Card View) ──────────────────────────────────────
     st.markdown("### 👄 Prosthodontics (Prostho)")
 
     if prostho_appointments:
-        prostho_df = pd.DataFrame(prostho_appointments)
         # Format times to 12-hour format
-        if "In Time" in prostho_df.columns:
-            prostho_df["In Time"] = prostho_df["In Time"].apply(
-                lambda x: time_to_12h(coerce_to_time_obj(x)) if x else ""
-            )
-        if "Out Time" in prostho_df.columns:
-            prostho_df["Out Time"] = prostho_df["Out Time"].apply(
-                lambda x: time_to_12h(coerce_to_time_obj(x)) if x else ""
-            )
-        display_cols = [c for c in [
-            "Patient Name", "In Time", "Out Time", "DR.", "OP", "Procedure", "STATUS"
-        ] if c in prostho_df.columns]
-        st.dataframe(
-            prostho_df[display_cols],
-            width='stretch',
-            hide_index=True,
-        )
+        formatted_prostho = []
+        for appt in prostho_appointments:
+            appt_copy = appt.copy()
+            if "In Time" in appt_copy:
+                appt_copy["In Time"] = time_to_12h(coerce_to_time_obj(appt_copy["In Time"]))
+            if "Out Time" in appt_copy:
+                appt_copy["Out Time"] = time_to_12h(coerce_to_time_obj(appt_copy["Out Time"]))
+            formatted_prostho.append(appt_copy)
+
+        _render_appointment_cards(formatted_prostho, "#f5576c")
     else:
-        st.info("No Prostho patients assigned today.")
+        st.info("✅ No Prostho patients assigned today.")
 
     st.markdown("---")
 
