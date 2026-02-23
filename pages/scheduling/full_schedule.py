@@ -63,9 +63,10 @@ def _strict_date_mask(date_series: pd.Series, selected_date) -> tuple[pd.Series,
 
 
 def render() -> None:
-    # ── Initialize selected date to TODAY (always reset on page load) ──────────
-    from datetime import date
-    today = date.today()
+    # ── Initialize selected date to TODAY in IST (always reset on page load) ─────
+    from datetime import datetime
+    from config.settings import IST
+    today = datetime.now(IST).date()
     st.session_state.selected_schedule_date = today
 
     # ── Header: title (left) + inline date picker (right) ─────────────────────
