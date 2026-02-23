@@ -25,6 +25,42 @@ from components.time_block_editor import render_time_block_editor
 from config.constants import OP_ROOMS
 
 
+def _strict_date_mask(date_series: pd.Series, selected_date) -> tuple[pd.Series, str]:
+    """Build strict date match mask with tolerant normalization for legacy date strings."""
+    target_dt = pd.to_datetime(selected_date, errors="coerce")
+    if pd.isna(target_dt):
+        return pd.Series(False, index=date_series.index), ""
+
+    formatted_date = target_dt.strftime("%Y-%m-%d")
+    raw_dates = date_series.fillna("").astype(str).str.strip()
+    raw_lower = raw_dates.str.lower()
+
+    # Direct match handles ISO DATE and ISO TIMESTAMP strings.
+    direct_match = (
+        raw_dates.eq(formatted_date)
+        | raw_dates.str.startswith(f"{formatted_date}T")
+        | raw_dates.str.startswith(f"{formatted_date} ")
+    )
+
+    parse_input = raw_dates.where(~raw_lower.isin(["", "nan", "none", "nat"]))
+    normalized_default = pd.to_datetime(parse_input, errors="coerce").dt.strftime("%Y-%m-%d")
+    normalized_dayfirst = pd.to_datetime(parse_input, errors="coerce", dayfirst=True).dt.strftime("%Y-%m-%d")
+
+    # Support legacy Excel serial dates if any historical rows were imported that way.
+    numeric_dates = pd.to_numeric(parse_input, errors="coerce")
+    normalized_excel = pd.to_datetime(
+        numeric_dates, unit="D", origin="1899-12-30", errors="coerce"
+    ).dt.strftime("%Y-%m-%d")
+
+    mask = (
+        direct_match
+        | normalized_default.eq(formatted_date)
+        | normalized_dayfirst.eq(formatted_date)
+        | normalized_excel.eq(formatted_date)
+    )
+    return mask.fillna(False), formatted_date
+
+
 def render() -> None:
     st.markdown("## 📅 Full Schedule")
 
@@ -116,17 +152,17 @@ def render() -> None:
         )
 
     # ── Filter by date ──────────────────────────────────────────────────────────
-    date_str = selected_date.isoformat() if selected_date else ""
     view_df = df.copy()
 
     st.write(f"🐛 DEBUG selected_date: {selected_date}")
-    st.write(f"🐛 DEBUG formatted_date: {date_str}")
     st.write(f"📊 **DEBUG:** DataFrame has {len(view_df)} total rows before date filter")
 
     # Strict date filter; do not include blank dates.
-    if date_str and "DATE" in view_df.columns:
-        normalized_date_col = pd.to_datetime(view_df["DATE"], errors="coerce").dt.strftime("%Y-%m-%d")
-        view_df = view_df[normalized_date_col == date_str].copy()
+    if selected_date and "DATE" in view_df.columns:
+        date_mask, formatted_date = _strict_date_mask(view_df["DATE"], selected_date)
+        st.write(f"🐛 DEBUG formatted_date: {formatted_date}")
+        st.write(f"🐛 DEBUG raw_date_samples: {view_df['DATE'].astype(str).head(10).tolist()}")
+        view_df = view_df[date_mask].copy()
         st.write(f"✅ **DEBUG:** After date filter: {len(view_df)} rows")
     else:
         st.write(f"⚠️ **DEBUG:** DATE column missing or invalid date_str")

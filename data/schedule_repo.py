@@ -66,7 +66,7 @@ def load_appointments_by_date(selected_date: date_type) -> pd.DataFrame:
         st.write(f"🐛 DEBUG formatted_date: {formatted_date}")
 
         # 1) DATE column query (strict equality)
-        rows: list[dict] = []
+        rows_eq: list[dict] = []
         try:
             eq_resp = (
                 client
@@ -77,29 +77,44 @@ def load_appointments_by_date(selected_date: date_type) -> pd.DataFrame:
             )
             eq_data = getattr(eq_resp, "data", None) or []
             if isinstance(eq_data, list):
-                rows = eq_data
-            st.write(f"🐛 DEBUG eq_query_count: {len(rows)}")
+                rows_eq = eq_data
+            st.write(f"🐛 DEBUG eq_query_count: {len(rows_eq)}")
         except Exception as eq_err:
             st.write(f"⚠️ DEBUG eq_query_error: {str(eq_err)[:200]}")
 
-        # 2) TIMESTAMP column query (day range), only if eq() returned no rows.
-        if len(rows) == 0:
-            try:
-                ts_resp = (
-                    client
-                    .table("appointments")
-                    .select("*")
-                    .gte("appointment_date", day_start)
-                    .lt("appointment_date", next_day_start)
-                    .execute()
-                )
-                ts_data = getattr(ts_resp, "data", None) or []
-                if isinstance(ts_data, list):
-                    rows = ts_data
-                st.write(f"🐛 DEBUG range_query_count: {len(rows)}")
-            except Exception as ts_err:
-                st.write(f"⚠️ DEBUG range_query_error: {str(ts_err)[:200]}")
-                rows = []
+        # 2) TIMESTAMP column query (day range)
+        rows_range: list[dict] = []
+        try:
+            ts_resp = (
+                client
+                .table("appointments")
+                .select("*")
+                .gte("appointment_date", day_start)
+                .lt("appointment_date", next_day_start)
+                .execute()
+            )
+            ts_data = getattr(ts_resp, "data", None) or []
+            if isinstance(ts_data, list):
+                rows_range = ts_data
+            st.write(f"🐛 DEBUG range_query_count: {len(rows_range)}")
+        except Exception as ts_err:
+            st.write(f"⚠️ DEBUG range_query_error: {str(ts_err)[:200]}")
+            rows_range = []
+
+        # Merge both filtered result sets without duplicates.
+        rows: list[dict] = []
+        seen_keys: set[str] = set()
+        for source_rows in (rows_eq, rows_range):
+            for item in source_rows:
+                if not isinstance(item, dict):
+                    continue
+                row_key = str(item.get("id", "")).strip()
+                if not row_key:
+                    row_key = str(hash(tuple(sorted(item.items()))))
+                if row_key in seen_keys:
+                    continue
+                seen_keys.add(row_key)
+                rows.append(item)
 
         if len(rows) == 0:
             st.write("🐛 DEBUG fetched data: []")
@@ -113,9 +128,20 @@ def load_appointments_by_date(selected_date: date_type) -> pd.DataFrame:
             st.write("🐛 DEBUG fetched data: []")
             return pd.DataFrame()
 
-        normalized_dates = pd.to_datetime(df["appointment_date"], errors="coerce").dt.strftime("%Y-%m-%d")
-        strict_df = df[normalized_dates == formatted_date].copy().reset_index(drop=True)
+        raw_dates = df["appointment_date"].astype(str).str.strip()
+        raw_dates_lower = raw_dates.str.lower()
+        direct_match = (
+            raw_dates.eq(formatted_date)
+            | raw_dates.str.startswith(f"{formatted_date}T")
+            | raw_dates.str.startswith(f"{formatted_date} ")
+        )
+        parse_input = raw_dates.where(~raw_dates_lower.isin(["", "nan", "none", "nat"]))
+        normalized_default = pd.to_datetime(parse_input, errors="coerce").dt.strftime("%Y-%m-%d")
+        normalized_dayfirst = pd.to_datetime(parse_input, errors="coerce", dayfirst=True).dt.strftime("%Y-%m-%d")
+        strict_mask = direct_match | normalized_default.eq(formatted_date) | normalized_dayfirst.eq(formatted_date)
+        strict_df = df[strict_mask.fillna(False)].copy().reset_index(drop=True)
 
+        st.write(f"🐛 DEBUG raw_appointment_dates_sample: {raw_dates.head(10).tolist()}")
         st.write(f"🐛 DEBUG fetched data: {strict_df.to_dict(orient='records')}")
         return strict_df
 
