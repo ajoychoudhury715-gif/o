@@ -10,6 +10,7 @@ from data.rbac_repo import (
     set_role_permissions,
     get_user_permissions_override,
     set_user_permissions_override,
+    get_last_rbac_error,
 )
 
 
@@ -153,6 +154,11 @@ def save_user_override_config(user_id: str, override_enabled: bool, allowed_func
     return set_user_permissions_override(user_id, bool(override_enabled), normalized)
 
 
+def get_permissions_config_error() -> str:
+    """Return last RBAC storage/read error captured by repository layer."""
+    return get_last_rbac_error()
+
+
 def resolve_effective_permissions(role: str, user_id: str | None = None) -> set[str]:
     """Resolve role + optional user override into effective permissions."""
     role_norm = str(role or "").strip().lower()
@@ -212,4 +218,3 @@ def get_allowed_navigation(role: str, allowed_functions: Iterable[str] | None = 
         if allowed_views:
             nav[category] = allowed_views
     return nav
-

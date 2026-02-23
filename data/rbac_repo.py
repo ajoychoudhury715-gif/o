@@ -9,11 +9,46 @@ from data.supabase_client import get_supabase_client
 ROLE_PERMISSIONS_TABLE = "rbac_role_permissions"
 USER_PERMISSIONS_TABLE = "rbac_user_permissions"
 
+_LAST_ERROR: str = ""
+
+
+def _set_last_error(msg: str) -> None:
+    global _LAST_ERROR
+    _LAST_ERROR = str(msg or "").strip()
+
+
+def get_last_rbac_error() -> str:
+    return _LAST_ERROR
+
+
+def _extract_exception_message(exc: Exception) -> str:
+    """Build a readable, actionable error from Supabase/PostgREST exceptions."""
+    fields: list[str] = []
+    for attr in ("message", "details", "hint", "code"):
+        val = getattr(exc, attr, None)
+        if val:
+            text = str(val).strip()
+            if text:
+                fields.append(text)
+
+    if fields:
+        return " | ".join(dict.fromkeys(fields))
+
+    try:
+        raw = str(exc).strip()
+        if raw:
+            return raw
+    except Exception:
+        pass
+    return exc.__class__.__name__
+
 
 def _get_client():
     url, key, *_ = get_supabase_config()
     if not url or not key:
+        _set_last_error("Supabase URL/KEY is missing in configuration.")
         return None
+    _set_last_error("")
     return get_supabase_client(url, key)
 
 
@@ -38,7 +73,8 @@ def get_role_permissions(role: str) -> Optional[list[str]]:
         if not isinstance(raw, list):
             return None
         return [str(x).strip() for x in raw if str(x).strip()]
-    except Exception:
+    except Exception as e:
+        _set_last_error(f"Failed to read role permissions table: {_extract_exception_message(e)}")
         return None
 
 
@@ -53,8 +89,10 @@ def set_role_permissions(role: str, allowed_functions: list[str]) -> bool:
             "allowed_functions": [str(x).strip() for x in allowed_functions if str(x).strip()],
         }
         client.table(ROLE_PERMISSIONS_TABLE).upsert(payload).execute()
+        _set_last_error("")
         return True
-    except Exception:
+    except Exception as e:
+        _set_last_error(f"Failed to save role permissions: {_extract_exception_message(e)}")
         return False
 
 
@@ -81,7 +119,8 @@ def get_user_permissions_override(user_id: str) -> tuple[bool, list[str]]:
         allowed = [str(x).strip() for x in raw] if isinstance(raw, list) else []
         allowed = [x for x in allowed if x]
         return enabled, allowed
-    except Exception:
+    except Exception as e:
+        _set_last_error(f"Failed to read user permission override table: {_extract_exception_message(e)}")
         return False, []
 
 
@@ -97,7 +136,8 @@ def set_user_permissions_override(user_id: str, override_enabled: bool, allowed_
             "allowed_functions": [str(x).strip() for x in allowed_functions if str(x).strip()],
         }
         client.table(USER_PERMISSIONS_TABLE).upsert(payload).execute()
+        _set_last_error("")
         return True
-    except Exception:
+    except Exception as e:
+        _set_last_error(f"Failed to save user permission override: {_extract_exception_message(e)}")
         return False
-

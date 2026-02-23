@@ -13,6 +13,7 @@ from security.rbac import (
     save_role_permissions_config,
     get_user_override_config,
     save_user_override_config,
+    get_permissions_config_error,
     resolve_effective_permissions,
     load_permissions_for_session,
     has_access,
@@ -93,7 +94,7 @@ def _render_add_user() -> None:
             if save_role_permissions_config(role, selected_role_permissions):
                 st.success(f"Saved role permissions for '{role}'.")
             else:
-                st.error("Failed to save role permissions. Ensure RBAC tables exist in database.")
+                _show_rbac_save_error("save role permissions")
     with col_role2:
         st.caption("Role template is stored in DB and reused for all users with this role.")
 
@@ -139,7 +140,11 @@ def _render_add_user() -> None:
                         )
 
                     if not role_save_ok:
-                        st.warning("User created, but role permissions were not saved. Ensure RBAC tables exist.")
+                        detail = get_permissions_config_error()
+                        if detail:
+                            st.warning(f"User created, but role permissions were not saved. {detail}")
+                        else:
+                            st.warning("User created, but role permissions were not saved.")
                     st.success(f"✅ User '{username}' created successfully with role '{role}'!")
                     st.balloons()
                 else:
@@ -282,7 +287,7 @@ def _render_function_access_control(users: list[dict]) -> None:
                 if not enabled:
                     load_permissions_for_session(role_to_edit, current_user_id or None)
         else:
-            st.error("Failed to save role permissions. Ensure RBAC tables exist in database.")
+            _show_rbac_save_error("save role permissions")
 
     st.divider()
 
@@ -327,7 +332,7 @@ def _render_function_access_control(users: list[dict]) -> None:
             if str(st.session_state.get("current_user_id", "")) == user_id:
                 load_permissions_for_session(role, user_id)
         else:
-            st.error("Failed to save user override. Ensure RBAC tables exist in database.")
+            _show_rbac_save_error("save user override")
 
     effective = resolve_effective_permissions(role, user_id)
     st.caption(f"Effective access for {username}: {len(effective)} function(s).")
@@ -338,6 +343,18 @@ def _permission_options() -> tuple[list[str], dict[str, str]]:
     ids = [item["id"] for item in catalog]
     labels = {item["id"]: item["label"] for item in catalog}
     return ids, labels
+
+
+def _show_rbac_save_error(action_label: str) -> None:
+    detail = str(get_permissions_config_error() or "").strip()
+    if not detail:
+        st.error(f"Failed to {action_label}.")
+        return
+
+    lower = detail.lower()
+    st.error(f"Failed to {action_label}. {detail}")
+    if ("does not exist" in lower and "rbac_" in lower) or "relation" in lower:
+        st.info("Run the latest `supabase_setup.sql` in Supabase SQL Editor to create RBAC tables.")
 
 
 def _get_user_by_username(username: str) -> dict | None:
