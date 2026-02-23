@@ -217,16 +217,11 @@ def render() -> None:
     if date_col in df.columns:
         df = df[df[date_col].astype(str).str.startswith(today_str)]
 
-    # ── Get my appointments (ONLY CURRENT/ACTIVE) ──────────────────────────────
+    # ── Get my appointments (ALL APPOINTMENTS) ──────────────────────────────
     my_appointments = []
     doctor_upper = str(current_user).strip().upper()
 
     for _, row in df.iterrows():
-        status = str(row.get("STATUS", "")).strip().upper()
-        # Show only active statuses: not completed, cancelled, or shifted
-        if status in {"DONE", "COMPLETED", "CANCELLED", "SHIFTED"}:
-            continue
-
         doctor = str(row.get("DR.", "")).strip().upper()
         if doctor == doctor_upper:
             my_appointments.append(row)
