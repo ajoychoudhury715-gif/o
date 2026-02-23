@@ -128,6 +128,7 @@ def render() -> None:
         color: white;
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         border: none;
+        text-align: center;
     }
 
     .section-heading h1 {
@@ -180,7 +181,7 @@ def render() -> None:
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown("""<div class="section-heading"><h1>👤 My Workload (Current Assignments)</h1></div>""", unsafe_allow_html=True)
+    st.markdown("""<div class="section-heading"><h1>My Workload (Current Assignments)</h1></div>""", unsafe_allow_html=True)
 
     # Check if user is logged in
     current_user = st.session_state.get("current_user")
@@ -264,7 +265,7 @@ def render() -> None:
         # Skip appointments with unknown specialty (don't default)
 
     # ── Display Summary Cards (Mobile-Optimized Container) ──────────────────────
-    st.markdown("""<div class="section-heading section-heading-summary"><h2>📋 Today's Assignment Summary</h2></div>""", unsafe_allow_html=True)
+    st.markdown("""<div class="section-heading section-heading-summary"><h2>Today's Assignment Summary</h2></div>""", unsafe_allow_html=True)
 
     total_count = len(my_appointments)
     endo_count = len(endo_appointments)
