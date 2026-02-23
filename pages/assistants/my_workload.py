@@ -14,7 +14,7 @@ from services.profiles_cache import (
 
 
 def render() -> None:
-    st.markdown("## 👤 My Workload (Today)")
+    st.markdown("## 👤 My Workload (Current Assignments)")
 
     # Check if user is logged in
     current_user = st.session_state.get("current_user")
@@ -45,12 +45,13 @@ def render() -> None:
     if date_col in df.columns:
         df = df[df[date_col].astype(str).str.startswith(today_str)]
 
-    # ── Get my appointments ────────────────────────────────────────────────────
+    # ── Get my appointments (ONLY CURRENT/ACTIVE) ──────────────────────────────
     my_appointments = []
     assistant_upper = str(current_user).strip().upper()
 
     for _, row in df.iterrows():
         status = str(row.get("STATUS", "")).strip().upper()
+        # Show only active statuses: not completed, cancelled, or shifted
         if status in {"DONE", "COMPLETED", "CANCELLED", "SHIFTED"}:
             continue
 
