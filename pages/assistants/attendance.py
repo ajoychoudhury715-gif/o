@@ -106,11 +106,21 @@ def render() -> None:
         st.info("No records for the selected filters.")
         return
 
-    # Display
+    # Display with 12-hour formatted times
+    display_df = att_df.copy()
+    if "punch_in" in display_df.columns:
+        display_df["punch_in"] = display_df["punch_in"].apply(
+            lambda x: time_to_12h(coerce_to_time_obj(x)) if x else ""
+        )
+    if "punch_out" in display_df.columns:
+        display_df["punch_out"] = display_df["punch_out"].apply(
+            lambda x: time_to_12h(coerce_to_time_obj(x)) if x else ""
+        )
+
     display_cols = [c for c in ["date", "assistant", "punch_in", "punch_out"]
-                    if c in att_df.columns]
+                    if c in display_df.columns]
     st.dataframe(
-        att_df[display_cols].sort_values(
+        display_df[display_cols].sort_values(
             by="date" if "date" in display_cols else display_cols[0],
             ascending=False,
         ),
