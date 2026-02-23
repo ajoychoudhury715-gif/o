@@ -10,7 +10,7 @@ from services.profiles_cache import get_profiles_cache
 
 
 def render() -> None:
-    st.markdown("## 📊 Assistant Workload")
+    st.markdown("## 📊 Assistant Workload (Today)")
 
     df = st.session_state.get("df")
     if df is None:
@@ -25,6 +25,16 @@ def render() -> None:
     df = ensure_schedule_columns(df)
     df = add_computed_columns(df)
 
+    # ── Filter to TODAY only ───────────────────────────────────────────────────
+    from datetime import datetime
+    from config.settings import IST
+    today_str = datetime.now(IST).strftime("%Y-%m-%d")
+
+    # Filter by DATE or appointment_date column
+    date_col = "DATE" if "DATE" in df.columns else "appointment_date"
+    if date_col in df.columns:
+        df = df[df[date_col].astype(str).str.startswith(today_str)]
+
     cache = get_profiles_cache(st.session_state.get("profiles_cache_bust", 0))
     assistants = sorted(cache.get("assistants_list") or [])
 
@@ -36,10 +46,10 @@ def render() -> None:
     workload_df = compute_workload_summary(df, assistants)
 
     if workload_df.empty or workload_df["Total"].sum() == 0:
-        st.info("No workload data available. Add appointments and assign assistants first.")
+        st.info("No workload data for today. Add appointments and assign assistants first.")
         return
 
-    # ── Metrics row ────────────────────────────────────────────────────────────
+    # ── Metrics row (TODAY only) ───────────────────────────────────────────────
     total_appointments = len(df)
     assigned = 0
     for _, row in df.iterrows():
