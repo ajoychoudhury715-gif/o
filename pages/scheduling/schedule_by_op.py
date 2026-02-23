@@ -56,8 +56,7 @@ def render() -> None:
 
     # ── Initialize selected date in session state ───────────────────────────────
     from datetime import date
-    if "schedule_by_op_date" not in st.session_state:
-        st.session_state.schedule_by_op_date = date.today()
+    st.session_state.schedule_by_op_date = date.today()
 
     # ── Date Picker ────────────────────────────────────────────────────────────
     st.markdown("### 📆 Select Date")
