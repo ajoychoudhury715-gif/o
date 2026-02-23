@@ -6,6 +6,7 @@ Excel: Sheet1
 
 from __future__ import annotations
 from typing import Optional
+from datetime import date as date_type
 import hashlib
 import pandas as pd
 import streamlit as st
@@ -28,6 +29,63 @@ def _ensure_columns(df: pd.DataFrame) -> pd.DataFrame:
         if col not in df.columns:
             df[col] = ""
     return df
+
+
+def load_appointments_by_date(selected_date: date_type) -> pd.DataFrame:
+    """Fetch appointments for a specific date from Supabase (no caching for dynamic date queries).
+    
+    Handles both DATE and TIMESTAMP column types for appointment_date.
+    Returns a DataFrame with columns: id, patient_name, doctor, op_room, start_time, end_time, 
+                                       appointment_date, status
+    """
+    if not USE_SUPABASE:
+        return pd.DataFrame()
+    
+    try:
+        url, key, _, _, _ = get_supabase_config()
+        if not url or not key:
+            return pd.DataFrame()
+        
+        client = get_supabase_client(url, key)
+        if client is None:
+            return pd.DataFrame()
+        
+        # Format date as ISO string (YYYY-MM-DD)
+        date_str = selected_date.isoformat() if isinstance(selected_date, date_type) else str(selected_date)
+        
+        st.write(f"🔍 **DEBUG:** Fetching appointments for date: `{date_str}`")
+        
+        # Query appointments table
+        # This query will work for both DATE and TIMESTAMP types by casting/comparing as dates
+        try:
+            resp = client.table("appointments").select("*").gte("appointment_date", date_str).lt("appointment_date", f"{date_str}T23:59:59").execute()
+        except Exception as e1:
+            st.write(f"⚠️ **DEBUG:** Initial query failed: {str(e1)[:100]}")
+            # Fallback: try a simpler query with eq() which works better for DATE columns
+            try:
+                resp = client.table("appointments").select("*").eq("appointment_date", date_str).execute()
+            except Exception as e2:
+                st.write(f"⚠️ **DEBUG:** Fallback query failed: {str(e2)[:100]}")
+                return pd.DataFrame()
+        
+        data = getattr(resp, "data", None)
+        st.write(f"📊 **DEBUG:** Rows fetched from Supabase: {len(data) if data else 0}")
+        
+        if not data or not isinstance(data, list) or len(data) == 0:
+            st.write("ℹ️ **DEBUG:** No appointments found for this date")
+            return pd.DataFrame()
+        
+        # Convert to DataFrame
+        df = pd.DataFrame(data)
+        st.write(f"✅ **DEBUG:** Successfully loaded {len(df)} appointment(s)")
+        st.write(f"📋 **DEBUG:** Columns in result: {list(df.columns)}")
+        
+        return df
+        
+    except Exception as e:
+        st.error(f"Error loading appointments by date from Supabase: {e}")
+        st.write(f"❌ **DEBUG:** Exception details: {str(e)}")
+        return pd.DataFrame()
 
 
 @st.cache_data(ttl=SCHEDULE_CACHE_TTL_SECONDS)
@@ -139,3 +197,12 @@ def fetch_remote_save_version() -> Optional[int]:
         return int(float(str(val)))
     except Exception:
         return None
+
+
+def clear_schedule_cache() -> None:
+    """Clear all schedule-related caches when date changes or data is updated."""
+    try:
+        _load_from_supabase_cached.clear()
+        st.write("🧹 **DEBUG:** Cache cleared successfully")
+    except Exception as e:
+        st.write(f"⚠️ **DEBUG:** Error clearing cache: {str(e)[:100]}")

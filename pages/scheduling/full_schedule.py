@@ -4,7 +4,7 @@
 from __future__ import annotations
 import streamlit as st
 
-from data.schedule_repo import load_schedule
+from data.schedule_repo import load_schedule, clear_schedule_cache
 from data.profile_repo import load_assistants, load_doctors
 from services.schedule_ops import (
     ensure_schedule_columns,
@@ -27,11 +27,39 @@ from config.constants import OP_ROOMS
 def render() -> None:
     st.markdown("## 📅 Full Schedule")
 
+    # ── Initialize selected date in session state (BEFORE loading data!) ──────
+    from datetime import date
+    if "selected_schedule_date" not in st.session_state:
+        st.session_state.selected_schedule_date = date.today()
+        st.write("🆕 **DEBUG:** Initialized date picker to today")
+
+    # ── Date Picker ────────────────────────────────────────────────────────────
+    st.markdown("### 📆 Select Date")
+    selected_date = st.date_input(
+        "Choose a date",
+        value=st.session_state.selected_schedule_date,
+        key="sched_date_picker",
+        label_visibility="collapsed",
+    )
+
+    # ── CRITICAL: Detect date change and clear cache BEFORE loading ───────────
+    if selected_date != st.session_state.selected_schedule_date:
+        old_date = st.session_state.selected_schedule_date
+        st.write(f"📅 **DEBUG:** Date changed: {old_date} → {selected_date}")
+        st.session_state.selected_schedule_date = selected_date
+        clear_schedule_cache()
+        st.write("🧹 **DEBUG:** Cleared schedule cache")
+        st.rerun()
+
+    st.session_state.selected_schedule_date = selected_date
+
     # ── Load data ──────────────────────────────────────────────────────────────
+    st.write(f"🔍 **DEBUG:** Fetching data for date: {selected_date.isoformat()}")
     df = st.session_state.get("df")
     if df is None:
         with st.spinner("Loading schedule…"):
             df = load_schedule()
+        st.write(f"📥 **DEBUG:** Loaded {len(df)} total rows from database")
         st.session_state.df = df
 
     df = ensure_schedule_columns(df)
@@ -44,21 +72,6 @@ def render() -> None:
     doctors = sorted(cache.get("doctors_list") or [])
     assistants = sorted(cache.get("assistants_list") or [])
     op_rooms = sorted(OP_ROOMS)
-
-    # ── Initialize selected date in session state ───────────────────────────────
-    from datetime import date
-    if "selected_schedule_date" not in st.session_state:
-        st.session_state.selected_schedule_date = date.today()
-
-    # ── Date Picker ────────────────────────────────────────────────────────────
-    st.markdown("### 📆 Select Date")
-    selected_date = st.date_input(
-        "Choose a date",
-        value=st.session_state.selected_schedule_date,
-        key="sched_date_picker",
-        label_visibility="collapsed",
-    )
-    st.session_state.selected_schedule_date = selected_date
 
     # ── Toolbar ────────────────────────────────────────────────────────────────
     col_view, col_search, col_alloc, col_refresh = st.columns([2, 3, 2, 1])
@@ -104,10 +117,16 @@ def render() -> None:
     date_str = selected_date.isoformat() if selected_date else ""
     view_df = df.copy()
     
+    st.write(f"📋 **DEBUG:** Filter by date: '{date_str}'")
+    st.write(f"📊 **DEBUG:** DataFrame has {len(view_df)} total rows before date filter")
+    
     # Filter by selected date (show appointments with matching date OR empty/null dates for backward compatibility)
     if date_str and "DATE" in view_df.columns:
         date_col = view_df.get("DATE", "").astype(str).str.strip()
         view_df = view_df[(date_col == date_str) | (date_col == "")]
+        st.write(f"✅ **DEBUG:** After date filter: {len(view_df)} rows")
+    else:
+        st.write(f"⚠️ **DEBUG:** DATE column missing or invalid date_str")
     
     # ── Filter by search query ──────────────────────────────────────────────────
     if search_q.strip():

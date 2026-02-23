@@ -12,15 +12,44 @@ from state.save_manager import maybe_save
 from components.schedule_card import render_schedule_card, render_add_appointment_form
 from config.constants import OP_ROOMS
 from services.profiles_cache import get_profiles_cache
+from data.schedule_repo import clear_schedule_cache
 
 
 def render() -> None:
     st.markdown("## 🏥 Schedule by OP Room")
 
+    # ── Initialize selected date in session state ───────────────────────────────
+    from datetime import date
+    if "schedule_by_op_date" not in st.session_state:
+        st.session_state.schedule_by_op_date = date.today()
+        st.write("🆕 **DEBUG:** Initialized OP date picker to today")
+
+    # ── Date Picker ────────────────────────────────────────────────────────────
+    st.markdown("### 📆 Select Date")
+    selected_date = st.date_input(
+        "Choose a date",
+        value=st.session_state.schedule_by_op_date,
+        key="schedule_by_op_date_picker",
+        label_visibility="collapsed",
+    )
+
+    # ── CRITICAL: Detect date change and clear cache ──────────────────────────
+    if selected_date != st.session_state.schedule_by_op_date:
+        st.write(f"📅 **DEBUG:** OP Date changed: {st.session_state.schedule_by_op_date} → {selected_date}")
+        st.session_state.schedule_by_op_date = selected_date
+        clear_schedule_cache()
+        st.write("🧹 **DEBUG:** Cleared cache")
+        st.rerun()
+
+    st.session_state.schedule_by_op_date = selected_date
+
+    # ── Load data ──────────────────────────────────────────────────────────────
+    st.write(f"🔍 **DEBUG:** Loading OP schedule for date: {selected_date.isoformat()}")
     df = st.session_state.get("df")
     if df is None:
         from data.schedule_repo import load_schedule
         df = load_schedule()
+        st.write(f"📥 **DEBUG:** Loaded {len(df)} total rows")
         st.session_state.df = df
 
     df = ensure_schedule_columns(df)
@@ -31,21 +60,6 @@ def render() -> None:
     cache = get_profiles_cache(st.session_state.get("profiles_cache_bust", 0))
     doctors = sorted(cache.get("doctors_list") or [])
     assistants = sorted(cache.get("assistants_list") or [])
-
-    # ── Initialize selected date in session state ───────────────────────────────
-    from datetime import date
-    if "selected_schedule_date" not in st.session_state:
-        st.session_state.selected_schedule_date = date.today()
-
-    # ── Date Picker ────────────────────────────────────────────────────────────
-    st.markdown("### 📆 Select Date")
-    selected_date = st.date_input(
-        "Choose a date",
-        value=st.session_state.selected_schedule_date,
-        key="schedule_by_op_date_picker",
-        label_visibility="collapsed",
-    )
-    st.session_state.selected_schedule_date = selected_date
 
     # OP room selector
     all_ops = sorted(df["OP"].dropna().astype(str).str.strip().unique().tolist()) if "OP" in df.columns else []
@@ -63,12 +77,16 @@ def render() -> None:
 
     # ── Filter by date and OP ──────────────────────────────────────────────────
     date_str = selected_date.isoformat() if selected_date else ""
+    st.write(f"📋 **DEBUG:** Filter by OP='{selected_op}' and date='{date_str}'")
+    
     filtered = filter_by_op(df, selected_op)
+    st.write(f"📊 **DEBUG:** After OP filter: {len(filtered)} rows")
     
     # Filter by selected date (show appointments with matching date OR empty/null dates for backward compatibility)
     if date_str and "DATE" in filtered.columns:
         date_col = filtered.get("DATE", "").astype(str).str.strip()
         filtered = filtered[(date_col == date_str) | (date_col == "")]
+        st.write(f"✅ **DEBUG:** After date filter: {len(filtered)} rows")
 
     render_add_appointment_form(
         doctors=doctors,
