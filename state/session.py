@@ -29,7 +29,7 @@ STATE_SCHEMA: dict[str, Any] = {
 
     # Save / conflict
     "is_saving": False,
-    "auto_save_enabled": False,
+    "auto_save_enabled": True,
     "save_debounce_seconds": 2,
     "last_save_at": 0.0,
     "last_saved_hash": None,
