@@ -197,11 +197,12 @@ def _route() -> None:
     elif category == "Assistants":
         if current_view == "Manage Profiles":
             from pages.assistants.manage_profiles import render
+        elif current_view == "My Workload":
+            from pages.assistants.my_workload import render
         elif current_view == "Availability":
             from pages.assistants.availability import render
         elif current_view == "Auto-Allocation":
             from pages.assistants.auto_allocation import render
-
         elif current_view == "Workload":
             from pages.assistants.workload import render
         elif current_view == "Attendance":
