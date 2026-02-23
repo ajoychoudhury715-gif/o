@@ -78,6 +78,33 @@ def render() -> None:
             key="sched_date_picker",
             label_visibility="collapsed",
         )
+        st.markdown(
+            f"""
+            <style>
+            .selected-date-card {{
+                margin-top: 0.35rem;
+                padding: 0.45rem 0.65rem;
+                border-radius: 10px;
+                border: 1px solid #e2e8f0;
+                background: #f8fafc;
+                color: #0f172a;
+                font-size: 0.90rem;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.45rem;
+                white-space: nowrap;
+            }}
+            .selected-date-card .icon {{
+                opacity: 0.8;
+            }}
+            </style>
+            <div class="selected-date-card">
+                <span class="icon">📅</span>
+                <span>{selected_date.strftime("%A, %B %d, %Y")}</span>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
     # ── CRITICAL: Detect date change and clear cache BEFORE loading ───────────
     if selected_date != st.session_state.selected_schedule_date:
