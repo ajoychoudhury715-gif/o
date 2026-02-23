@@ -66,18 +66,20 @@ def render() -> None:
     # ── Initialize selected date in session state (BEFORE loading data!) ──────
     from datetime import date
     today = date.today()
-    st.session_state.selected_schedule_date = today
+
+    # Only initialize to today if not already set (allow user to select different dates)
+    if "selected_schedule_date" not in st.session_state:
+        st.session_state.selected_schedule_date = today
 
     # ── Header: title (left) + inline date picker (right) ─────────────────────
     title_col, date_col = st.columns([6, 3], gap="small")
     with title_col:
         st.markdown("## 📅 Full Schedule")
     with date_col:
-        # Use date-based key so widget cache resets every day
         selected_date = st.date_input(
             "Schedule date",
-            value=today,
-            key=f"sched_date_picker_{today.isoformat()}",
+            value=st.session_state.selected_schedule_date,
+            key="sched_date_picker",
             label_visibility="collapsed",
             format="YYYY-MM-DD",
         )

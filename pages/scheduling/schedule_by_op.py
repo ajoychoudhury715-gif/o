@@ -57,15 +57,17 @@ def render() -> None:
     # ── Initialize selected date in session state ───────────────────────────────
     from datetime import date
     today = date.today()
-    st.session_state.schedule_by_op_date = today
+
+    # Only initialize to today if not already set (allow user to select different dates)
+    if "schedule_by_op_date" not in st.session_state:
+        st.session_state.schedule_by_op_date = today
 
     # ── Date Picker ────────────────────────────────────────────────────────────
     st.markdown("### 📆 Select Date")
-    # Use date-based key so widget cache resets every day
     selected_date = st.date_input(
         "Choose a date",
-        value=today,
-        key=f"schedule_by_op_date_picker_{today.isoformat()}",
+        value=st.session_state.schedule_by_op_date,
+        key="schedule_by_op_date_picker",
         label_visibility="collapsed",
     )
 
