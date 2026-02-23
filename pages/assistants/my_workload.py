@@ -98,13 +98,79 @@ def render() -> None:
             prostho_appointments.append(appt)
         # Skip appointments with unknown specialty (don't default)
 
-    # ── Display Summary Metrics ────────────────────────────────────────────────
+    # ── Display Summary Cards (Mobile-Optimized) ──────────────────────────────
     st.markdown("### 📋 Today's Assignment Summary")
 
-    col1, col2, col3 = st.columns(3)
-    col1.metric("👤 Total Patients", len(my_appointments))
-    col2.metric("🦷 Endo Patients", len(endo_appointments))
-    col3.metric("👄 Prostho Patients", len(prostho_appointments))
+    total_count = len(my_appointments)
+    endo_count = len(endo_appointments)
+    prostho_count = len(prostho_appointments)
+
+    # Create responsive card layout
+    st.markdown("""
+    <style>
+    .summary-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        color: white;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 12px;
+        transition: transform 0.2s;
+    }
+    .summary-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+    .summary-card-endo {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .summary-card-prostho {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    .summary-card-total {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    .summary-card-number {
+        font-size: 32px;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+    .summary-card-label {
+        font-size: 14px;
+        opacity: 0.9;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # Create three columns with responsive cards
+    cols = st.columns(3, gap="medium")
+
+    with cols[0]:
+        st.markdown(f"""
+        <div class="summary-card summary-card-total">
+            <div class="summary-card-label">👤 Total Patients</div>
+            <div class="summary-card-number">{total_count}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with cols[1]:
+        st.markdown(f"""
+        <div class="summary-card summary-card-endo">
+            <div class="summary-card-label">🦷 Endo Patients</div>
+            <div class="summary-card-number">{endo_count}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with cols[2]:
+        st.markdown(f"""
+        <div class="summary-card summary-card-prostho">
+            <div class="summary-card-label">👄 Prostho Patients</div>
+            <div class="summary-card-number">{prostho_count}</div>
+        </div>
+        """, unsafe_allow_html=True)
 
     st.markdown("---")
 
