@@ -214,6 +214,8 @@ def _route() -> None:
     elif category == "Doctors":
         if current_view == "Manage Profiles":
             from pages.doctors.manage_profiles import render
+        elif current_view == "My Workload":
+            from pages.doctors.my_workload import render
         elif current_view == "Overview":
             from pages.doctors.overview import render
         elif current_view == "Summary":

@@ -89,7 +89,7 @@ DEFAULT_WEEKLY_OFF: dict[int, list[str]] = {i: [] for i in range(7)}
 NAV_STRUCTURE = {
     "Scheduling":     ["Full Schedule", "Schedule by OP", "Ongoing", "Upcoming"],
     "Assistants":     ["Manage Profiles", "My Workload", "Availability", "Auto-Allocation", "Workload", "Attendance"],
-    "Doctors":        ["Manage Profiles", "Overview", "Summary", "Per-Doctor Schedule"],
+    "Doctors":        ["Manage Profiles", "My Workload", "Overview", "Summary", "Per-Doctor Schedule"],
     "Admin/Settings": ["User Management", "Storage & Backup", "Notifications", "Duties Manager"],
 }
 
