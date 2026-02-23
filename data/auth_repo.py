@@ -237,7 +237,7 @@ def create_user(username: str, password: str, role: str) -> bool:
     """Create a new user."""
     try:
         # Validate role
-        if role not in ("admin", "frontdesk", "assistant"):
+        if role not in ("admin", "frontdesk", "assistant", "doctor"):
             print(f"[AUTH ERROR] Invalid role: {role}")
             return False
 
