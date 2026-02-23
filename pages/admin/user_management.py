@@ -124,8 +124,8 @@ def _render_add_user() -> None:
                 st.error("❌ Password must be at least 6 characters")
             elif password != confirm_password:
                 st.error("❌ Passwords do not match")
-            elif not username.isalnum() and '_' not in username:
-                st.error("❌ Username can only contain letters, numbers, and underscores")
+            elif not all(c.isalnum() or c in ('_', '.') for c in username):
+                st.error("❌ Username can only contain letters, numbers, underscores, and periods")
             else:
                 role_save_ok = save_role_permissions_config(role, selected_role_permissions)
                 # Try to create user
