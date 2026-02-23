@@ -70,11 +70,6 @@ def render() -> None:
     display_df = workload_df[workload_df["Total"] > 0].sort_values("Total", ascending=False)
     st.dataframe(display_df, width='stretch', hide_index=True)
 
-    # ── Bar chart ──────────────────────────────────────────────────────────────
-    if not display_df.empty:
-        st.markdown("#### 📊 Workload Chart")
-        st.bar_chart(display_df.set_index("Assistant")["Total"])
-
     # ── Unassigned slots ───────────────────────────────────────────────────────
     st.markdown("---")
     st.markdown("#### ⚠️ Unassigned Appointments")
