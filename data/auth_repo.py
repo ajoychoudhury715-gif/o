@@ -3,7 +3,11 @@
 
 from __future__ import annotations
 import hashlib
+import hmac
+import json
 import os
+import time
+import base64
 from typing import Optional
 import streamlit as st
 
@@ -27,6 +31,71 @@ def _hash_password(password: str, salt: Optional[str] = None) -> tuple[str, str]
         100000
     )
     return salt, hash_bytes.hex()
+
+
+def _get_auth_persist_secret() -> str:
+    """Return secret used to sign auth persistence tokens."""
+    custom = str(os.getenv("AUTH_PERSIST_SECRET", "") or "").strip()
+    if custom:
+        return custom
+    try:
+        _, key, *_ = get_supabase_config()
+        if key:
+            return str(key)
+    except Exception:
+        pass
+    # Last-resort fallback (not ideal, but keeps feature functional in local dev).
+    return "tdb-auth-fallback-secret"
+
+
+def issue_login_token(username: str, role: str, ttl_seconds: int = 7 * 24 * 60 * 60) -> str:
+    """Create a signed login token for browser-refresh persistence."""
+    payload = {
+        "u": str(username or "").strip(),
+        "r": str(role or "").strip(),
+        "exp": int(time.time()) + int(ttl_seconds),
+    }
+    payload_json = json.dumps(payload, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
+    payload_b64 = base64.urlsafe_b64encode(payload_json).decode("ascii").rstrip("=")
+    sig = hmac.new(
+        _get_auth_persist_secret().encode("utf-8"),
+        payload_b64.encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
+    return f"{payload_b64}.{sig}"
+
+
+def parse_login_token(token: str) -> Optional[dict]:
+    """Validate and parse login token. Returns {'username', 'role'} or None."""
+    try:
+        raw = str(token or "").strip()
+        if not raw or "." not in raw:
+            return None
+        payload_b64, sig = raw.split(".", 1)
+        expected_sig = hmac.new(
+            _get_auth_persist_secret().encode("utf-8"),
+            payload_b64.encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+        if not hmac.compare_digest(sig, expected_sig):
+            return None
+
+        padding = "=" * (-len(payload_b64) % 4)
+        payload_json = base64.urlsafe_b64decode((payload_b64 + padding).encode("ascii")).decode("utf-8")
+        payload = json.loads(payload_json)
+        if not isinstance(payload, dict):
+            return None
+        exp = int(payload.get("exp", 0) or 0)
+        if exp <= int(time.time()):
+            return None
+
+        username = str(payload.get("u", "") or "").strip()
+        role = str(payload.get("r", "") or "").strip()
+        if not username or not role:
+            return None
+        return {"username": username, "role": role}
+    except Exception:
+        return None
 
 
 def _verify_password(password: str, stored_hash_str: str) -> bool:
@@ -104,6 +173,41 @@ def authenticate(username: str, password: str) -> Optional[dict]:
         print(f"[AUTH ERROR] {type(e).__name__}: {e}")
         import traceback
         traceback.print_exc()
+        return None
+
+
+def get_active_user_by_username(username: str) -> Optional[dict]:
+    """Fetch active user record by username for token-based session restore."""
+    try:
+        normalized = str(username or "").strip()
+        if not normalized:
+            return None
+        url, key, *_ = get_supabase_config()
+        if not url or not key:
+            return None
+        client = get_supabase_client(url, key)
+        if not client:
+            return None
+        resp = (
+            client
+            .table("users")
+            .select("id,username,role,is_active")
+            .eq("username", normalized)
+            .limit(1)
+            .execute()
+        )
+        data = resp.data or []
+        if not data:
+            return None
+        user = data[0]
+        if not user.get("is_active"):
+            return None
+        return {
+            "id": user.get("id"),
+            "username": user.get("username"),
+            "role": user.get("role"),
+        }
+    except Exception:
         return None
 
 

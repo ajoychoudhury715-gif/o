@@ -48,6 +48,11 @@ def _render_header() -> None:
             if st.button("🚪", key="btn_logout", help="Logout"):
                 st.session_state.user_role = None
                 st.session_state.current_user = None
+                try:
+                    if "auth" in st.query_params:
+                        del st.query_params["auth"]
+                except Exception:
+                    pass
                 st.rerun()
 
 

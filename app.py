@@ -18,6 +18,57 @@ from components.theme import inject_global_css
 from components.sidebar import render_sidebar
 from config.constants import NAV_STRUCTURE
 from data.auth_repo import ensure_admin_exists
+from data.auth_repo import parse_login_token, get_active_user_by_username
+
+
+def _get_auth_query_param() -> str:
+    try:
+        raw = st.query_params.get("auth", "")
+        if isinstance(raw, list):
+            return str(raw[0] if raw else "").strip()
+        return str(raw or "").strip()
+    except Exception:
+        return ""
+
+
+def _set_auth_query_param(token: str) -> None:
+    try:
+        if token:
+            st.query_params["auth"] = token
+        else:
+            if "auth" in st.query_params:
+                del st.query_params["auth"]
+    except Exception:
+        # Ignore query param persistence failures; login still works in-session.
+        pass
+
+
+def _restore_auth_from_query_param() -> None:
+    """Restore login state after browser refresh using signed query token."""
+    if st.session_state.get("user_role") and st.session_state.get("current_user"):
+        return
+    token = _get_auth_query_param()
+    if not token:
+        return
+    claims = parse_login_token(token)
+    if not claims:
+        _set_auth_query_param("")
+        return
+
+    user = get_active_user_by_username(claims.get("username"))
+    if not user:
+        _set_auth_query_param("")
+        return
+
+    # Enforce DB role to avoid trusting token payload blindly.
+    db_role = str(user.get("role", "") or "").strip()
+    token_role = str(claims.get("role", "") or "").strip()
+    if not db_role or db_role != token_role:
+        _set_auth_query_param("")
+        return
+
+    st.session_state.current_user = user.get("username")
+    st.session_state.user_role = db_role
 
 
 def main() -> None:
@@ -29,6 +80,9 @@ def main() -> None:
 
     # Ensure default admin account exists (on first run)
     ensure_admin_exists()
+
+    # Restore auth on browser refresh (if signed token exists).
+    _restore_auth_from_query_param()
 
     # Login gate: if not authenticated, show login or reset password page and stop
     if not st.session_state.get("user_role"):
