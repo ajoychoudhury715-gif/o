@@ -45,7 +45,7 @@ def render() -> None:
 
     workload_df = compute_workload_summary(df, assistants)
 
-    if workload_df.empty or workload_df["Total"].sum() == 0:
+    if workload_df.empty or workload_df["Appointments"].sum() == 0:
         st.info("No workload data for today. Add appointments and assign assistants first.")
         return
 
@@ -66,9 +66,22 @@ def render() -> None:
     st.markdown("---")
 
     # ── Workload table ─────────────────────────────────────────────────────────
-    st.markdown("#### 📋 Appointments per Assistant")
-    display_df = workload_df[workload_df["Total"] > 0].sort_values("Total", ascending=False)
-    st.dataframe(display_df, width='stretch', hide_index=True)
+    st.markdown("#### 📋 Assistant Workload (Clinic Hours: 9 AM - 7 PM)")
+    display_df = workload_df[workload_df["Appointments"] > 0].sort_values("Hours Busy", ascending=False)
+
+    # Display key columns with hours information
+    display_cols = ["Assistant", "Appointments", "Hours Busy", "Hours Available"]
+    st.dataframe(
+        display_df[display_cols],
+        width='stretch',
+        hide_index=True,
+        column_config={
+            "Assistant": st.column_config.Column(width="medium"),
+            "Appointments": st.column_config.NumberColumn(width="small"),
+            "Hours Busy": st.column_config.NumberColumn(format="%.2f hrs", width="small"),
+            "Hours Available": st.column_config.NumberColumn(format="%.2f hrs", width="small"),
+        }
+    )
 
     # ── Unassigned slots ───────────────────────────────────────────────────────
     st.markdown("---")

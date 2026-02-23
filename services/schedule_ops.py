@@ -142,18 +142,47 @@ def remove_assistant_from_schedule(df: pd.DataFrame, assistant_name: str) -> Opt
 
 
 def compute_workload_summary(df_schedule: pd.DataFrame, assistants: list[str]) -> pd.DataFrame:
+    """Compute workload including appointment count and hours busy/available (9 AM - 7 PM = 10 hours)."""
+    CLINIC_HOURS = 10  # 9 AM to 7 PM
     rows = []
     for a in assistants:
         a_upper = a.strip().upper()
         total = as_first = as_second = as_third = 0
+        total_minutes_busy = 0
+
         for _, row in df_schedule.iterrows():
             if str(row.get("STATUS", "")).upper() in TERMINAL_STATUSES:
                 continue
+
+            is_assigned = False
             if str(row.get("FIRST", "")).strip().upper() == a_upper:
                 total += 1; as_first += 1
+                is_assigned = True
             elif str(row.get("SECOND", "")).strip().upper() == a_upper:
                 total += 1; as_second += 1
+                is_assigned = True
             elif str(row.get("Third", "")).strip().upper() == a_upper:
                 total += 1; as_third += 1
-        rows.append({"Assistant": a, "Total": total, "As First": as_first, "As Second": as_second, "As Third": as_third})
+                is_assigned = True
+
+            # Calculate appointment duration
+            if is_assigned:
+                in_min = row.get("In_min")
+                out_min = row.get("Out_min")
+                if in_min is not None and out_min is not None and out_min > in_min:
+                    duration = out_min - in_min
+                    total_minutes_busy += duration
+
+        hours_busy = total_minutes_busy / 60
+        hours_available = CLINIC_HOURS - hours_busy
+
+        rows.append({
+            "Assistant": a,
+            "Appointments": total,
+            "Hours Busy": round(hours_busy, 2),
+            "Hours Available": round(max(0, hours_available), 2),
+            "As First": as_first,
+            "As Second": as_second,
+            "As Third": as_third,
+        })
     return pd.DataFrame(rows)
