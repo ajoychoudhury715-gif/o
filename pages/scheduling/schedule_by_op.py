@@ -56,16 +56,16 @@ def render() -> None:
 
     # ── Initialize selected date in session state ───────────────────────────────
     from datetime import date
-    # CRITICAL: Remove widget's cached date to force it to always show today
-    st.session_state.pop("schedule_by_op_date_picker", None)
-    st.session_state.schedule_by_op_date = date.today()
+    today = date.today()
+    st.session_state.schedule_by_op_date = today
 
     # ── Date Picker ────────────────────────────────────────────────────────────
     st.markdown("### 📆 Select Date")
+    # Use date-based key so widget cache resets every day
     selected_date = st.date_input(
         "Choose a date",
-        value=st.session_state.schedule_by_op_date,
-        key="schedule_by_op_date_picker",
+        value=today,
+        key=f"schedule_by_op_date_picker_{today.isoformat()}",
         label_visibility="collapsed",
     )
 

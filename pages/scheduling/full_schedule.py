@@ -65,19 +65,19 @@ def _strict_date_mask(date_series: pd.Series, selected_date) -> tuple[pd.Series,
 def render() -> None:
     # ── Initialize selected date in session state (BEFORE loading data!) ──────
     from datetime import date
-    # CRITICAL: Remove widget's cached date to force it to always show today
-    st.session_state.pop("sched_date_picker", None)
-    st.session_state.selected_schedule_date = date.today()
+    today = date.today()
+    st.session_state.selected_schedule_date = today
 
     # ── Header: title (left) + inline date picker (right) ─────────────────────
     title_col, date_col = st.columns([6, 3], gap="small")
     with title_col:
         st.markdown("## 📅 Full Schedule")
     with date_col:
+        # Use date-based key so widget cache resets every day
         selected_date = st.date_input(
             "Schedule date",
-            value=st.session_state.selected_schedule_date,
-            key="sched_date_picker",
+            value=today,
+            key=f"sched_date_picker_{today.isoformat()}",
             label_visibility="collapsed",
             format="YYYY-MM-DD",
         )
