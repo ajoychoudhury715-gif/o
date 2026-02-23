@@ -84,7 +84,7 @@ def render_schedule_card(
     {badge}
   </div>
   {"<div style='font-size:13px;color:#64748b;margin-bottom:8px;'>📋 " + procedure + "</div>" if procedure else ""}
-  {"<div style='font-size:12px;color:#64748b;margin-bottom:8px;'>📄 Case: " + case_paper + "</div>" if case_paper else ""}
+  {"<div style='font-size:12px;color:#64748b;margin-bottom:8px;'>📄 QTRAQ: " + case_paper + "</div>" if case_paper else ""}
   <div style="margin-top:8px;">
     <span style="font-size:12px;font-weight:600;color:#64748b;">ASSISTANTS:</span>
     {a1} {a2} {a3}
@@ -169,8 +169,8 @@ def render_add_appointment_form(
             with c5:
                 third = st.selectbox("Third Assistant", [""] + assistants, key="add_third")
 
-            case_paper = st.text_input("Case Paper #")
-            status = st.selectbox("Status", STATUS_OPTIONS, index=0)
+            case_paper = st.text_input("QTRAQ")
+            status = st.selectbox("Status", ["Processing", "Done"], index=0)
 
             submitted = st.form_submit_button("➕ Add Appointment", width='stretch')
             if submitted:
