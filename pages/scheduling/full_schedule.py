@@ -62,21 +62,22 @@ def _strict_date_mask(date_series: pd.Series, selected_date) -> tuple[pd.Series,
 
 
 def render() -> None:
-    st.markdown("## 📅 Full Schedule")
-
     # ── Initialize selected date in session state (BEFORE loading data!) ──────
     from datetime import date
     if "selected_schedule_date" not in st.session_state:
         st.session_state.selected_schedule_date = date.today()
 
-    # ── Date Picker ────────────────────────────────────────────────────────────
-    st.markdown("### 📆 Select Date")
-    selected_date = st.date_input(
-        "Choose a date",
-        value=st.session_state.selected_schedule_date,
-        key="sched_date_picker",
-        label_visibility="collapsed",
-    )
+    # ── Compact header row: title (left) + date picker (right) ───────────────
+    title_col, date_col = st.columns([6, 2], gap="small")
+    with title_col:
+        st.markdown("## 📅 Full Schedule")
+    with date_col:
+        selected_date = st.date_input(
+            "Date",
+            value=st.session_state.selected_schedule_date,
+            key="sched_date_picker",
+            label_visibility="collapsed",
+        )
 
     # ── CRITICAL: Detect date change and clear cache BEFORE loading ───────────
     if selected_date != st.session_state.selected_schedule_date:
