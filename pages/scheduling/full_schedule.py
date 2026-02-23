@@ -23,6 +23,7 @@ from components.schedule_card import render_schedule_card, render_add_appointmen
 from components.schedule_table import render_schedule_table, render_edit_row_form
 from components.time_block_editor import render_time_block_editor
 from config.constants import OP_ROOMS
+from security.rbac import has_access, require_access
 
 
 def _strict_date_mask(date_series: pd.Series, selected_date) -> tuple[pd.Series, str]:
@@ -151,7 +152,8 @@ def render() -> None:
             label_visibility="collapsed",
         )
     with col_alloc:
-        if st.button("🤖 Auto-Allocate", width='stretch', key="btn_auto_alloc"):
+        can_auto_allocate = has_access("action::schedule::auto_allocate")
+        if st.button("🤖 Auto-Allocate", width='stretch', key="btn_auto_alloc", disabled=not can_auto_allocate):
             _run_auto_allocate(df)
             st.rerun()
     with col_refresh:
@@ -161,17 +163,21 @@ def render() -> None:
             st.rerun()
 
     # ── Optional: time block editor ───────────────────────────────────────────
+    can_manage_time_blocks = has_access("action::schedule::time_blocks")
     with st.expander("🚫 Time Blocks", expanded=False):
-        meta = getattr(df, "attrs", {}).get("meta", {})
-        time_blocks = meta.get("time_blocks", [])
-        from services.availability import deserialize_time_blocks, serialize_time_blocks
-        time_blocks = deserialize_time_blocks(time_blocks)
-        render_time_block_editor(
-            time_blocks=time_blocks,
-            assistants=assistants,
-            on_add=lambda b: _add_time_block(df, b),
-            on_remove=lambda i: _remove_time_block(df, i, time_blocks),
-        )
+        if not can_manage_time_blocks:
+            st.info("You do not have permission to manage time blocks.")
+        else:
+            meta = getattr(df, "attrs", {}).get("meta", {})
+            time_blocks = meta.get("time_blocks", [])
+            from services.availability import deserialize_time_blocks, serialize_time_blocks
+            time_blocks = deserialize_time_blocks(time_blocks)
+            render_time_block_editor(
+                time_blocks=time_blocks,
+                assistants=assistants,
+                on_add=lambda b: _add_time_block(df, b),
+                on_remove=lambda i: _remove_time_block(df, i, time_blocks),
+            )
 
     # ── Filter by date ──────────────────────────────────────────────────────────
     view_df = df.copy()
@@ -198,13 +204,17 @@ def render() -> None:
         view_df = view_df[mask]
 
     # ── Add Appointment ────────────────────────────────────────────────────────
-    render_add_appointment_form(
-        doctors=doctors,
-        assistants=assistants,
-        op_rooms=op_rooms,
-        selected_date=selected_date,
-        on_save=lambda row: _on_add_appointment(df, row),
-    )
+    can_add = has_access("action::schedule::add_appointment")
+    if can_add:
+        render_add_appointment_form(
+            doctors=doctors,
+            assistants=assistants,
+            op_rooms=op_rooms,
+            selected_date=selected_date,
+            on_save=lambda row: _on_add_appointment(df, row),
+        )
+    else:
+        st.caption("Add Appointment is restricted for your account.")
 
     st.markdown(f"**{len(view_df)} appointment(s) on {selected_date.strftime('%A, %B %d, %Y')}**")
 
@@ -261,6 +271,7 @@ def _render_table(view_df, full_df, doctors, assistants, op_rooms) -> None:
 
 
 def _on_status_change(df, row_id: str, new_status: str) -> None:
+    require_access("action::schedule::update_status", "updating appointment status")
     updated = update_status(df, row_id, new_status)
     st.session_state.df = updated
     maybe_save(updated, message=f"Status → {new_status}")
@@ -268,6 +279,7 @@ def _on_status_change(df, row_id: str, new_status: str) -> None:
 
 
 def _on_delete_row(df, row_id: str) -> None:
+    require_access("action::schedule::delete_appointment", "deleting appointments")
     import pandas as pd
     mask = df["REMINDER_ROW_ID"].astype(str).str.strip() == row_id
     updated = df[~mask].reset_index(drop=True)
@@ -278,6 +290,7 @@ def _on_delete_row(df, row_id: str) -> None:
 
 
 def _on_add_appointment(df, row: dict) -> None:
+    require_access("action::schedule::add_appointment", "adding appointments")
     import pandas as pd
     new_row_df = pd.DataFrame([row])
     updated = pd.concat([df, new_row_df], ignore_index=True)
@@ -288,6 +301,7 @@ def _on_add_appointment(df, row: dict) -> None:
 
 
 def _on_edit_row(df, row_id: str, updates: dict) -> None:
+    require_access("action::schedule::edit_appointment", "editing appointments")
     mask = df["REMINDER_ROW_ID"].astype(str).str.strip() == row_id
     idxs = df.index[mask].tolist()
     if idxs:
@@ -307,6 +321,7 @@ def _cancel_edit(row_id: str) -> None:
 
 def _on_table_save(full_df, view_df, updated_view) -> None:
     """Merge edited table rows back into full_df."""
+    require_access("action::schedule::edit_appointment", "editing appointments")
     for col in updated_view.columns:
         if col in full_df.columns and col in view_df.columns:
             full_df.loc[view_df.index, col] = updated_view[col].values
@@ -316,6 +331,7 @@ def _on_table_save(full_df, view_df, updated_view) -> None:
 
 
 def _run_auto_allocate(df) -> None:
+    require_access("action::schedule::auto_allocate", "auto-allocation")
     from services.allocation_engine import auto_allocate_all
     from data.attendance_repo import get_today_punch_map
     from services.utils import now_ist
@@ -337,6 +353,7 @@ def _run_auto_allocate(df) -> None:
 
 
 def _add_time_block(df, block: dict) -> None:
+    require_access("action::schedule::time_blocks", "managing time blocks")
     from services.availability import deserialize_time_blocks, serialize_time_blocks
     meta = df.attrs.get("meta", {})
     time_blocks = deserialize_time_blocks(meta.get("time_blocks", []))
@@ -349,6 +366,7 @@ def _add_time_block(df, block: dict) -> None:
 
 
 def _remove_time_block(df, idx: int, time_blocks: list) -> None:
+    require_access("action::schedule::time_blocks", "managing time blocks")
     from services.availability import serialize_time_blocks
     if 0 <= idx < len(time_blocks):
         time_blocks.pop(idx)

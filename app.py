@@ -16,9 +16,14 @@ st.set_page_config(
 from state.session import init_session_state
 from components.theme import inject_global_css
 from components.sidebar import render_sidebar
-from config.constants import NAV_STRUCTURE
 from data.auth_repo import ensure_admin_exists
 from data.auth_repo import parse_login_token, get_active_user_by_username
+from security.rbac import (
+    load_permissions_for_session,
+    get_allowed_navigation,
+    function_id_for_page,
+    has_access,
+)
 
 
 def _get_auth_query_param() -> str:
@@ -68,7 +73,20 @@ def _restore_auth_from_query_param() -> None:
         return
 
     st.session_state.current_user = user.get("username")
+    st.session_state.current_user_id = user.get("id")
     st.session_state.user_role = db_role
+    load_permissions_for_session(db_role, user.get("id"))
+
+
+def _ensure_permissions_loaded() -> None:
+    """Ensure session has effective permissions for current authenticated user."""
+    role = str(st.session_state.get("user_role", "") or "").strip().lower()
+    user_id = str(st.session_state.get("current_user_id", "") or "").strip()
+    if not role:
+        return
+    marker = f"{role}:{user_id}"
+    if st.session_state.get("permissions_loaded_for") != marker:
+        load_permissions_for_session(role, user_id or None)
 
 
 def main() -> None:
@@ -93,6 +111,8 @@ def main() -> None:
             from pages.auth.login import render as render_login
             render_login()
         st.stop()
+
+    _ensure_permissions_loaded()
 
     # Load schedule into session state if not already loaded
     _ensure_schedule_loaded()
@@ -127,7 +147,16 @@ def _ensure_schedule_loaded() -> None:
 
 def _route() -> None:
     """Determine current page from session state and render it."""
+    role = st.session_state.get("user_role", "assistant")
+    allowed_nav = get_allowed_navigation(role, st.session_state.get("allowed_functions", []))
+    if not allowed_nav:
+        st.error("No accessible functions are assigned to this user.")
+        st.stop()
+
     category = st.session_state.get("nav_category", "Scheduling")
+    if category not in allowed_nav:
+        category = next(iter(allowed_nav.keys()))
+        st.session_state.nav_category = category
 
     sub_key_map = {
         "Scheduling": "nav_sched",
@@ -136,8 +165,20 @@ def _route() -> None:
         "Admin/Settings": "nav_admin",
     }
     sub_key = sub_key_map.get(category, "nav_sched")
-    sub_views = NAV_STRUCTURE.get(category, [])
-    current_view = st.session_state.get(sub_key, sub_views[0] if sub_views else "")
+    allowed_views = allowed_nav.get(category, [])
+    current_view = st.session_state.get(sub_key, allowed_views[0] if allowed_views else "")
+    if current_view not in allowed_views and allowed_views:
+        current_view = allowed_views[0]
+        st.session_state[sub_key] = current_view
+
+    if not current_view:
+        st.error("No accessible page is available in the selected category.")
+        st.stop()
+
+    page_permission_id = function_id_for_page(category, current_view)
+    if not has_access(page_permission_id, st.session_state.get("allowed_functions", [])):
+        st.error("Access denied for the selected page.")
+        st.stop()
 
     # Scheduling pages
     if category == "Scheduling":

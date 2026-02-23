@@ -14,6 +14,7 @@ from components.schedule_card import render_schedule_card, render_add_appointmen
 from config.constants import OP_ROOMS
 from services.profiles_cache import get_profiles_cache
 from data.schedule_repo import clear_schedule_cache
+from security.rbac import has_access, require_access
 
 
 def _strict_date_mask(date_series: pd.Series, selected_date) -> tuple[pd.Series, str]:
@@ -119,13 +120,16 @@ def render() -> None:
         date_mask, _ = _strict_date_mask(date_series, selected_date)
         filtered = filtered[date_mask].copy()
 
-    render_add_appointment_form(
-        doctors=doctors,
-        assistants=assistants,
-        op_rooms=all_ops,
-        selected_date=selected_date,
-        on_save=lambda row: _on_add(df, row),
-    )
+    if has_access("action::schedule::add_appointment"):
+        render_add_appointment_form(
+            doctors=doctors,
+            assistants=assistants,
+            op_rooms=all_ops,
+            selected_date=selected_date,
+            on_save=lambda row: _on_add(df, row),
+        )
+    else:
+        st.caption("Add Appointment is restricted for your account.")
 
     st.markdown(f"**{len(filtered)} appointment(s) in {selected_op} on {selected_date.strftime('%A, %B %d, %Y')}**")
 
@@ -147,6 +151,7 @@ def render() -> None:
 
 
 def _on_status_change(df, row_id: str, new_status: str) -> None:
+    require_access("action::schedule::update_status", "updating appointment status")
     updated = update_status(df, row_id, new_status)
     st.session_state.df = updated
     maybe_save(updated, message=f"Status → {new_status}")
@@ -154,6 +159,7 @@ def _on_status_change(df, row_id: str, new_status: str) -> None:
 
 
 def _on_delete(df, row_id: str) -> None:
+    require_access("action::schedule::delete_appointment", "deleting appointments")
     mask = df["REMINDER_ROW_ID"].astype(str).str.strip() == row_id
     updated = df[~mask].reset_index(drop=True)
     updated.attrs = df.attrs.copy()
@@ -163,6 +169,7 @@ def _on_delete(df, row_id: str) -> None:
 
 
 def _on_add(df, row: dict) -> None:
+    require_access("action::schedule::add_appointment", "adding appointments")
     import pandas as pd
     updated = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
     updated.attrs = df.attrs.copy()
