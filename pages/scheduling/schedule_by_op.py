@@ -2,6 +2,7 @@
 """Schedule filtered by OP room."""
 
 from __future__ import annotations
+import pandas as pd
 import streamlit as st
 
 from services.schedule_ops import (
@@ -37,8 +38,9 @@ def render() -> None:
     if selected_date != st.session_state.schedule_by_op_date:
         st.write(f"📅 **DEBUG:** OP Date changed: {st.session_state.schedule_by_op_date} → {selected_date}")
         st.session_state.schedule_by_op_date = selected_date
+        st.session_state.df = None
         clear_schedule_cache()
-        st.write("🧹 **DEBUG:** Cleared cache")
+        st.write("🧹 **DEBUG:** Cleared cache and in-memory data")
         st.rerun()
 
     st.session_state.schedule_by_op_date = selected_date
@@ -77,16 +79,20 @@ def render() -> None:
 
     # ── Filter by date and OP ──────────────────────────────────────────────────
     date_str = selected_date.isoformat() if selected_date else ""
+    st.write(f"🐛 DEBUG selected_date: {selected_date}")
+    st.write(f"🐛 DEBUG formatted_date: {date_str}")
     st.write(f"📋 **DEBUG:** Filter by OP='{selected_op}' and date='{date_str}'")
     
     filtered = filter_by_op(df, selected_op)
     st.write(f"📊 **DEBUG:** After OP filter: {len(filtered)} rows")
     
-    # Filter by selected date (show appointments with matching date OR empty/null dates for backward compatibility)
+    # Strict date filter; do not include blank dates.
     if date_str and "DATE" in filtered.columns:
-        date_col = filtered.get("DATE", "").astype(str).str.strip()
-        filtered = filtered[(date_col == date_str) | (date_col == "")]
+        normalized_date_col = pd.to_datetime(filtered["DATE"], errors="coerce").dt.strftime("%Y-%m-%d")
+        filtered = filtered[normalized_date_col == date_str].copy()
         st.write(f"✅ **DEBUG:** After date filter: {len(filtered)} rows")
+
+    st.write(f"🐛 DEBUG fetched data: {filtered.to_dict(orient='records')}")
 
     render_add_appointment_form(
         doctors=doctors,
@@ -100,7 +106,7 @@ def render() -> None:
 
     # ── Check if no appointments exist for the selected date and OP ─────────────
     if len(filtered) == 0:
-        st.info(f"✨ No appointments scheduled for {selected_op} on this date.")
+        st.info("No appointments scheduled")
         return
 
     for idx, (_, row) in enumerate(filtered.iterrows()):

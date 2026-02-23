@@ -2,6 +2,7 @@
 """Full Schedule view — card + table toggle, add/edit/delete, auto-allocate."""
 
 from __future__ import annotations
+import pandas as pd
 import streamlit as st
 
 from data.schedule_repo import load_schedule, clear_schedule_cache
@@ -47,8 +48,9 @@ def render() -> None:
         old_date = st.session_state.selected_schedule_date
         st.write(f"📅 **DEBUG:** Date changed: {old_date} → {selected_date}")
         st.session_state.selected_schedule_date = selected_date
+        st.session_state.df = None
         clear_schedule_cache()
-        st.write("🧹 **DEBUG:** Cleared schedule cache")
+        st.write("🧹 **DEBUG:** Cleared schedule cache and in-memory data")
         st.rerun()
 
     st.session_state.selected_schedule_date = selected_date
@@ -116,17 +118,20 @@ def render() -> None:
     # ── Filter by date ──────────────────────────────────────────────────────────
     date_str = selected_date.isoformat() if selected_date else ""
     view_df = df.copy()
-    
-    st.write(f"📋 **DEBUG:** Filter by date: '{date_str}'")
+
+    st.write(f"🐛 DEBUG selected_date: {selected_date}")
+    st.write(f"🐛 DEBUG formatted_date: {date_str}")
     st.write(f"📊 **DEBUG:** DataFrame has {len(view_df)} total rows before date filter")
-    
-    # Filter by selected date (show appointments with matching date OR empty/null dates for backward compatibility)
+
+    # Strict date filter; do not include blank dates.
     if date_str and "DATE" in view_df.columns:
-        date_col = view_df.get("DATE", "").astype(str).str.strip()
-        view_df = view_df[(date_col == date_str) | (date_col == "")]
+        normalized_date_col = pd.to_datetime(view_df["DATE"], errors="coerce").dt.strftime("%Y-%m-%d")
+        view_df = view_df[normalized_date_col == date_str].copy()
         st.write(f"✅ **DEBUG:** After date filter: {len(view_df)} rows")
     else:
         st.write(f"⚠️ **DEBUG:** DATE column missing or invalid date_str")
+
+    st.write(f"🐛 DEBUG fetched data: {view_df.to_dict(orient='records')}")
     
     # ── Filter by search query ──────────────────────────────────────────────────
     if search_q.strip():
@@ -152,7 +157,7 @@ def render() -> None:
 
     # ── Check if no appointments exist for the selected date ──────────────────
     if len(view_df) == 0:
-        st.info("✨ No appointments scheduled for this date.")
+        st.info("No appointments scheduled")
         return
 
     # ── Render view ────────────────────────────────────────────────────────────

@@ -55,7 +55,7 @@ appointments_df = load_appointments_by_date(selected_date)
 st.markdown(f"**{len(appointments_df)} appointment(s) on {selected_date.strftime('%A, %B %d, %Y')}**")
 
 if len(appointments_df) == 0:
-    st.info("✨ No appointments scheduled for this date.")
+    st.info("No appointments scheduled")
 else:
     # Display appointments in a table
     st.dataframe(
