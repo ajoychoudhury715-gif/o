@@ -68,7 +68,6 @@ def render() -> None:
     from datetime import date
     if "selected_schedule_date" not in st.session_state:
         st.session_state.selected_schedule_date = date.today()
-        st.write("🆕 **DEBUG:** Initialized date picker to today")
 
     # ── Date Picker ────────────────────────────────────────────────────────────
     st.markdown("### 📆 Select Date")
@@ -81,23 +80,18 @@ def render() -> None:
 
     # ── CRITICAL: Detect date change and clear cache BEFORE loading ───────────
     if selected_date != st.session_state.selected_schedule_date:
-        old_date = st.session_state.selected_schedule_date
-        st.write(f"📅 **DEBUG:** Date changed: {old_date} → {selected_date}")
         st.session_state.selected_schedule_date = selected_date
         st.session_state.df = None
         clear_schedule_cache()
-        st.write("🧹 **DEBUG:** Cleared schedule cache and in-memory data")
         st.rerun()
 
     st.session_state.selected_schedule_date = selected_date
 
     # ── Load data ──────────────────────────────────────────────────────────────
-    st.write(f"🔍 **DEBUG:** Fetching data for date: {selected_date.isoformat()}")
     df = st.session_state.get("df")
     if df is None:
         with st.spinner("Loading schedule…"):
             df = load_schedule()
-        st.write(f"📥 **DEBUG:** Loaded {len(df)} total rows from database")
         st.session_state.df = df
 
     df = ensure_schedule_columns(df)
@@ -154,21 +148,16 @@ def render() -> None:
     # ── Filter by date ──────────────────────────────────────────────────────────
     view_df = df.copy()
 
-    st.write(f"🐛 DEBUG selected_date: {selected_date}")
-    st.write(f"📊 **DEBUG:** DataFrame has {len(view_df)} total rows before date filter")
-
     # Strict date filter; do not include blank dates.
-    if selected_date and "DATE" in view_df.columns:
-        date_mask, formatted_date = _strict_date_mask(view_df["DATE"], selected_date)
-        st.write(f"🐛 DEBUG formatted_date: {formatted_date}")
-        st.write(f"🐛 DEBUG raw_date_samples: {view_df['DATE'].astype(str).head(10).tolist()}")
+    if selected_date and ("DATE" in view_df.columns or "appointment_date" in view_df.columns):
+        date_series = view_df["DATE"] if "DATE" in view_df.columns else pd.Series([""] * len(view_df), index=view_df.index)
+        if "appointment_date" in view_df.columns:
+            primary = date_series.fillna("").astype(str).str.strip()
+            fallback = view_df["appointment_date"].fillna("").astype(str).str.strip()
+            date_series = primary.where(primary.ne(""), fallback)
+        date_mask, _ = _strict_date_mask(date_series, selected_date)
         view_df = view_df[date_mask].copy()
-        st.write(f"✅ **DEBUG:** After date filter: {len(view_df)} rows")
-    else:
-        st.write(f"⚠️ **DEBUG:** DATE column missing or invalid date_str")
 
-    st.write(f"🐛 DEBUG fetched data: {view_df.to_dict(orient='records')}")
-    
     # ── Filter by search query ──────────────────────────────────────────────────
     if search_q.strip():
         q = search_q.strip().lower()

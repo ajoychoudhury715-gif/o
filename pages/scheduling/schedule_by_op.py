@@ -57,7 +57,6 @@ def render() -> None:
     from datetime import date
     if "schedule_by_op_date" not in st.session_state:
         st.session_state.schedule_by_op_date = date.today()
-        st.write("🆕 **DEBUG:** Initialized OP date picker to today")
 
     # ── Date Picker ────────────────────────────────────────────────────────────
     st.markdown("### 📆 Select Date")
@@ -70,22 +69,18 @@ def render() -> None:
 
     # ── CRITICAL: Detect date change and clear cache ──────────────────────────
     if selected_date != st.session_state.schedule_by_op_date:
-        st.write(f"📅 **DEBUG:** OP Date changed: {st.session_state.schedule_by_op_date} → {selected_date}")
         st.session_state.schedule_by_op_date = selected_date
         st.session_state.df = None
         clear_schedule_cache()
-        st.write("🧹 **DEBUG:** Cleared cache and in-memory data")
         st.rerun()
 
     st.session_state.schedule_by_op_date = selected_date
 
     # ── Load data ──────────────────────────────────────────────────────────────
-    st.write(f"🔍 **DEBUG:** Loading OP schedule for date: {selected_date.isoformat()}")
     df = st.session_state.get("df")
     if df is None:
         from data.schedule_repo import load_schedule
         df = load_schedule()
-        st.write(f"📥 **DEBUG:** Loaded {len(df)} total rows")
         st.session_state.df = df
 
     df = ensure_schedule_columns(df)
@@ -112,21 +107,17 @@ def render() -> None:
             st.rerun()
 
     # ── Filter by date and OP ──────────────────────────────────────────────────
-    st.write(f"🐛 DEBUG selected_date: {selected_date}")
-    st.write(f"📋 **DEBUG:** Filter by OP='{selected_op}' and selected date")
-    
     filtered = filter_by_op(df, selected_op)
-    st.write(f"📊 **DEBUG:** After OP filter: {len(filtered)} rows")
-    
-    # Strict date filter; do not include blank dates.
-    if selected_date and "DATE" in filtered.columns:
-        date_mask, formatted_date = _strict_date_mask(filtered["DATE"], selected_date)
-        st.write(f"🐛 DEBUG formatted_date: {formatted_date}")
-        st.write(f"🐛 DEBUG raw_date_samples: {filtered['DATE'].astype(str).head(10).tolist()}")
-        filtered = filtered[date_mask].copy()
-        st.write(f"✅ **DEBUG:** After date filter: {len(filtered)} rows")
 
-    st.write(f"🐛 DEBUG fetched data: {filtered.to_dict(orient='records')}")
+    # Strict date filter; do not include blank dates.
+    if selected_date and ("DATE" in filtered.columns or "appointment_date" in filtered.columns):
+        date_series = filtered["DATE"] if "DATE" in filtered.columns else pd.Series([""] * len(filtered), index=filtered.index)
+        if "appointment_date" in filtered.columns:
+            primary = date_series.fillna("").astype(str).str.strip()
+            fallback = filtered["appointment_date"].fillna("").astype(str).str.strip()
+            date_series = primary.where(primary.ne(""), fallback)
+        date_mask, _ = _strict_date_mask(date_series, selected_date)
+        filtered = filtered[date_mask].copy()
 
     render_add_appointment_form(
         doctors=doctors,

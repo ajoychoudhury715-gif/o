@@ -15,6 +15,7 @@ import streamlit as st
 from config.settings import (
     USE_SUPABASE, SUPABASE_SCHEDULE_TABLE, SUPABASE_SCHEDULE_ROW_ID,
     EXCEL_SCHEDULE_SHEET, get_supabase_config, SCHEDULE_CACHE_TTL_SECONDS,
+    APPOINTMENT_DATE_COLUMN_TYPE,
 )
 from config.constants import SCHEDULE_COLUMNS
 from data.supabase_client import get_supabase_client
@@ -52,54 +53,48 @@ def load_appointments_by_date(selected_date: date_type) -> pd.DataFrame:
         else:
             parsed = pd.to_datetime(selected_date, errors="coerce")
             if pd.isna(parsed):
-                st.write(f"🐛 DEBUG selected_date: {selected_date}")
-                st.write("🐛 DEBUG formatted_date: <invalid>")
-                st.write("🐛 DEBUG fetched data: []")
                 return pd.DataFrame()
             selected_day = parsed.date()
 
         formatted_date = selected_day.strftime("%Y-%m-%d")
         day_start = f"{formatted_date}T00:00:00"
         next_day_start = f"{(selected_day + timedelta(days=1)).strftime('%Y-%m-%d')}T00:00:00"
-
-        st.write(f"🐛 DEBUG selected_date: {selected_date}")
-        st.write(f"🐛 DEBUG formatted_date: {formatted_date}")
+        date_type_setting = APPOINTMENT_DATE_COLUMN_TYPE if APPOINTMENT_DATE_COLUMN_TYPE in {"DATE", "TIMESTAMP"} else "DATE"
 
         # 1) DATE column query (strict equality)
         rows_eq: list[dict] = []
-        try:
-            eq_resp = (
-                client
-                .table("appointments")
-                .select("*")
-                .eq("appointment_date", formatted_date)
-                .execute()
-            )
-            eq_data = getattr(eq_resp, "data", None) or []
-            if isinstance(eq_data, list):
-                rows_eq = eq_data
-            st.write(f"🐛 DEBUG eq_query_count: {len(rows_eq)}")
-        except Exception as eq_err:
-            st.write(f"⚠️ DEBUG eq_query_error: {str(eq_err)[:200]}")
+        if date_type_setting == "DATE":
+            try:
+                eq_resp = (
+                    client
+                    .table("appointments")
+                    .select("*")
+                    .eq("appointment_date", formatted_date)
+                    .execute()
+                )
+                eq_data = getattr(eq_resp, "data", None) or []
+                if isinstance(eq_data, list):
+                    rows_eq = eq_data
+            except Exception:
+                rows_eq = []
 
         # 2) TIMESTAMP column query (day range)
         rows_range: list[dict] = []
-        try:
-            ts_resp = (
-                client
-                .table("appointments")
-                .select("*")
-                .gte("appointment_date", day_start)
-                .lt("appointment_date", next_day_start)
-                .execute()
-            )
-            ts_data = getattr(ts_resp, "data", None) or []
-            if isinstance(ts_data, list):
-                rows_range = ts_data
-            st.write(f"🐛 DEBUG range_query_count: {len(rows_range)}")
-        except Exception as ts_err:
-            st.write(f"⚠️ DEBUG range_query_error: {str(ts_err)[:200]}")
-            rows_range = []
+        if date_type_setting == "TIMESTAMP" or len(rows_eq) == 0:
+            try:
+                ts_resp = (
+                    client
+                    .table("appointments")
+                    .select("*")
+                    .gte("appointment_date", day_start)
+                    .lt("appointment_date", next_day_start)
+                    .execute()
+                )
+                ts_data = getattr(ts_resp, "data", None) or []
+                if isinstance(ts_data, list):
+                    rows_range = ts_data
+            except Exception:
+                rows_range = []
 
         # Merge both filtered result sets without duplicates.
         rows: list[dict] = []
@@ -117,15 +112,12 @@ def load_appointments_by_date(selected_date: date_type) -> pd.DataFrame:
                 rows.append(item)
 
         if len(rows) == 0:
-            st.write("🐛 DEBUG fetched data: []")
             return pd.DataFrame()
 
         df = pd.DataFrame(rows)
 
         # Safety guard: never return non-matching dates even if backend query is permissive.
         if "appointment_date" not in df.columns:
-            st.write("⚠️ DEBUG: appointment_date column missing in fetched data")
-            st.write("🐛 DEBUG fetched data: []")
             return pd.DataFrame()
 
         raw_dates = df["appointment_date"].astype(str).str.strip()
@@ -140,15 +132,10 @@ def load_appointments_by_date(selected_date: date_type) -> pd.DataFrame:
         normalized_dayfirst = pd.to_datetime(parse_input, errors="coerce", dayfirst=True).dt.strftime("%Y-%m-%d")
         strict_mask = direct_match | normalized_default.eq(formatted_date) | normalized_dayfirst.eq(formatted_date)
         strict_df = df[strict_mask.fillna(False)].copy().reset_index(drop=True)
-
-        st.write(f"🐛 DEBUG raw_appointment_dates_sample: {raw_dates.head(10).tolist()}")
-        st.write(f"🐛 DEBUG fetched data: {strict_df.to_dict(orient='records')}")
         return strict_df
 
     except Exception as e:
         st.error(f"Error loading appointments by date from Supabase: {e}")
-        st.write(f"🐛 DEBUG selected_date: {selected_date}")
-        st.write("🐛 DEBUG fetched data: []")
         return pd.DataFrame()
 
 
@@ -267,6 +254,5 @@ def clear_schedule_cache() -> None:
     """Clear all schedule-related caches when date changes or data is updated."""
     try:
         _load_from_supabase_cached.clear()
-        st.write("🧹 **DEBUG:** Cache cleared successfully")
-    except Exception as e:
-        st.write(f"⚠️ **DEBUG:** Error clearing cache: {str(e)[:100]}")
+    except Exception:
+        pass

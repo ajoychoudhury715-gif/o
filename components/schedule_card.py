@@ -3,9 +3,12 @@
 
 from __future__ import annotations
 from typing import Callable
+from datetime import date as date_type
+from datetime import datetime as datetime_type
 import streamlit as st
 
 from config.constants import STATUS_OPTIONS
+from config.settings import APPOINTMENT_DATE_COLUMN_TYPE
 from components.theme import status_badge_html, assign_pill_html
 from services.utils import coerce_to_time_obj, time_to_12h
 
@@ -15,6 +18,35 @@ def _fmt_time(val) -> str:
     if t is None:
         return str(val or "")
     return time_to_12h(t)
+
+
+def _normalize_selected_date(selected_date) -> date_type | None:
+    """Normalize date_input value to a date object."""
+    if isinstance(selected_date, date_type):
+        return selected_date
+    if isinstance(selected_date, datetime_type):
+        return selected_date.date()
+    if selected_date is None:
+        return None
+    try:
+        return datetime_type.fromisoformat(str(selected_date)).date()
+    except Exception:
+        return None
+
+
+def _build_appointment_date_value(selected_date) -> tuple[str, str]:
+    """Return (date_yyyy_mm_dd, appointment_date_value) based on configured date type."""
+    normalized_date = _normalize_selected_date(selected_date)
+    if normalized_date is None:
+        return "", ""
+
+    formatted_date = normalized_date.strftime("%Y-%m-%d")
+    date_type_setting = APPOINTMENT_DATE_COLUMN_TYPE if APPOINTMENT_DATE_COLUMN_TYPE in {"DATE", "TIMESTAMP"} else "DATE"
+    if date_type_setting == "TIMESTAMP":
+        appointment_date_value = datetime_type.combine(normalized_date, datetime_type.min.time()).isoformat()
+    else:
+        appointment_date_value = formatted_date
+    return formatted_date, appointment_date_value
 
 
 def render_schedule_card(
@@ -146,11 +178,14 @@ def render_add_appointment_form(
                     st.error("Patient Name and Doctor are required.")
                 else:
                     import uuid
-                    # Format the date for the DATE column
-                    date_str = selected_date.isoformat() if selected_date else ""
-                    
+                    date_str, appointment_date_value = _build_appointment_date_value(selected_date)
+                    if not date_str or not appointment_date_value:
+                        st.error("Appointment date is required. Please select a valid date before adding.")
+                        return
+
                     row = {
                         "DATE": date_str,
+                        "appointment_date": appointment_date_value,
                         "Patient ID": str(uuid.uuid4())[:8],
                         "Patient Name": patient_name,
                         "In Time": in_time.strftime("%H:%M") if in_time else "",
