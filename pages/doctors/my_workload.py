@@ -352,8 +352,6 @@ def render() -> None:
     st.markdown("---")
 
     # ── Appointments (Card View) ─────────────────────────────────────────────
-    st.markdown("### 📋 Today's Appointments")
-
     if my_appointments:
         # Format times to 12-hour format
         formatted_appts = []
