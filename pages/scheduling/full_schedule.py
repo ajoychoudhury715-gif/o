@@ -67,41 +67,41 @@ def render() -> None:
     if "selected_schedule_date" not in st.session_state:
         st.session_state.selected_schedule_date = date.today()
 
-    # ── Compact header row: title (left) + date picker (right) ───────────────
-    title_col, date_col = st.columns([6, 2], gap="small")
+    # ── Header: title (left) + inline date picker (right) ─────────────────────
+    title_col, date_col = st.columns([6, 3], gap="small")
     with title_col:
         st.markdown("## 📅 Full Schedule")
     with date_col:
         selected_date = st.date_input(
-            "Date",
+            "Schedule date",
             value=st.session_state.selected_schedule_date,
             key="sched_date_picker",
             label_visibility="collapsed",
+            format="YYYY-MM-DD",
         )
         st.markdown(
             f"""
             <style>
-            .selected-date-card {{
-                margin-top: 0.35rem;
-                padding: 0.45rem 0.65rem;
-                border-radius: 10px;
+            div[data-testid="stDateInput"] > div {{
                 border: 1px solid #e2e8f0;
+                border-radius: 10px;
                 background: #f8fafc;
+            }}
+            div[data-testid="stDateInput"] input {{
+                color: transparent !important;
+                text-shadow: none !important;
+            }}
+            .header-date-text {{
+                margin-top: -2.05rem;
+                margin-left: 0.75rem;
+                pointer-events: none;
                 color: #0f172a;
-                font-size: 0.90rem;
-                display: inline-flex;
-                align-items: center;
-                gap: 0.45rem;
+                font-size: 0.92rem;
+                font-weight: 500;
                 white-space: nowrap;
             }}
-            .selected-date-card .icon {{
-                opacity: 0.8;
-            }}
             </style>
-            <div class="selected-date-card">
-                <span class="icon">📅</span>
-                <span>{selected_date.strftime("%A, %B %d, %Y")}</span>
-            </div>
+            <div class="header-date-text">{selected_date.strftime('%A, %B %d, %Y')}</div>
             """,
             unsafe_allow_html=True,
         )
