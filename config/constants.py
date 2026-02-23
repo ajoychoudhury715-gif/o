@@ -104,6 +104,9 @@ ROLE_NAV = {
         "Scheduling":     ["Full Schedule", "Ongoing", "Upcoming"],
         "Assistants":     ["My Workload", "Attendance"],
     },
+    "doctor": {
+        "Doctors":        ["My Workload", "Overview"],
+    },
 }
 
 NAV_ICONS = {
