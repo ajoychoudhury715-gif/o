@@ -65,10 +65,9 @@ def _strict_date_mask(date_series: pd.Series, selected_date) -> tuple[pd.Series,
 def render() -> None:
     # ── Initialize selected date in session state (BEFORE loading data!) ──────
     from datetime import date
+    # CRITICAL: Remove widget's cached date to force it to always show today
+    st.session_state.pop("sched_date_picker", None)
     st.session_state.selected_schedule_date = date.today()
-    # Clear the date_input widget's cached value to force it to use today
-    if "sched_date_picker" in st.session_state:
-        st.session_state.sched_date_picker = date.today()
 
     # ── Header: title (left) + inline date picker (right) ─────────────────────
     title_col, date_col = st.columns([6, 3], gap="small")
