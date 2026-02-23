@@ -57,6 +57,9 @@ def render() -> None:
     # ── Initialize selected date in session state ───────────────────────────────
     from datetime import date
     st.session_state.schedule_by_op_date = date.today()
+    # Clear the date_input widget's cached value to force it to use today
+    if "schedule_by_op_date_picker" in st.session_state:
+        st.session_state.schedule_by_op_date_picker = date.today()
 
     # ── Date Picker ────────────────────────────────────────────────────────────
     st.markdown("### 📆 Select Date")

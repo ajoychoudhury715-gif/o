@@ -66,6 +66,9 @@ def render() -> None:
     # ── Initialize selected date in session state (BEFORE loading data!) ──────
     from datetime import date
     st.session_state.selected_schedule_date = date.today()
+    # Clear the date_input widget's cached value to force it to use today
+    if "sched_date_picker" in st.session_state:
+        st.session_state.sched_date_picker = date.today()
 
     # ── Header: title (left) + inline date picker (right) ─────────────────────
     title_col, date_col = st.columns([6, 3], gap="small")
