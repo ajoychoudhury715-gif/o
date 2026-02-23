@@ -4,7 +4,7 @@
 from __future__ import annotations
 import streamlit as st
 
-from data.auth_repo import create_user, get_all_users, reset_password
+from data.auth_repo import create_user, get_all_users, reset_password, update_username
 from data.supabase_client import get_supabase_client
 from config.settings import get_supabase_config
 from security.rbac import (
@@ -168,12 +168,13 @@ def _render_view_users() -> None:
     st.markdown("### Registered Users")
 
     # Create columns for display
-    cols = st.columns([2, 2, 2, 1, 1])
+    cols = st.columns([2, 2, 2, 1, 1, 1])
     cols[0].markdown("**Username**")
     cols[1].markdown("**Role**")
     cols[2].markdown("**Status**")
-    cols[3].markdown("**Reset PW**")
-    cols[4].markdown("**Deactivate**")
+    cols[3].markdown("**Edit**")
+    cols[4].markdown("**Reset PW**")
+    cols[5].markdown("**Deactivate**")
     st.divider()
 
     for user in users:
@@ -184,7 +185,7 @@ def _render_view_users() -> None:
 
         status_badge = "🟢 Active" if is_active else "🔴 Inactive"
 
-        cols = st.columns([2, 2, 2, 1, 1])
+        cols = st.columns([2, 2, 2, 1, 1, 1])
 
         cols[0].markdown(f"`{username}`")
         if role == "frontdesk":
@@ -197,13 +198,18 @@ def _render_view_users() -> None:
             cols[1].markdown(f"👤 {role}")
         cols[2].markdown(status_badge)
 
-        # Reset password button
+        # Edit username button
         with cols[3]:
+            if st.button("✏️", key=f"edit_{user_id}", help="Edit username", width='stretch'):
+                st.session_state[f"show_edit_{user_id}"] = True
+
+        # Reset password button
+        with cols[4]:
             if st.button("🔑", key=f"reset_{user_id}", help="Reset password", width='stretch'):
                 st.session_state[f"show_reset_{user_id}"] = True
 
         # Deactivate button
-        with cols[4]:
+        with cols[5]:
             action = "Activate" if not is_active else "Deactivate"
             if st.button("⚠️" if is_active else "✓", key=f"toggle_{user_id}", help=action, width='stretch'):
                 if _toggle_user_status(user_id, username, is_active):
@@ -253,6 +259,45 @@ def _render_view_users() -> None:
             with col2:
                 if st.button("Cancel", key=f"cancel_reset_{user_id}", width='stretch'):
                     st.session_state[f"show_reset_{user_id}"] = False
+                    st.rerun()
+
+    # Handle username edit dialogs
+    for user in users:
+        user_id = user.get("id", "")
+        username = user.get("username", "")
+
+        if st.session_state.get(f"show_edit_{user_id}"):
+            st.markdown(f"### Edit Username for `{username}`")
+
+            new_username = st.text_input(
+                "New Username",
+                value=username,
+                key=f"new_username_{user_id}",
+                placeholder="Enter new username",
+                help="Username can contain letters, numbers, underscores, and periods",
+            )
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+                if st.button("✅ Update", key=f"do_edit_{user_id}", type="primary", width='stretch'):
+                    if not new_username or not new_username.strip():
+                        st.error("❌ Username cannot be empty")
+                    elif new_username == username:
+                        st.error("❌ New username is the same as current username")
+                    elif not all(c.isalnum() or c in ('_', '.') for c in new_username):
+                        st.error("❌ Username can only contain letters, numbers, underscores, and periods")
+                    else:
+                        if update_username(username, new_username):
+                            st.success(f"✅ Username updated from '{username}' to '{new_username}'!")
+                            st.session_state[f"show_edit_{user_id}"] = False
+                            st.rerun()
+                        else:
+                            st.error("❌ Failed to update username (may already exist)")
+
+            with col2:
+                if st.button("Cancel", key=f"cancel_edit_{user_id}", width='stretch'):
+                    st.session_state[f"show_edit_{user_id}"] = False
                     st.rerun()
 
     if has_access("action::admin::permissions"):

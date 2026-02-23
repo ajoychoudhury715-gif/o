@@ -301,6 +301,34 @@ def reset_password(username: str, new_password: str) -> bool:
         return False
 
 
+def update_username(old_username: str, new_username: str) -> bool:
+    """Update a user's username."""
+    try:
+        url, key, *_ = get_supabase_config()
+        if not url or not key:
+            return False
+
+        client = get_supabase_client(url, key)
+        if not client:
+            return False
+
+        # Check if new username already exists
+        existing = client.table("users").select("id").eq("username", new_username).limit(1).execute()
+        if existing.data:
+            print(f"[AUTH ERROR] Username '{new_username}' already exists")
+            return False
+
+        # Update username
+        result = client.table("users").update({
+            "username": new_username,
+        }).eq("username", old_username).execute()
+
+        return bool(result.data)
+    except Exception as e:
+        print(f"[AUTH ERROR] Failed to update username: {e}")
+        return False
+
+
 def ensure_admin_exists() -> None:
     """Ensure a default admin account exists. Called on first run."""
     try:
