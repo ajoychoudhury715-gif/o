@@ -65,24 +65,60 @@ def render() -> None:
 
     st.markdown("---")
 
-    # ── Workload table ─────────────────────────────────────────────────────────
-    st.markdown("#### 📋 Assistant Workload (Clinic Hours: 9 AM - 7 PM)")
+    # ── Workload cards ─────────────────────────────────────────────────────────
+    st.markdown("### 📋 Assistant Workload (Clinic Hours: 9 AM - 7 PM)")
     display_df = workload_df[workload_df["Appointments"] > 0].sort_values("Hours Busy", ascending=False)
 
-    # Display key columns with hours information
-    display_cols = ["Assistant", "Appointments", "Hours Busy", "Hours Available", "Overtime (After 7 PM)"]
-    st.dataframe(
-        display_df[display_cols],
-        width='stretch',
-        hide_index=True,
-        column_config={
-            "Assistant": st.column_config.Column(width="medium"),
-            "Appointments": st.column_config.NumberColumn(width="small"),
-            "Hours Busy": st.column_config.NumberColumn(format="%.2f hrs", width="small"),
-            "Hours Available": st.column_config.NumberColumn(format="%.2f hrs", width="small"),
-            "Overtime (After 7 PM)": st.column_config.NumberColumn(format="%.2f hrs", width="small"),
-        }
-    )
+    if display_df.empty:
+        st.info("No workload data available.")
+    else:
+        cols_per_row = 3
+        for row_start in range(0, len(display_df), cols_per_row):
+            cols = st.columns(cols_per_row)
+            for col_idx, (_, row) in enumerate(display_df.iloc[row_start:row_start + cols_per_row].iterrows()):
+                with cols[col_idx]:
+                    asst_name = str(row.get("Assistant", ""))
+                    appointments = int(row.get("Appointments", 0))
+                    hours_busy = float(row.get("Hours Busy", 0))
+                    hours_available = float(row.get("Hours Available", 0))
+                    overtime = float(row.get("Overtime (After 7 PM)", 0))
+
+                    # Color coding based on workload
+                    if hours_busy > 10:  # Overworked
+                        border_color = "rgba(239, 68, 68, 0.3)"
+                        bg_color = "rgba(239, 68, 68, 0.05)"
+                        busy_color = "#ef4444"
+                    elif hours_busy > 8:  # Heavy
+                        border_color = "rgba(249, 115, 22, 0.3)"
+                        bg_color = "rgba(249, 115, 22, 0.05)"
+                        busy_color = "#f97316"
+                    elif hours_busy > 5:  # Moderate
+                        border_color = "rgba(59, 130, 246, 0.3)"
+                        bg_color = "rgba(59, 130, 246, 0.05)"
+                        busy_color = "#3b82f6"
+                    else:  # Light
+                        border_color = "rgba(34, 197, 94, 0.3)"
+                        bg_color = "rgba(34, 197, 94, 0.05)"
+                        busy_color = "#22c55e"
+
+                    html_card = (
+                        f'<div style="background:{bg_color};border:1.5px solid {border_color};border-radius:14px;padding:16px;margin-bottom:12px;backdrop-filter:blur(10px);transition:all 0.3s ease;box-shadow:0 2px 8px rgba(0,0,0,0.05);">'
+                        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;">'
+                        '<div style="min-width:0;flex:1;">'
+                        f'<div style="font-weight:700;color:#1e293b;font-size:16px;word-break:break-word;">👥 {asst_name}</div>'
+                        '</div>'
+                        f'<span style="flex-shrink:0;color:{busy_color};font-size:11px;font-weight:700;padding:4px 10px;background:rgba({busy_color.lstrip("#").rstrip()}20);border-radius:6px;white-space:nowrap;">⏱ {hours_busy:.1f}h</span>'
+                        '</div>'
+                        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 0;border-top:1px solid rgba(0,0,0,0.05);border-bottom:1px solid rgba(0,0,0,0.05);">'
+                        f'<div style="text-align:center;"><div style="font-size:12px;color:#94a3b8;">📅 Appointments</div><div style="font-size:18px;font-weight:700;color:#1e293b;margin-top:4px;">{appointments}</div></div>'
+                        f'<div style="text-align:center;"><div style="font-size:12px;color:#94a3b8;">✅ Available</div><div style="font-size:18px;font-weight:700;color:#22c55e;margin-top:4px;">{hours_available:.1f}h</div></div>'
+                        '</div>'
+                        f'<div style="display:flex;gap:8px;margin-top:10px;font-size:12px;color:#94a3b8;">'
+                        f'<span>⏰ Overtime: <span style="font-weight:600;color:{busy_color};">{overtime:.1f}h</span></span>'
+                        '</div>'
+                        '</div>'
+                    )
+                    st.markdown(html_card, unsafe_allow_html=True)
 
     # ── Unassigned slots ───────────────────────────────────────────────────────
     st.markdown("---")
