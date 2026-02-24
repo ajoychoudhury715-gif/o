@@ -7,6 +7,8 @@ import pandas as pd
 
 from data.profile_repo import load_doctors
 from services.schedule_ops import ensure_schedule_columns, add_computed_columns
+from services.profiles_cache import get_profiles_cache
+from services.utils import now_ist
 
 
 def render() -> None:
@@ -28,6 +30,13 @@ def render() -> None:
     cache_bust = st.session_state.get("profiles_cache_bust", 0)
     df_doctors = load_doctors(cache_bust)
 
+    # Get week off data
+    cache = get_profiles_cache(cache_bust)
+    doctor_weekly_off_map = cache.get("doctor_weekly_off_map", {i: [] for i in range(7)})
+    today_weekday = now_ist().weekday()
+
+    WEEKDAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+
     if st.button("🔄 Refresh", key="dr_overview_refresh"):
         st.session_state.df = None
         st.cache_data.clear()
@@ -46,6 +55,10 @@ def render() -> None:
         dept = str(dr_row.get("department", "") or "")
         spec = str(dr_row.get("specialisation", "") or "")
         active = bool(dr_row.get("is_active", True))
+
+        # Check if doctor is off today
+        off_days = {str(d).strip().upper() for d in doctor_weekly_off_map.get(today_weekday, [])}
+        is_off_today = name.upper() in off_days
 
         # Find appointments for this doctor
         dr_upper = name.upper()
@@ -66,6 +79,7 @@ def render() -> None:
             "ongoing": ongoing,
             "done": done,
             "pending": pending,
+            "is_off_today": is_off_today,
         })
 
     # ── Summary metrics ────────────────────────────────────────────────────────
@@ -87,6 +101,7 @@ def render() -> None:
         for col_idx, s in enumerate(stats[row_start:row_start + cols_per_row]):
             with cols[col_idx]:
                 color = "#22c55e" if s["active"] else "#64748b"
+                off_badge = '<div style="color:#ef4444;font-size:11px;font-weight:600;margin-top:6px;">📴 Off Today</div>' if s["is_off_today"] else ''
                 st.markdown(
                     f"""<div class="profile-card" style="margin-bottom:8px;">
                       <div style="display:flex;justify-content:space-between;gap:8px;">
@@ -100,6 +115,7 @@ def render() -> None:
                           {'● Active' if s['active'] else '○ Inactive'}
                         </span>
                       </div>
+                      {off_badge}
                       <div style="display:flex;gap:12px;margin-top:8px;">
                         <span style="font-size:12px;color:#94a3b8;">📅 {s['total']} appts</span>
                         <span style="font-size:12px;color:#ef4444;">🔴 {s['ongoing']} ongoing</span>
