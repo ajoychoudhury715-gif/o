@@ -83,7 +83,7 @@ def render() -> None:
         })
 
     # ── Summary metrics ────────────────────────────────────────────────────────
-    active_doctors = sum(1 for s in stats if s["active"])
+    active_doctors = sum(1 for s in stats if s["active"] and not s["is_off_today"])
     total_appts = sum(s["total"] for s in stats)
     total_ongoing = sum(s["ongoing"] for s in stats)
 
