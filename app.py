@@ -222,6 +222,8 @@ def _route() -> None:
             from pages.doctors.summary import render
         elif current_view == "Per-Doctor Schedule":
             from pages.doctors.per_doctor_schedule import render
+        elif current_view == "Week Off":
+            from pages.doctors.week_off import render
         else:
             from pages.doctors.manage_profiles import render
 
