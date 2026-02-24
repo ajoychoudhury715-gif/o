@@ -195,6 +195,14 @@ def render() -> None:
         letter-spacing: 0.5px;
     }
 
+    .user-name-subtitle {
+        text-align: center;
+        color: #64748b;
+        font-size: 16px;
+        font-weight: 600;
+        margin: -16px 0 24px 0;
+    }
+
     @media (max-width: 768px) {
         .section-heading {
             padding: 16px 20px;
@@ -207,6 +215,11 @@ def render() -> None:
 
         .section-heading-summary h2 {
             font-size: 18px;
+        }
+
+        .user-name-subtitle {
+            font-size: 15px;
+            margin: -14px 0 20px 0;
         }
     }
 
@@ -223,6 +236,11 @@ def render() -> None:
         .section-heading-summary h2 {
             font-size: 16px;
         }
+
+        .user-name-subtitle {
+            font-size: 14px;
+            margin: -12px 0 16px 0;
+        }
     }
     </style>
     """, unsafe_allow_html=True)
@@ -232,7 +250,7 @@ def render() -> None:
     # Check if user is logged in
     current_user = st.session_state.get("current_user")
     if current_user:
-        st.markdown(f"<div style='text-align: center; color: #64748b; font-size: 16px; font-weight: 600; margin: -16px 0 24px 0;'>{current_user}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='user-name-subtitle'>{current_user}</div>", unsafe_allow_html=True)
 
     if not current_user:
         st.warning("Please log in to view your workload.")
