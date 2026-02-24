@@ -203,12 +203,22 @@ def _render_duty_widget(df) -> None:
         st.caption("No assistants found.")
         return
 
-    default_idx = 0
-    if st.session_state.get("duty_current_assistant") in assistants:
-        default_idx = assistants.index(st.session_state["duty_current_assistant"])
+    # If logged in as an assistant, show only their duties
+    user_role = st.session_state.get("user_role", "")
+    current_user = st.session_state.get("current_user", "")
 
-    assistant = st.selectbox("Assistant", assistants, index=default_idx, key="duty_assistant_select")
-    st.session_state.duty_current_assistant = assistant
+    if user_role == "assistant" and current_user:
+        # Assistant can only see their own duties
+        assistant = current_user
+        st.caption(f"👤 {current_user}")
+    else:
+        # Admin/frontdesk can select any assistant
+        default_idx = 0
+        if st.session_state.get("duty_current_assistant") in assistants:
+            default_idx = assistants.index(st.session_state["duty_current_assistant"])
+
+        assistant = st.selectbox("Assistant", assistants, index=default_idx, key="duty_assistant_select")
+        st.session_state.duty_current_assistant = assistant
 
     from data.duty_repo import get_active_duty_run, get_active_duty_assignments, start_duty_run, mark_duty_done, load_duty_runs
     from services.duty_service import compute_pending_duties, format_remaining_time
