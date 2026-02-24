@@ -390,10 +390,16 @@ def render() -> None:
         formatted_endo = []
         for appt in endo_appointments:
             appt_copy = appt.copy()
+            # Handle both "In Time" and "in_time" column names
             if "In Time" in appt_copy:
                 appt_copy["In Time"] = time_to_12h(coerce_to_time_obj(appt_copy["In Time"]))
+            elif "in_time" in appt_copy:
+                appt_copy["in_time"] = time_to_12h(coerce_to_time_obj(appt_copy["in_time"]))
+            # Handle both "Out Time" and "out_time" column names
             if "Out Time" in appt_copy:
                 appt_copy["Out Time"] = time_to_12h(coerce_to_time_obj(appt_copy["Out Time"]))
+            elif "out_time" in appt_copy:
+                appt_copy["out_time"] = time_to_12h(coerce_to_time_obj(appt_copy["out_time"]))
             formatted_endo.append(appt_copy)
 
         _render_appointment_cards(formatted_endo, "#667eea")
@@ -410,10 +416,16 @@ def render() -> None:
         formatted_prostho = []
         for appt in prostho_appointments:
             appt_copy = appt.copy()
+            # Handle both "In Time" and "in_time" column names
             if "In Time" in appt_copy:
                 appt_copy["In Time"] = time_to_12h(coerce_to_time_obj(appt_copy["In Time"]))
+            elif "in_time" in appt_copy:
+                appt_copy["in_time"] = time_to_12h(coerce_to_time_obj(appt_copy["in_time"]))
+            # Handle both "Out Time" and "out_time" column names
             if "Out Time" in appt_copy:
                 appt_copy["Out Time"] = time_to_12h(coerce_to_time_obj(appt_copy["Out Time"]))
+            elif "out_time" in appt_copy:
+                appt_copy["out_time"] = time_to_12h(coerce_to_time_obj(appt_copy["out_time"]))
             formatted_prostho.append(appt_copy)
 
         _render_appointment_cards(formatted_prostho, "#f5576c")
