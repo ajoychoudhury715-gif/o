@@ -231,6 +231,9 @@ def render() -> None:
 
     # Check if user is logged in
     current_user = st.session_state.get("current_user")
+    if current_user:
+        st.markdown(f"<div style='text-align: center; color: #64748b; font-size: 16px; font-weight: 600; margin: -16px 0 24px 0;'>{current_user}</div>", unsafe_allow_html=True)
+
     if not current_user:
         st.warning("Please log in to view your workload.")
         return
