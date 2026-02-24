@@ -94,13 +94,31 @@ def _render_appointment_cards(appointments: list, specialty_color: str) -> None:
         procedure = str(appt.get("Procedure", "")).strip()
         status = str(appt.get("STATUS", "PENDING")).strip().upper()
 
+        # Calculate duration in minutes if both times are available
+        duration_text = "—"
+        if in_time != "—" and out_time != "—":
+            try:
+                from datetime import datetime
+                in_dt = datetime.strptime(in_time, "%I:%M %p")
+                out_dt = datetime.strptime(out_time, "%I:%M %p")
+                duration_mins = int((out_dt - in_dt).total_seconds() / 60)
+                if duration_mins > 0:
+                    if duration_mins >= 60:
+                        hours = duration_mins // 60
+                        mins = duration_mins % 60
+                        duration_text = f"{hours}h {mins}m" if mins > 0 else f"{hours}h"
+                    else:
+                        duration_text = f"{duration_mins}m"
+            except Exception:
+                duration_text = "—"
+
         status_class = "appt-status-processing" if status != "DONE" else "appt-status-done"
-        time_range = f"{in_time} – {out_time}" if in_time != "—" and out_time != "—" else "No time"
 
         st.markdown(f"""
         <div class="appointment-card">
             <div class="appt-patient">👤 {patient}</div>
-            <div class="appt-time">⏱ {time_range}</div>
+            <div class="appt-time">⏱ {in_time}</div>
+            <div class="appt-time">⏳ Duration: {duration_text}</div>
             {f'<div class="appt-time">📋 {procedure}</div>' if procedure else ''}
             <div class="appt-details">
                 <div class="appt-detail-item">
