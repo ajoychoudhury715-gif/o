@@ -14,6 +14,22 @@ from services.profiles_cache import (
 from services.utils import coerce_to_time_obj, time_to_12h
 
 
+def _parse_12h_time(time_str: str):
+    """Parse 12-hour format time string, handling various formats."""
+    from datetime import datetime
+    if not time_str or time_str == "—":
+        return None
+
+    time_str = str(time_str).strip().upper()
+    # Try multiple common formats
+    for fmt in ["%I:%M %p", "%I:%M%p", "%I:%M %P", "%I:%M%P", "%H:%M"]:
+        try:
+            return datetime.strptime(time_str, fmt)
+        except ValueError:
+            pass
+    return None
+
+
 def _render_appointment_cards(appointments: list, specialty_color: str) -> None:
     """Render appointments as mobile-friendly cards."""
     # CSS for appointment cards
@@ -98,23 +114,23 @@ def _render_appointment_cards(appointments: list, specialty_color: str) -> None:
         duration_text = "—"
         if in_time != "—" and out_time != "—":
             try:
-                from datetime import datetime, timedelta
-                # Parse 12-hour format times (e.g., "2:30 PM")
-                in_dt = datetime.strptime(in_time, "%I:%M %p")
-                out_dt = datetime.strptime(out_time, "%I:%M %p")
+                from datetime import timedelta
+                in_dt = _parse_12h_time(in_time)
+                out_dt = _parse_12h_time(out_time)
 
-                # Handle case where out_time is on the next day (e.g., in_time: 11 PM, out_time: 1 AM)
-                if out_dt < in_dt:
-                    out_dt = out_dt + timedelta(days=1)
+                if in_dt and out_dt:
+                    # Handle case where out_time is on the next day (e.g., in_time: 11 PM, out_time: 1 AM)
+                    if out_dt < in_dt:
+                        out_dt = out_dt + timedelta(days=1)
 
-                duration_mins = int((out_dt - in_dt).total_seconds() / 60)
-                if duration_mins > 0:
-                    if duration_mins >= 60:
-                        hours = duration_mins // 60
-                        mins = duration_mins % 60
-                        duration_text = f"{hours}h {mins}m" if mins > 0 else f"{hours}h"
-                    else:
-                        duration_text = f"{duration_mins}m"
+                    duration_mins = int((out_dt - in_dt).total_seconds() / 60)
+                    if duration_mins > 0:
+                        if duration_mins >= 60:
+                            hours = duration_mins // 60
+                            mins = duration_mins % 60
+                            duration_text = f"{hours}h {mins}m" if mins > 0 else f"{hours}h"
+                        else:
+                            duration_text = f"{duration_mins}m"
             except Exception:
                 pass
 
