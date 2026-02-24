@@ -101,26 +101,28 @@ def render() -> None:
         for col_idx, s in enumerate(stats[row_start:row_start + cols_per_row]):
             with cols[col_idx]:
                 color = "#22c55e" if s["active"] else "#64748b"
-                off_badge = '<div style="color:#ef4444;font-size:11px;font-weight:600;margin-top:6px;">📴 Off Today</div>' if s["is_off_today"] else ''
-                st.markdown(
-                    f"""<div class="profile-card" style="margin-bottom:8px;">
-                      <div style="display:flex;justify-content:space-between;gap:8px;">
-                        <div style="min-width:0;flex:1;">
-                          <div style="font-weight:700;color:#1e293b;font-size:15px;word-break:break-word;">🩺 {s['name']}</div>
-                          <div style="font-size:12px;color:#94a3b8;">
-                            {s['spec']} {('· ' + s['dept']) if s['dept'] else ''}
-                          </div>
-                        </div>
-                        <span style="flex-shrink:0;color:{color};font-size:11px;font-weight:600;">
-                          {'● Active' if s['active'] else '○ Inactive'}
-                        </span>
-                      </div>
-                      {off_badge}
-                      <div style="display:flex;gap:12px;margin-top:8px;">
-                        <span style="font-size:12px;color:#94a3b8;">📅 {s['total']} appts</span>
-                        <span style="font-size:12px;color:#ef4444;">🔴 {s['ongoing']} ongoing</span>
-                        <span style="font-size:12px;color:#22c55e;">✅ {s['done']} done</span>
-                      </div>
-                    </div>""",
-                    unsafe_allow_html=True,
+                status_text = "● Active" if s["active"] else "○ Inactive"
+                dept_text = s["spec"] + (" · " + s["dept"] if s["dept"] else "")
+
+                off_badge_html = ""
+                if s["is_off_today"]:
+                    off_badge_html = '<div style="color:#ef4444;font-size:11px;font-weight:600;margin-top:6px;">📴 Off Today</div>'
+
+                html_card = (
+                    '<div class="profile-card" style="margin-bottom:8px;">'
+                    '<div style="display:flex;justify-content:space-between;gap:8px;">'
+                    '<div style="min-width:0;flex:1;">'
+                    f'<div style="font-weight:700;color:#1e293b;font-size:15px;word-break:break-word;">🩺 {s["name"]}</div>'
+                    f'<div style="font-size:12px;color:#94a3b8;">{dept_text}</div>'
+                    '</div>'
+                    f'<span style="flex-shrink:0;color:{color};font-size:11px;font-weight:600;">{status_text}</span>'
+                    '</div>'
+                    f'{off_badge_html}'
+                    '<div style="display:flex;gap:12px;margin-top:8px;">'
+                    f'<span style="font-size:12px;color:#94a3b8;">📅 {s["total"]} appts</span>'
+                    f'<span style="font-size:12px;color:#ef4444;">🔴 {s["ongoing"]} ongoing</span>'
+                    f'<span style="font-size:12px;color:#22c55e;">✅ {s["done"]} done</span>'
+                    '</div>'
+                    '</div>'
                 )
+                st.markdown(html_card, unsafe_allow_html=True)
