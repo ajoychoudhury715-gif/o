@@ -30,6 +30,18 @@ def _parse_12h_time(time_str: str):
     return None
 
 
+def _escape_html(text: str) -> str:
+    """Escape HTML special characters in text to prevent injection/rendering issues."""
+    if not text:
+        return ""
+    return (str(text)
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace('"', "&quot;")
+            .replace("'", "&#39;"))
+
+
 def _render_appointment_cards(appointments: list, specialty_color: str) -> None:
     """Render appointments as mobile-friendly cards."""
     # CSS for appointment cards
@@ -136,23 +148,32 @@ def _render_appointment_cards(appointments: list, specialty_color: str) -> None:
 
         status_class = "appt-status-processing" if status != "DONE" else "appt-status-done"
 
+        # Escape HTML in all values to prevent rendering issues
+        patient_esc = _escape_html(patient)
+        in_time_esc = _escape_html(in_time)
+        duration_esc = _escape_html(duration_text)
+        procedure_esc = _escape_html(procedure)
+        doctor_esc = _escape_html(doctor)
+        op_esc = _escape_html(op)
+        status_esc = _escape_html(status)
+
         st.markdown(f"""
         <div class="appointment-card">
-            <div class="appt-patient">👤 {patient}</div>
-            <div class="appt-time">⏱ {in_time}</div>
-            <div class="appt-time">⏳ Duration: {duration_text}</div>
-            {f'<div class="appt-time">📋 {procedure}</div>' if procedure else ''}
+            <div class="appt-patient">👤 {patient_esc}</div>
+            <div class="appt-time">⏱ {in_time_esc}</div>
+            <div class="appt-time">⏳ Duration: {duration_esc}</div>
+            {f'<div class="appt-time">📋 {procedure_esc}</div>' if procedure_esc and procedure_esc != '—' else ''}
             <div class="appt-details">
                 <div class="appt-detail-item">
                     <div class="appt-detail-label">Doctor</div>
-                    {doctor}
+                    {doctor_esc}
                 </div>
                 <div class="appt-detail-item">
                     <div class="appt-detail-label">OP Room</div>
-                    {op}
+                    {op_esc}
                 </div>
             </div>
-            <div class="appt-status appt-status-{status.lower()}">{status}</div>
+            <div class="appt-status appt-status-{status_esc.lower()}">{status_esc}</div>
         </div>
         """, unsafe_allow_html=True)
 
