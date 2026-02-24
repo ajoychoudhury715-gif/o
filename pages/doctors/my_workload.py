@@ -144,30 +144,33 @@ def _render_appointment_cards(appointments: list) -> None:
         assistants_esc = _escape_html(get_assistant_names(appt))
         status_esc = _escape_html(status)
 
-        # Build procedure line conditionally (outside f-string to avoid parsing issues)
+        # Build procedure line conditionally
         procedure_line = ""
         if procedure_esc and procedure_esc != "—":
             procedure_line = f'<div class="appt-time">📋 {procedure_esc}</div>'
 
-        st.markdown(f"""
-        <div class="appointment-card">
-            <div class="appt-patient">👤 {patient_esc}</div>
-            <div class="appt-time">⏱ {in_time_esc}</div>
-            <div class="appt-time">⏳ Duration: {duration_esc}</div>
-            {procedure_line}
-            <div class="appt-details">
-                <div class="appt-detail-item">
-                    <div class="appt-detail-label">OP Room</div>
-                    {op_esc}
-                </div>
-                <div class="appt-detail-item">
-                    <div class="appt-detail-label">Assistants</div>
-                    {assistants_esc}
-                </div>
-            </div>
-            <div class="appt-status appt-status-{status_esc.lower()}">{status_esc}</div>
-        </div>
-        """, unsafe_allow_html=True)
+        # Build HTML using simple string concatenation for reliability
+        html_card = (
+            '<div class="appointment-card">'
+            f'<div class="appt-patient">👤 {patient_esc}</div>'
+            f'<div class="appt-time">⏱ {in_time_esc}</div>'
+            f'<div class="appt-time">⏳ Duration: {duration_esc}</div>'
+            f'{procedure_line}'
+            '<div class="appt-details">'
+            '<div class="appt-detail-item">'
+            '<div class="appt-detail-label">OP Room</div>'
+            f'{op_esc}'
+            '</div>'
+            '<div class="appt-detail-item">'
+            '<div class="appt-detail-label">Assistants</div>'
+            f'{assistants_esc}'
+            '</div>'
+            '</div>'
+            f'<div class="appt-status appt-status-{status_esc.lower()}">{status_esc}</div>'
+            '</div>'
+        )
+
+        st.markdown(html_card, unsafe_allow_html=True)
 
 
 def _escape_html(text: str) -> str:
