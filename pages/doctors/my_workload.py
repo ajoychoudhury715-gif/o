@@ -82,8 +82,9 @@ def _render_appointment_cards(appointments: list) -> None:
     # Render each appointment as a card
     for i, appt in enumerate(appointments):
         patient = str(appt.get("Patient Name", "—")).strip()
-        in_time = str(appt.get("In Time", "—")).strip()
-        out_time = str(appt.get("Out Time", "—")).strip()
+        # Handle both "In Time" and "in_time" column names
+        in_time = str(appt.get("In Time") or appt.get("in_time") or "—").strip()
+        out_time = str(appt.get("Out Time") or appt.get("out_time") or "—").strip()
         op = str(appt.get("OP", "—")).strip()
         procedure = str(appt.get("Procedure", "")).strip()
         status = str(appt.get("STATUS", "PENDING")).strip().upper()
