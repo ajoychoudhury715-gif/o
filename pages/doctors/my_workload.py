@@ -105,6 +105,10 @@ def _render_appointment_cards(appointments: list) -> None:
         procedure = str(appt.get("Procedure", "")).strip()
         status = str(appt.get("STATUS", "PENDING")).strip().upper()
 
+        # Debug: Check Nausheen Khan
+        if "Nausheen" in patient:
+            st.info(f"✓ Found Nausheen Khan - In: {in_time}, Out: {out_time}, OP: {op}")
+
         # Calculate duration from in_time and out_time in 12-hour format
         duration_text = "—"
         if in_time != "—" and out_time != "—":
