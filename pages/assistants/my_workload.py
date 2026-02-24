@@ -157,12 +157,17 @@ def _render_appointment_cards(appointments: list, specialty_color: str) -> None:
         op_esc = _escape_html(op)
         status_esc = _escape_html(status)
 
+        # Build procedure line conditionally (outside f-string to avoid parsing issues)
+        procedure_line = ""
+        if procedure_esc and procedure_esc != "—":
+            procedure_line = f'<div class="appt-time">📋 {procedure_esc}</div>'
+
         st.markdown(f"""
         <div class="appointment-card">
             <div class="appt-patient">👤 {patient_esc}</div>
             <div class="appt-time">⏱ {in_time_esc}</div>
             <div class="appt-time">⏳ Duration: {duration_esc}</div>
-            {f'<div class="appt-time">📋 {procedure_esc}</div>' if procedure_esc and procedure_esc != '—' else ''}
+            {procedure_line}
             <div class="appt-details">
                 <div class="appt-detail-item">
                     <div class="appt-detail-label">Doctor</div>
