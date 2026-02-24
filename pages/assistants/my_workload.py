@@ -431,22 +431,25 @@ def render() -> None:
         for appt in endo_appointments:
             appt_copy = appt.copy()
             # Handle both "In Time" and "in_time" column names
-            in_time_val = None
             if "In Time" in appt_copy:
-                in_time_val = time_to_12h(coerce_to_time_obj(appt_copy["In Time"]))
-                appt_copy["In Time"] = in_time_val
+                val = str(appt_copy["In Time"]).strip()
+                # Only convert if not already in 12-hour format (check for AM/PM)
+                if val and "AM" not in val.upper() and "PM" not in val.upper():
+                    appt_copy["In Time"] = time_to_12h(coerce_to_time_obj(val))
             if "in_time" in appt_copy:
-                in_time_val = time_to_12h(coerce_to_time_obj(appt_copy["in_time"]))
-                appt_copy["in_time"] = in_time_val
+                val = str(appt_copy["in_time"]).strip()
+                if val and "AM" not in val.upper() and "PM" not in val.upper():
+                    appt_copy["in_time"] = time_to_12h(coerce_to_time_obj(val))
 
             # Handle both "Out Time" and "out_time" column names
-            out_time_val = None
             if "Out Time" in appt_copy:
-                out_time_val = time_to_12h(coerce_to_time_obj(appt_copy["Out Time"]))
-                appt_copy["Out Time"] = out_time_val
+                val = str(appt_copy["Out Time"]).strip()
+                if val and "AM" not in val.upper() and "PM" not in val.upper():
+                    appt_copy["Out Time"] = time_to_12h(coerce_to_time_obj(val))
             if "out_time" in appt_copy:
-                out_time_val = time_to_12h(coerce_to_time_obj(appt_copy["out_time"]))
-                appt_copy["out_time"] = out_time_val
+                val = str(appt_copy["out_time"]).strip()
+                if val and "AM" not in val.upper() and "PM" not in val.upper():
+                    appt_copy["out_time"] = time_to_12h(coerce_to_time_obj(val))
 
             formatted_endo.append(appt_copy)
 
@@ -465,22 +468,25 @@ def render() -> None:
         for appt in prostho_appointments:
             appt_copy = appt.copy()
             # Handle both "In Time" and "in_time" column names
-            in_time_val = None
             if "In Time" in appt_copy:
-                in_time_val = time_to_12h(coerce_to_time_obj(appt_copy["In Time"]))
-                appt_copy["In Time"] = in_time_val
+                val = str(appt_copy["In Time"]).strip()
+                # Only convert if not already in 12-hour format (check for AM/PM)
+                if val and "AM" not in val.upper() and "PM" not in val.upper():
+                    appt_copy["In Time"] = time_to_12h(coerce_to_time_obj(val))
             if "in_time" in appt_copy:
-                in_time_val = time_to_12h(coerce_to_time_obj(appt_copy["in_time"]))
-                appt_copy["in_time"] = in_time_val
+                val = str(appt_copy["in_time"]).strip()
+                if val and "AM" not in val.upper() and "PM" not in val.upper():
+                    appt_copy["in_time"] = time_to_12h(coerce_to_time_obj(val))
 
             # Handle both "Out Time" and "out_time" column names
-            out_time_val = None
             if "Out Time" in appt_copy:
-                out_time_val = time_to_12h(coerce_to_time_obj(appt_copy["Out Time"]))
-                appt_copy["Out Time"] = out_time_val
+                val = str(appt_copy["Out Time"]).strip()
+                if val and "AM" not in val.upper() and "PM" not in val.upper():
+                    appt_copy["Out Time"] = time_to_12h(coerce_to_time_obj(val))
             if "out_time" in appt_copy:
-                out_time_val = time_to_12h(coerce_to_time_obj(appt_copy["out_time"]))
-                appt_copy["out_time"] = out_time_val
+                val = str(appt_copy["out_time"]).strip()
+                if val and "AM" not in val.upper() and "PM" not in val.upper():
+                    appt_copy["out_time"] = time_to_12h(coerce_to_time_obj(val))
 
             formatted_prostho.append(appt_copy)
 
