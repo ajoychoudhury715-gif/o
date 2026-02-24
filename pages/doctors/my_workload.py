@@ -7,7 +7,7 @@ import pandas as pd
 
 from services.schedule_ops import ensure_schedule_columns, add_computed_columns
 from services.profiles_cache import get_profiles_cache, get_department_for_doctor
-from services.utils import coerce_to_time_obj, time_to_12h, norm_name
+from services.utils import coerce_to_time_obj, time_to_12h, norm_name, norm_name
 
 
 def _parse_12h_time(time_str: str):
@@ -299,11 +299,12 @@ def render() -> None:
 
     # ── Get my appointments (ALL APPOINTMENTS) ──────────────────────────────
     my_appointments = []
-    doctor_upper = str(current_user).strip().upper()
+    doctor_normalized = norm_name(current_user)
 
     for _, row in df.iterrows():
-        doctor = str(row.get("DR.", "")).strip().upper()
-        if doctor == doctor_upper:
+        doctor = str(row.get("DR.", "")).strip()
+        doctor_key = norm_name(doctor)
+        if doctor_key == doctor_normalized:
             my_appointments.append(row)
 
     if not my_appointments:
