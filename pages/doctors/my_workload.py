@@ -399,15 +399,23 @@ def render() -> None:
         for appt in my_appointments:
             appt_copy = appt.copy()
             # Handle both "In Time" and "in_time" column names
+            in_time_val = None
             if "In Time" in appt_copy:
-                appt_copy["In Time"] = time_to_12h(coerce_to_time_obj(appt_copy["In Time"]))
-            elif "in_time" in appt_copy:
-                appt_copy["in_time"] = time_to_12h(coerce_to_time_obj(appt_copy["in_time"]))
+                in_time_val = time_to_12h(coerce_to_time_obj(appt_copy["In Time"]))
+                appt_copy["In Time"] = in_time_val
+            if "in_time" in appt_copy:
+                in_time_val = time_to_12h(coerce_to_time_obj(appt_copy["in_time"]))
+                appt_copy["in_time"] = in_time_val
+
             # Handle both "Out Time" and "out_time" column names
+            out_time_val = None
             if "Out Time" in appt_copy:
-                appt_copy["Out Time"] = time_to_12h(coerce_to_time_obj(appt_copy["Out Time"]))
-            elif "out_time" in appt_copy:
-                appt_copy["out_time"] = time_to_12h(coerce_to_time_obj(appt_copy["out_time"]))
+                out_time_val = time_to_12h(coerce_to_time_obj(appt_copy["Out Time"]))
+                appt_copy["Out Time"] = out_time_val
+            if "out_time" in appt_copy:
+                out_time_val = time_to_12h(coerce_to_time_obj(appt_copy["out_time"]))
+                appt_copy["out_time"] = out_time_val
+
             formatted_appts.append(appt_copy)
 
         _render_appointment_cards(formatted_appts)
