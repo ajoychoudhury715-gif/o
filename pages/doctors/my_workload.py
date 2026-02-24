@@ -195,12 +195,22 @@ def render() -> None:
         letter-spacing: 0.5px;
     }
 
+    .user-name-container {
+        background: white;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin: -16px 0 24px 0;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
     .user-name-subtitle {
         text-align: center;
-        color: #64748b;
-        font-size: 16px;
-        font-weight: 600;
-        margin: -16px 0 24px 0;
+        color: #1e293b;
+        font-size: 18px;
+        font-weight: 700;
+        margin: 0;
+        letter-spacing: 0.3px;
     }
 
     @media (max-width: 768px) {
@@ -217,9 +227,13 @@ def render() -> None:
             font-size: 18px;
         }
 
-        .user-name-subtitle {
-            font-size: 15px;
+        .user-name-container {
+            padding: 14px 16px;
             margin: -14px 0 20px 0;
+        }
+
+        .user-name-subtitle {
+            font-size: 16px;
         }
     }
 
@@ -237,9 +251,13 @@ def render() -> None:
             font-size: 16px;
         }
 
-        .user-name-subtitle {
-            font-size: 14px;
+        .user-name-container {
+            padding: 12px 14px;
             margin: -12px 0 16px 0;
+        }
+
+        .user-name-subtitle {
+            font-size: 15px;
         }
     }
     </style>
@@ -250,7 +268,7 @@ def render() -> None:
     # Check if user is logged in
     current_user = st.session_state.get("current_user")
     if current_user:
-        st.markdown(f"<div class='user-name-subtitle'>{current_user}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='user-name-container'><div class='user-name-subtitle'>{current_user}</div></div>", unsafe_allow_html=True)
 
     if not current_user:
         st.warning("Please log in to view your workload.")
