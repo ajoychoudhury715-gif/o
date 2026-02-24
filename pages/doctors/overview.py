@@ -100,8 +100,10 @@ def render() -> None:
         cols = st.columns(cols_per_row)
         for col_idx, s in enumerate(stats[row_start:row_start + cols_per_row]):
             with cols[col_idx]:
-                color = "#22c55e" if s["active"] else "#64748b"
-                status_text = "● Active" if s["active"] else "○ Inactive"
+                # Show as inactive if off today or not active
+                is_available = s["active"] and not s["is_off_today"]
+                color = "#22c55e" if is_available else "#64748b"
+                status_text = "● Active" if is_available else "○ Inactive"
                 dept_text = s["spec"] + (" · " + s["dept"] if s["dept"] else "")
 
                 off_badge_html = ""
