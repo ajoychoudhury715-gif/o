@@ -24,21 +24,13 @@ def render() -> None:
             font-size: 32px;
             font-weight: 800;
             letter-spacing: -1px;
-            margin-bottom: 8px;
+            margin-bottom: 24px;
             display: flex;
             align-items: center;
             gap: 12px;
         }
-        .premium-subheading {
-            color: #64748b;
-            font-size: 14px;
-            font-weight: 500;
-            letter-spacing: 0.5px;
-            margin-bottom: 24px;
-        }
         </style>
         <div class="premium-heading">🩺 Doctors Overview</div>
-        <div class="premium-subheading">Real-time staffing status and workload management</div>
         """,
         unsafe_allow_html=True,
     )
