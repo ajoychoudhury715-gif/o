@@ -58,11 +58,6 @@ def render() -> None:
 
     WEEKDAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
-    if st.button("🔄 Refresh", key="dr_overview_refresh"):
-        st.session_state.df = None
-        st.cache_data.clear()
-        st.rerun()
-
     if df_doctors.empty:
         st.info("No doctors found. Add doctors in Manage Profiles.")
         return
