@@ -94,25 +94,29 @@ def _render_appointment_cards(appointments: list, specialty_color: str) -> None:
         procedure = str(appt.get("Procedure", "")).strip()
         status = str(appt.get("STATUS", "PENDING")).strip().upper()
 
-        # Get duration from schedule or show dash
-        duration_mins = None
+        # Calculate duration from in_time and out_time in 12-hour format
         duration_text = "—"
+        if in_time != "—" and out_time != "—":
+            try:
+                from datetime import datetime, timedelta
+                # Parse 12-hour format times (e.g., "2:30 PM")
+                in_dt = datetime.strptime(in_time, "%I:%M %p")
+                out_dt = datetime.strptime(out_time, "%I:%M %p")
 
-        # Try to get duration from various possible column names
-        for col_name in ["Duration", "duration", "DURATION", "minutes", "Minutes", "MINUTES"]:
-            if col_name in appt:
-                try:
-                    duration_mins = int(float(str(appt[col_name]).strip()))
-                    if duration_mins > 0:
-                        if duration_mins >= 60:
-                            hours = duration_mins // 60
-                            mins = duration_mins % 60
-                            duration_text = f"{hours}h {mins}m" if mins > 0 else f"{hours}h"
-                        else:
-                            duration_text = f"{duration_mins}m"
-                    break
-                except:
-                    pass
+                # Handle case where out_time is on the next day (e.g., in_time: 11 PM, out_time: 1 AM)
+                if out_dt < in_dt:
+                    out_dt = out_dt + timedelta(days=1)
+
+                duration_mins = int((out_dt - in_dt).total_seconds() / 60)
+                if duration_mins > 0:
+                    if duration_mins >= 60:
+                        hours = duration_mins // 60
+                        mins = duration_mins % 60
+                        duration_text = f"{hours}h {mins}m" if mins > 0 else f"{hours}h"
+                    else:
+                        duration_text = f"{duration_mins}m"
+            except Exception:
+                pass
 
         status_class = "appt-status-processing" if status != "DONE" else "appt-status-done"
 
