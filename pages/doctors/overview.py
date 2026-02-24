@@ -12,7 +12,36 @@ from services.utils import now_ist
 
 
 def render() -> None:
-    st.markdown("## 🩺 Doctors Overview")
+    # Premium heading styling
+    st.markdown(
+        """
+        <style>
+        .premium-heading {
+            background: linear-gradient(135deg, #0c63e4 0%, #2563eb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .premium-subheading {
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            margin-bottom: 24px;
+        }
+        </style>
+        <div class="premium-heading">🩺 Doctors Overview</div>
+        <div class="premium-subheading">Real-time staffing status and workload management</div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     df_sched = st.session_state.get("df")
     if df_sched is None:
@@ -151,7 +180,16 @@ def render() -> None:
 
     st.markdown("---")
 
-    st.markdown("### 👨‍⚕️ Doctor Availability")
+    st.markdown(
+        """
+        <div style="padding: 12px 0;">
+        <div style="font-size: 20px; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+        👨‍⚕️ Doctor Availability
+        </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     # ── Doctor cards ───────────────────────────────────────────────────────────
     cols_per_row = 2
