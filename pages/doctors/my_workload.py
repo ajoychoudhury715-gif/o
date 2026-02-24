@@ -272,8 +272,6 @@ def render() -> None:
         return
 
     # ── Display Summary Cards (Mobile-Optimized Container) ──────────────────────
-    st.markdown("""<div class="section-heading section-heading-summary"><h2>Today's Assignment Summary</h2></div>""", unsafe_allow_html=True)
-
     total_count = len(my_appointments)
 
     # Count by status

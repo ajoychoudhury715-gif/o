@@ -306,8 +306,6 @@ def render() -> None:
         # Skip appointments with unknown specialty (don't default)
 
     # ── Display Summary Cards (Mobile-Optimized Container) ──────────────────────
-    st.markdown("""<div class="section-heading section-heading-summary"><h2>Today's Assignment Summary</h2></div>""", unsafe_allow_html=True)
-
     total_count = len(my_appointments)
     endo_count = len(endo_appointments)
     prostho_count = len(prostho_appointments)
