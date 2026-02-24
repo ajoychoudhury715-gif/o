@@ -84,13 +84,15 @@ def render() -> None:
 
     # ── Summary metrics ────────────────────────────────────────────────────────
     active_doctors = sum(1 for s in stats if s["active"] and not s["is_off_today"])
+    off_doctors = sum(1 for s in stats if s["is_off_today"])
     total_appts = sum(s["total"] for s in stats)
     total_ongoing = sum(s["ongoing"] for s in stats)
 
-    c1, c2, c3 = st.columns(3)
+    c1, c2, c3, c4 = st.columns(4)
     c1.metric("👨‍⚕️ Active Doctors", active_doctors)
-    c2.metric("📅 Total Appointments", total_appts)
-    c3.metric("🔴 Ongoing Now", total_ongoing)
+    c2.metric("📴 Off Today", off_doctors)
+    c3.metric("📅 Total Appointments", total_appts)
+    c4.metric("🔴 Ongoing Now", total_ongoing)
 
     st.markdown("---")
 
