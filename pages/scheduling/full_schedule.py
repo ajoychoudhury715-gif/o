@@ -114,7 +114,11 @@ def render() -> None:
     selected_str = selected_date.isoformat() if selected_date else None
     session_str = st.session_state.selected_schedule_date.isoformat() if st.session_state.selected_schedule_date else None
 
+    # DEBUG
+    st.write(f"DEBUG: selected={selected_str}, session={session_str}, match={selected_str == session_str}")
+
     if selected_str != session_str:
+        st.write(f"DEBUG: Triggering rerun - date changed from {session_str} to {selected_str}")
         st.session_state.selected_schedule_date = selected_date
         st.session_state.df = None
         clear_schedule_cache()
