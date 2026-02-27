@@ -26,6 +26,14 @@ def render() -> None:
     df = add_computed_columns(df)
     st.session_state.df = df
 
+    # Filter to today's appointments only
+    from datetime import datetime
+    from config.settings import IST
+    today_str = datetime.now(IST).strftime("%Y-%m-%d")
+    date_col = "DATE" if "DATE" in df.columns else "appointment_date"
+    if date_col in df.columns:
+        df = df[df[date_col].astype(str).str.startswith(today_str)]
+
     col_window, col_refresh = st.columns([4, 1])
     with col_window:
         window = st.slider(
