@@ -109,22 +109,17 @@ def render() -> None:
             unsafe_allow_html=True,
         )
 
-    # ── CRITICAL: Detect date change and clear cache BEFORE loading ───────────
-    # Convert both to string for reliable comparison (avoid type/timezone issues)
-    selected_str = selected_date.isoformat() if selected_date else None
-    session_str = st.session_state.selected_schedule_date.isoformat() if st.session_state.selected_schedule_date else None
+    # ── Update session state with selected date ───────────────────────────────
+    st.session_state.selected_schedule_date = selected_date
 
-    # DEBUG
-    st.write(f"DEBUG: selected={selected_str}, session={session_str}, match={selected_str == session_str}")
+    # ── Clear cache if date changed ────────────────────────────────────────────
+    if "last_loaded_date" not in st.session_state:
+        st.session_state.last_loaded_date = selected_date
 
-    if selected_str != session_str:
-        st.write(f"DEBUG: Triggering rerun - date changed from {session_str} to {selected_str}")
-        st.session_state.selected_schedule_date = selected_date
+    if selected_date != st.session_state.last_loaded_date:
         st.session_state.df = None
         clear_schedule_cache()
-        st.rerun()
-
-    st.session_state.selected_schedule_date = selected_date
+        st.session_state.last_loaded_date = selected_date
 
     # ── Load data ──────────────────────────────────────────────────────────────
     df = st.session_state.get("df")
