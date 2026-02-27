@@ -63,11 +63,12 @@ def _strict_date_mask(date_series: pd.Series, selected_date) -> tuple[pd.Series,
 
 
 def render() -> None:
-    # ── Initialize selected date to TODAY in IST (always reset on page load) ─────
+    # ── Initialize selected date to TODAY in IST (only on first load) ──────────
     from datetime import datetime
     from config.settings import IST
     today = datetime.now(IST).date()
-    st.session_state.selected_schedule_date = today
+    if "selected_schedule_date" not in st.session_state:
+        st.session_state.selected_schedule_date = today
 
     # ── Header: title (left) + inline date picker (right) ─────────────────────
     title_col, date_col = st.columns([6, 3], gap="small")
@@ -109,7 +110,11 @@ def render() -> None:
         )
 
     # ── CRITICAL: Detect date change and clear cache BEFORE loading ───────────
-    if selected_date != st.session_state.selected_schedule_date:
+    # Convert both to string for reliable comparison (avoid type/timezone issues)
+    selected_str = selected_date.isoformat() if selected_date else None
+    session_str = st.session_state.selected_schedule_date.isoformat() if st.session_state.selected_schedule_date else None
+
+    if selected_str != session_str:
         st.session_state.selected_schedule_date = selected_date
         st.session_state.df = None
         clear_schedule_cache()
