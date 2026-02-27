@@ -65,9 +65,35 @@ def render() -> None:
 
     st.markdown("---")
 
+    # ── Workload filter ────────────────────────────────────────────────────────
+    col_filter, col_space = st.columns([2, 3])
+    with col_filter:
+        show_ongoing_only = st.checkbox("Show only ongoing", value=False, key="workload_ongoing_filter")
+
+    # Filter based on selection
+    if show_ongoing_only:
+        # Get only assistants with ongoing appointments
+        from services.schedule_ops import filter_ongoing
+        ongoing_df = filter_ongoing(df)
+        if not ongoing_df.empty:
+            ongoing_assistants = set()
+            for _, row in ongoing_df.iterrows():
+                for col in ["FIRST", "SECOND", "Third"]:
+                    if col in row.index:
+                        asst = str(row.get(col, "")).strip().upper()
+                        if asst:
+                            ongoing_assistants.add(asst)
+            display_df = workload_df[
+                (workload_df["Appointments"] > 0) &
+                (workload_df["Assistant"].astype(str).str.upper().isin(ongoing_assistants))
+            ].sort_values("Hours Busy", ascending=False)
+        else:
+            display_df = pd.DataFrame()
+    else:
+        display_df = workload_df[workload_df["Appointments"] > 0].sort_values("Hours Busy", ascending=False)
+
     # ── Workload cards ─────────────────────────────────────────────────────────
     st.markdown("### 📋 Assistant Workload (Clinic Hours: 9 AM - 7 PM)")
-    display_df = workload_df[workload_df["Appointments"] > 0].sort_values("Hours Busy", ascending=False)
 
     if display_df.empty:
         st.info("No workload data available.")
