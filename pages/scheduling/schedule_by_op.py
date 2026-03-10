@@ -54,11 +54,12 @@ def _strict_date_mask(date_series: pd.Series, selected_date) -> tuple[pd.Series,
 def render() -> None:
     st.markdown("## 🏥 Schedule by OP Room")
 
-    # ── Initialize selected date to TODAY in IST (always reset on page load) ─────
+    # ── Initialize selected date to TODAY in IST (only on first load) ────────────
     from datetime import datetime
     from config.settings import IST
     today = datetime.now(IST).date()
-    st.session_state.schedule_by_op_date = today
+    if "schedule_by_op_date" not in st.session_state:
+        st.session_state.schedule_by_op_date = today
 
     # ── Date Picker ────────────────────────────────────────────────────────────
     st.markdown("### 📆 Select Date")
