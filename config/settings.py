@@ -41,6 +41,16 @@ SUPABASE_CHECK_TTL_SECONDS = 60
 PROFILE_CACHE_TTL_SECONDS = 120
 SCHEDULE_CACHE_TTL_SECONDS = 60
 
+# ── Scheduling debug and date handling ────────────────────────────────────────
+# Keep UI debug output disabled in production; enable only when troubleshooting.
+SCHEDULE_UI_DEBUG = str(os.getenv("SCHEDULE_UI_DEBUG", "") or "").strip().lower() in {"1", "true", "yes", "on"}
+
+# Controls how `appointment_date` is saved in new appointment rows.
+# Allowed values: "DATE" or "TIMESTAMP"
+APPOINTMENT_DATE_COLUMN_TYPE = (
+    str(os.getenv("APPOINTMENT_DATE_COLUMN_TYPE", "DATE") or "DATE").strip().upper()
+)
+
 
 def get_supabase_config():
     """

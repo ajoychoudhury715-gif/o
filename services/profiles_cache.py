@@ -122,6 +122,7 @@ def build_profiles_cache(assistants_df, doctors_df) -> dict[str, Any]:
 
     doctors_list: list[str] = []
     doctor_dept_map: dict[str, str] = {}
+    doctor_weekly_off_map: dict[int, list[str]] = {i: [] for i in range(7)}
 
     if doctors_df is not None and not doctors_df.empty:
         for _, row in doctors_df.iterrows():
@@ -137,6 +138,11 @@ def build_profiles_cache(assistants_df, doctors_df) -> dict[str, Any]:
             if not dept:
                 dept = config_doctor_map.get(key, "")
             doctor_dept_map[key] = dept
+            try:
+                for idx in _parse_weekly_off_days(row.get("weekly_off", "")):
+                    doctor_weekly_off_map[idx].append(name)
+            except Exception:
+                pass
 
     return {
         "assistants_list": assistants_list,
@@ -146,6 +152,7 @@ def build_profiles_cache(assistants_df, doctors_df) -> dict[str, Any]:
         "assistant_prefs": assistant_prefs,
         "assistants_by_dept": assistants_by_dept,
         "weekly_off_map": weekly_off_map,
+        "doctor_weekly_off_map": doctor_weekly_off_map,
         "all_departments": dept_list or list(DEFAULT_DEPARTMENTS.keys()),
     }
 

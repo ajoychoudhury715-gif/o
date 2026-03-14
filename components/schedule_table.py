@@ -123,7 +123,7 @@ def render_schedule_table(
             width="small",
         )
     if "CASE PAPER" in display_cols:
-        col_config["CASE PAPER"] = st.column_config.TextColumn("Case #", width="small")
+        col_config["CASE PAPER"] = st.column_config.TextColumn("QTRAQ", width="small")
     if "STATUS" in display_cols:
         col_config["STATUS"] = st.column_config.SelectboxColumn(
             "Status",
@@ -256,15 +256,15 @@ def render_edit_row_form(
             )
 
         case_paper = st.text_input(
-            "Case Paper #",
+            "QTRAQ",
             value=str(row.get("CASE PAPER", "") or ""),
         )
         status = st.selectbox(
             "Status",
-            STATUS_OPTIONS,
+            ["Processing", "Done"],
             index=_idx_of(
-                str(row.get("STATUS", "PENDING") or "PENDING").upper(),
-                STATUS_OPTIONS,
+                str(row.get("STATUS", "Processing") or "Processing").upper(),
+                ["PROCESSING", "DONE"],
             ),
         )
 

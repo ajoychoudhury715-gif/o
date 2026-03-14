@@ -3,9 +3,12 @@
 
 from __future__ import annotations
 from typing import Callable
+from datetime import date as date_type
+from datetime import datetime as datetime_type
 import streamlit as st
 
 from config.constants import STATUS_OPTIONS
+from config.settings import APPOINTMENT_DATE_COLUMN_TYPE
 from components.theme import status_badge_html, assign_pill_html
 from services.utils import coerce_to_time_obj, time_to_12h
 
@@ -15,6 +18,35 @@ def _fmt_time(val) -> str:
     if t is None:
         return str(val or "")
     return time_to_12h(t)
+
+
+def _normalize_selected_date(selected_date) -> date_type | None:
+    """Normalize date_input value to a date object."""
+    if isinstance(selected_date, date_type):
+        return selected_date
+    if isinstance(selected_date, datetime_type):
+        return selected_date.date()
+    if selected_date is None:
+        return None
+    try:
+        return datetime_type.fromisoformat(str(selected_date)).date()
+    except Exception:
+        return None
+
+
+def _build_appointment_date_value(selected_date) -> tuple[str, str]:
+    """Return (date_yyyy_mm_dd, appointment_date_value) based on configured date type."""
+    normalized_date = _normalize_selected_date(selected_date)
+    if normalized_date is None:
+        return "", ""
+
+    formatted_date = normalized_date.strftime("%Y-%m-%d")
+    date_type_setting = APPOINTMENT_DATE_COLUMN_TYPE if APPOINTMENT_DATE_COLUMN_TYPE in {"DATE", "TIMESTAMP"} else "DATE"
+    if date_type_setting == "TIMESTAMP":
+        appointment_date_value = datetime_type.combine(normalized_date, datetime_type.min.time()).isoformat()
+    else:
+        appointment_date_value = formatted_date
+    return formatted_date, appointment_date_value
 
 
 def render_schedule_card(
@@ -52,7 +84,7 @@ def render_schedule_card(
     {badge}
   </div>
   {"<div style='font-size:13px;color:#64748b;margin-bottom:8px;'>📋 " + procedure + "</div>" if procedure else ""}
-  {"<div style='font-size:12px;color:#64748b;margin-bottom:8px;'>📄 Case: " + case_paper + "</div>" if case_paper else ""}
+  {"<div style='font-size:12px;color:#64748b;margin-bottom:8px;'>📄 QTRAQ: " + case_paper + "</div>" if case_paper else ""}
   <div style="margin-top:8px;">
     <span style="font-size:12px;font-weight:600;color:#64748b;">ASSISTANTS:</span>
     {a1} {a2} {a3}
@@ -86,7 +118,8 @@ def render_add_appointment_form(
     doctors: list[str],
     assistants: list[str],
     op_rooms: list[str],
-    on_save: Callable[[dict], None],
+    selected_date=None,
+    on_save: Callable[[dict], None] = None,
 ) -> None:
     """Render the Add Appointment form."""
     with st.expander("➕ Add Appointment", expanded=False):
@@ -136,8 +169,8 @@ def render_add_appointment_form(
             with c5:
                 third = st.selectbox("Third Assistant", [""] + assistants, key="add_third")
 
-            case_paper = st.text_input("Case Paper #")
-            status = st.selectbox("Status", STATUS_OPTIONS, index=0)
+            case_paper = st.text_input("QTRAQ")
+            status = st.selectbox("Status", ["Processing", "Done"], index=0)
 
             submitted = st.form_submit_button("➕ Add Appointment", width='stretch')
             if submitted:
@@ -145,7 +178,14 @@ def render_add_appointment_form(
                     st.error("Patient Name and Doctor are required.")
                 else:
                     import uuid
+                    date_str, appointment_date_value = _build_appointment_date_value(selected_date)
+                    if not date_str or not appointment_date_value:
+                        st.error("Appointment date is required. Please select a valid date before adding.")
+                        return
+
                     row = {
+                        "DATE": date_str,
+                        "appointment_date": appointment_date_value,
                         "Patient ID": str(uuid.uuid4())[:8],
                         "Patient Name": patient_name,
                         "In Time": in_time.strftime("%H:%M") if in_time else "",

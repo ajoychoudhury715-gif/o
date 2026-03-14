@@ -16,7 +16,10 @@ STATE_SCHEMA: dict[str, Any] = {
     # User / auth
     "user_role": None,
     "current_user": None,
+    "current_user_id": None,
     "show_reset_password": False,
+    "allowed_functions": [],
+    "permissions_loaded_for": None,
 
     # Schedule data
     "df": None,
@@ -26,7 +29,7 @@ STATE_SCHEMA: dict[str, Any] = {
 
     # Save / conflict
     "is_saving": False,
-    "auto_save_enabled": False,
+    "auto_save_enabled": True,
     "save_debounce_seconds": 2,
     "last_save_at": 0.0,
     "last_saved_hash": None,

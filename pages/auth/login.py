@@ -3,7 +3,8 @@
 
 import streamlit as st
 
-from data.auth_repo import authenticate
+from data.auth_repo import authenticate, issue_login_token
+from security.rbac import load_permissions_for_session
 
 
 def _inject_css() -> None:
@@ -217,8 +218,18 @@ def render() -> None:
         user = authenticate(username, password)
         if user:
             st.session_state.current_user = user["username"]
+            st.session_state.current_user_id = user.get("id")
             st.session_state.user_role = user["role"]
+            st.session_state.show_reset_password = False
             st.session_state.login_error = False
+            load_permissions_for_session(user["role"], user.get("id"))
+            # Persist login across browser refresh using signed URL token.
+            try:
+                token = issue_login_token(user["username"], user["role"])
+                if token:
+                    st.query_params["auth"] = token
+            except Exception:
+                pass
             st.rerun()
         st.session_state.login_error = "Invalid username or password. Please try again."
         st.rerun()

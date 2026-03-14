@@ -25,11 +25,30 @@ def time_to_minutes(value: Any) -> Optional[int]:
         if not s:
             return None
         try:
-            parts = s.split(":")
-            if len(parts) >= 2:
-                h, m = int(parts[0]), int(parts[1])
-                if 0 <= h < 24 and 0 <= m < 60:
-                    return h * 60 + m
+            # Check for 12-hour AM/PM format
+            is_pm = s.upper().endswith("PM")
+            is_am = s.upper().endswith("AM")
+
+            if is_pm or is_am:
+                # Remove AM/PM suffix
+                time_part = s[:-2].strip()
+                parts = time_part.split(":")
+                if len(parts) >= 2:
+                    h, m = int(parts[0]), int(parts[1])
+                    if 1 <= h <= 12 and 0 <= m < 60:
+                        # Convert to 24-hour format
+                        if is_pm and h != 12:
+                            h += 12
+                        elif is_am and h == 12:
+                            h = 0
+                        return h * 60 + m
+            else:
+                # Try 24-hour format
+                parts = s.split(":")
+                if len(parts) >= 2:
+                    h, m = int(parts[0]), int(parts[1])
+                    if 0 <= h < 24 and 0 <= m < 60:
+                        return h * 60 + m
         except Exception:
             pass
     try:

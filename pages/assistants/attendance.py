@@ -18,17 +18,29 @@ def render() -> None:
     assistants = sorted(cache.get("assistants_list") or [])
     today_str = now_ist().date().isoformat()
 
+    # Check if user is logged in as an assistant
+    current_user = st.session_state.get("current_user", "")
+    user_role = st.session_state.get("user_role", "")
+
+    # If assistant is logged in, show only their data
+    if user_role == "assistant" and current_user:
+        current_asst = str(current_user).strip().upper()
+        display_assistants = [current_user]
+        st.markdown(f"### 👤 Your Punch Records")
+    else:
+        display_assistants = assistants
+        st.markdown(f"### 📅 All Assistants Punch Status")
+
     # ── Today's status ─────────────────────────────────────────────────────────
-    st.markdown("### 📅 Today's Punch Status")
     punch_map = get_today_punch_map(today_str)
 
-    if not assistants:
+    if not display_assistants:
         st.info("No assistants found.")
     else:
         cols_per_row = 3
-        for row_start in range(0, len(assistants), cols_per_row):
+        for row_start in range(0, len(display_assistants), cols_per_row):
             cols = st.columns(cols_per_row)
-            for col_idx, asst in enumerate(assistants[row_start:row_start + cols_per_row]):
+            for col_idx, asst in enumerate(display_assistants[row_start:row_start + cols_per_row]):
                 with cols[col_idx]:
                     pdata = punch_map.get(asst.upper(), {})
                     pin = pdata.get("punch_in", "")
@@ -67,9 +79,15 @@ def render() -> None:
 
     col_asst, col_from, col_to, col_refresh = st.columns([2, 1, 1, 1])
     with col_asst:
-        asst_filter = st.selectbox(
-            "Assistant", ["All"] + assistants, key="att_asst_filter"
-        )
+        if user_role == "assistant" and current_user:
+            # For assistants, don't show dropdown - just show their name
+            st.write(f"**{current_user}**")
+            asst_filter = current_user
+        else:
+            # For admins/frontdesk, show dropdown with all assistants
+            asst_filter = st.selectbox(
+                "Assistant", ["All"] + assistants, key="att_asst_filter"
+            )
     with col_from:
         from_date = st.date_input(
             "From",
@@ -106,11 +124,21 @@ def render() -> None:
         st.info("No records for the selected filters.")
         return
 
-    # Display
+    # Display with 12-hour formatted times
+    display_df = att_df.copy()
+    if "punch_in" in display_df.columns:
+        display_df["punch_in"] = display_df["punch_in"].apply(
+            lambda x: time_to_12h(coerce_to_time_obj(x)) if x else ""
+        )
+    if "punch_out" in display_df.columns:
+        display_df["punch_out"] = display_df["punch_out"].apply(
+            lambda x: time_to_12h(coerce_to_time_obj(x)) if x else ""
+        )
+
     display_cols = [c for c in ["date", "assistant", "punch_in", "punch_out"]
-                    if c in att_df.columns]
+                    if c in display_df.columns]
     st.dataframe(
-        att_df[display_cols].sort_values(
+        display_df[display_cols].sort_values(
             by="date" if "date" in display_cols else display_cols[0],
             ascending=False,
         ),
@@ -122,8 +150,14 @@ def render() -> None:
     st.markdown("---")
     st.markdown("#### 📊 Summary")
     if "assistant" in att_df.columns and "punch_in" in att_df.columns:
+        # If assistant is logged in, only show their summary
+        summary_df = att_df
+        if user_role == "assistant" and current_user:
+            current_asst = str(current_user).strip().upper()
+            summary_df = att_df[att_df["assistant"].astype(str).str.strip().str.upper() == current_asst]
+
         summary = (
-            att_df.groupby("assistant")
+            summary_df.groupby("assistant")
             .agg(days_present=("punch_in", "count"))
             .reset_index()
             .sort_values("days_present", ascending=False)

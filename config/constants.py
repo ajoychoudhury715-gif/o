@@ -48,7 +48,7 @@ TERMINAL_STATUSES = {"DONE", "COMPLETED", "CANCELLED", "SHIFTED"}
 
 # ── Schedule Columns ──────────────────────────────────────────────────────────
 SCHEDULE_COLUMNS = [
-    "Patient ID", "Patient Name", "In Time", "Out Time", "Procedure", "DR.",
+    "DATE", "Patient ID", "Patient Name", "In Time", "Out Time", "Procedure", "DR.",
     "FIRST", "SECOND", "Third", "CASE PAPER", "OP",
     "SUCTION", "CLEANING", "STATUS", "REMINDER_ROW_ID",
     "REMINDER_SNOOZE_UNTIL", "REMINDER_DISMISSED",
@@ -88,8 +88,8 @@ DEFAULT_WEEKLY_OFF: dict[int, list[str]] = {i: [] for i in range(7)}
 # ── Navigation structure ──────────────────────────────────────────────────────
 NAV_STRUCTURE = {
     "Scheduling":     ["Full Schedule", "Schedule by OP", "Ongoing", "Upcoming"],
-    "Assistants":     ["Manage Profiles", "Availability", "Auto-Allocation", "Workload", "Attendance"],
-    "Doctors":        ["Manage Profiles", "Overview", "Summary", "Per-Doctor Schedule"],
+    "Assistants":     ["Manage Profiles", "My Workload", "Availability", "Auto-Allocation", "Workload", "Attendance"],
+    "Doctors":        ["Manage Profiles", "My Workload", "Overview", "Summary", "Per-Doctor Schedule", "Week Off"],
     "Admin/Settings": ["User Management", "Storage & Backup", "Notifications", "Duties Manager"],
 }
 
@@ -99,10 +99,14 @@ ROLE_NAV = {
     "frontdesk": {
         "Scheduling":     ["Full Schedule", "Schedule by OP", "Ongoing", "Upcoming"],
         "Assistants":     ["Attendance"],
+        "Doctors":        ["Week Off"],
     },
     "assistant": {
         "Scheduling":     ["Full Schedule", "Ongoing", "Upcoming"],
-        "Assistants":     ["Attendance"],
+        "Assistants":     ["My Workload", "Attendance"],
+    },
+    "doctor": {
+        "Doctors":        ["My Workload", "Overview"],
     },
 }
 

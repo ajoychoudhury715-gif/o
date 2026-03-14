@@ -4,7 +4,7 @@
 from __future__ import annotations
 import streamlit as st
 
-from config.constants import NAV_STRUCTURE, NAV_ICONS, ROLE_NAV
+from security.rbac import get_allowed_navigation, has_access
 from services.utils import now_ist, time_to_12h
 
 
@@ -48,15 +48,26 @@ def _render_header() -> None:
             if st.button("🚪", key="btn_logout", help="Logout"):
                 st.session_state.user_role = None
                 st.session_state.current_user = None
+                st.session_state.current_user_id = None
+                st.session_state.allowed_functions = []
+                st.session_state.permissions_loaded_for = None
+                try:
+                    if "auth" in st.query_params:
+                        del st.query_params["auth"]
+                except Exception:
+                    pass
                 st.rerun()
 
 
 def _render_navigation() -> None:
     st.markdown("**📍 Navigation**")
 
-    # Get allowed categories based on user role
+    # Get allowed categories based on effective RBAC permissions
     user_role = st.session_state.get("user_role", "assistant")
-    role_nav = ROLE_NAV.get(user_role, ROLE_NAV["assistant"])
+    role_nav = get_allowed_navigation(user_role, st.session_state.get("allowed_functions", []))
+    if not role_nav:
+        st.warning("No accessible menu items.")
+        return
     allowed_categories = list(role_nav.keys())
 
     # Validate and set category
@@ -99,6 +110,8 @@ def _render_navigation() -> None:
 
 def _render_punch_widget(df) -> None:
     """Punch in/out system."""
+    if not has_access("action::operations::punch"):
+        return
     st.markdown("### 👇 Punch System")
     try:
         from data.profile_repo import load_assistants
@@ -113,7 +126,20 @@ def _render_punch_widget(df) -> None:
         st.caption("No assistants found. Add assistants first.")
         return
 
-    assistant = st.selectbox("Select Assistant", assistants, key="sb_assistant")
+    # If logged in as an assistant, default to their own name
+    user_role = st.session_state.get("user_role", "")
+    current_user = st.session_state.get("current_user", "")
+
+    if user_role == "assistant" and current_user and current_user in assistants:
+        # Assistant can only punch themselves
+        assistant = current_user
+        st.caption(f"👤 {current_user}")
+    else:
+        # Admin/frontdesk can select any assistant
+        default_idx = 0
+        if st.session_state.get("sb_assistant") in assistants:
+            default_idx = assistants.index(st.session_state["sb_assistant"])
+        assistant = st.selectbox("Select Assistant", assistants, index=default_idx, key="sb_assistant")
     now = now_ist()
     date_str = now.date().isoformat()
     from services.utils import coerce_to_time_obj
@@ -174,6 +200,8 @@ def _render_punch_widget(df) -> None:
 
 def _render_duty_widget(df) -> None:
     """Duty timer and pending duties widget."""
+    if not has_access("action::operations::duties"):
+        return
     st.markdown("### 🧭 Duties")
     try:
         from data.profile_repo import load_assistants
@@ -188,12 +216,22 @@ def _render_duty_widget(df) -> None:
         st.caption("No assistants found.")
         return
 
-    default_idx = 0
-    if st.session_state.get("duty_current_assistant") in assistants:
-        default_idx = assistants.index(st.session_state["duty_current_assistant"])
+    # If logged in as an assistant, show only their duties
+    user_role = st.session_state.get("user_role", "")
+    current_user = st.session_state.get("current_user", "")
 
-    assistant = st.selectbox("Assistant", assistants, index=default_idx, key="duty_assistant_select")
-    st.session_state.duty_current_assistant = assistant
+    if user_role == "assistant" and current_user:
+        # Assistant can only see their own duties
+        assistant = current_user
+        st.caption(f"👤 {current_user}")
+    else:
+        # Admin/frontdesk can select any assistant
+        default_idx = 0
+        if st.session_state.get("duty_current_assistant") in assistants:
+            default_idx = assistants.index(st.session_state["duty_current_assistant"])
+
+        assistant = st.selectbox("Assistant", assistants, index=default_idx, key="duty_assistant_select")
+        st.session_state.duty_current_assistant = assistant
 
     from data.duty_repo import get_active_duty_run, get_active_duty_assignments, start_duty_run, mark_duty_done, load_duty_runs
     from services.duty_service import compute_pending_duties, format_remaining_time
@@ -281,6 +319,8 @@ def _render_save_controls(df) -> None:
     # Only show save controls to admin
     if st.session_state.get("user_role") != "admin":
         return
+    if not has_access("action::admin::save_controls"):
+        return
 
     st.markdown("### 💾 Save")
     st.session_state.auto_save_enabled = st.checkbox(
@@ -329,6 +369,8 @@ def _render_save_controls(df) -> None:
 
 def _render_reminders(df) -> None:
     """Show upcoming appointment reminders."""
+    if not has_access("action::operations::reminders"):
+        return
     from services.reminder_service import get_due_reminders, dismiss_reminder, snooze_reminder
     from state.save_manager import maybe_save
     reminders = get_due_reminders(df)

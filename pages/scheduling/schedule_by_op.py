@@ -2,6 +2,7 @@
 """Schedule filtered by OP room."""
 
 from __future__ import annotations
+import pandas as pd
 import streamlit as st
 
 from services.schedule_ops import (
@@ -12,11 +13,73 @@ from state.save_manager import maybe_save
 from components.schedule_card import render_schedule_card, render_add_appointment_form
 from config.constants import OP_ROOMS
 from services.profiles_cache import get_profiles_cache
+from data.schedule_repo import clear_schedule_cache
+from security.rbac import has_access, require_access
+
+
+def _strict_date_mask(date_series: pd.Series, selected_date) -> tuple[pd.Series, str]:
+    """Build strict date match mask with tolerant normalization for legacy date strings."""
+    target_dt = pd.to_datetime(selected_date, errors="coerce")
+    if pd.isna(target_dt):
+        return pd.Series(False, index=date_series.index), ""
+
+    formatted_date = target_dt.strftime("%Y-%m-%d")
+    raw_dates = date_series.fillna("").astype(str).str.strip()
+    raw_lower = raw_dates.str.lower()
+
+    direct_match = (
+        raw_dates.eq(formatted_date)
+        | raw_dates.str.startswith(f"{formatted_date}T")
+        | raw_dates.str.startswith(f"{formatted_date} ")
+    )
+
+    parse_input = raw_dates.where(~raw_lower.isin(["", "nan", "none", "nat"]))
+    normalized_default = pd.to_datetime(parse_input, errors="coerce").dt.strftime("%Y-%m-%d")
+    normalized_dayfirst = pd.to_datetime(parse_input, errors="coerce", dayfirst=True).dt.strftime("%Y-%m-%d")
+
+    numeric_dates = pd.to_numeric(parse_input, errors="coerce")
+    normalized_excel = pd.to_datetime(
+        numeric_dates, unit="D", origin="1899-12-30", errors="coerce"
+    ).dt.strftime("%Y-%m-%d")
+
+    mask = (
+        direct_match
+        | normalized_default.eq(formatted_date)
+        | normalized_dayfirst.eq(formatted_date)
+        | normalized_excel.eq(formatted_date)
+    )
+    return mask.fillna(False), formatted_date
 
 
 def render() -> None:
     st.markdown("## 🏥 Schedule by OP Room")
 
+    # ── Initialize selected date to TODAY in IST (only on first load) ────────────
+    from datetime import datetime
+    from config.settings import IST
+    today = datetime.now(IST).date()
+    if "schedule_by_op_date" not in st.session_state:
+        st.session_state.schedule_by_op_date = today
+
+    # ── Date Picker ────────────────────────────────────────────────────────────
+    st.markdown("### 📆 Select Date")
+    selected_date = st.date_input(
+        "Choose a date",
+        value=st.session_state.schedule_by_op_date,
+        key="schedule_by_op_date_picker",
+        label_visibility="collapsed",
+    )
+
+    # ── CRITICAL: Detect date change and clear cache ──────────────────────────
+    if selected_date != st.session_state.schedule_by_op_date:
+        st.session_state.schedule_by_op_date = selected_date
+        st.session_state.df = None
+        clear_schedule_cache()
+        st.rerun()
+
+    st.session_state.schedule_by_op_date = selected_date
+
+    # ── Load data ──────────────────────────────────────────────────────────────
     df = st.session_state.get("df")
     if df is None:
         from data.schedule_repo import load_schedule
@@ -46,16 +109,36 @@ def render() -> None:
             st.cache_data.clear()
             st.rerun()
 
+    # ── Filter by date and OP ──────────────────────────────────────────────────
     filtered = filter_by_op(df, selected_op)
 
-    render_add_appointment_form(
-        doctors=doctors,
-        assistants=assistants,
-        op_rooms=all_ops,
-        on_save=lambda row: _on_add(df, row),
-    )
+    # Strict date filter; do not include blank dates.
+    if selected_date and ("DATE" in filtered.columns or "appointment_date" in filtered.columns):
+        date_series = filtered["DATE"] if "DATE" in filtered.columns else pd.Series([""] * len(filtered), index=filtered.index)
+        if "appointment_date" in filtered.columns:
+            primary = date_series.fillna("").astype(str).str.strip()
+            fallback = filtered["appointment_date"].fillna("").astype(str).str.strip()
+            date_series = primary.where(primary.ne(""), fallback)
+        date_mask, _ = _strict_date_mask(date_series, selected_date)
+        filtered = filtered[date_mask].copy()
 
-    st.markdown(f"**{len(filtered)} appointment(s) in {selected_op}**")
+    if has_access("action::schedule::add_appointment"):
+        render_add_appointment_form(
+            doctors=doctors,
+            assistants=assistants,
+            op_rooms=all_ops,
+            selected_date=selected_date,
+            on_save=lambda row: _on_add(df, row),
+        )
+    else:
+        st.caption("Add Appointment is restricted for your account.")
+
+    st.markdown(f"**{len(filtered)} appointment(s) in {selected_op} on {selected_date.strftime('%A, %B %d, %Y')}**")
+
+    # ── Check if no appointments exist for the selected date and OP ─────────────
+    if len(filtered) == 0:
+        st.info("No appointments scheduled")
+        return
 
     for idx, (_, row) in enumerate(filtered.iterrows()):
         row_dict = row.to_dict()
@@ -70,6 +153,7 @@ def render() -> None:
 
 
 def _on_status_change(df, row_id: str, new_status: str) -> None:
+    require_access("action::schedule::update_status", "updating appointment status")
     updated = update_status(df, row_id, new_status)
     st.session_state.df = updated
     maybe_save(updated, message=f"Status → {new_status}")
@@ -77,6 +161,7 @@ def _on_status_change(df, row_id: str, new_status: str) -> None:
 
 
 def _on_delete(df, row_id: str) -> None:
+    require_access("action::schedule::delete_appointment", "deleting appointments")
     mask = df["REMINDER_ROW_ID"].astype(str).str.strip() == row_id
     updated = df[~mask].reset_index(drop=True)
     updated.attrs = df.attrs.copy()
@@ -86,6 +171,7 @@ def _on_delete(df, row_id: str) -> None:
 
 
 def _on_add(df, row: dict) -> None:
+    require_access("action::schedule::add_appointment", "adding appointments")
     import pandas as pd
     updated = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
     updated.attrs = df.attrs.copy()
