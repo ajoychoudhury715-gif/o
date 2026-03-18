@@ -2,6 +2,7 @@
 """Full Schedule view — card + table toggle, add/edit/delete, auto-allocate."""
 
 from __future__ import annotations
+import numpy as np
 import pandas as pd
 import streamlit as st
 
@@ -49,9 +50,13 @@ def _strict_date_mask(date_series: pd.Series, selected_date) -> tuple[pd.Series,
 
     # Support legacy Excel serial dates if any historical rows were imported that way.
     numeric_dates = pd.to_numeric(parse_input, errors="coerce")
-    normalized_excel = pd.to_datetime(
-        numeric_dates, unit="D", origin="1899-12-30", errors="coerce"
-    ).dt.strftime("%Y-%m-%d")
+    # Filter out NaN/inf before datetime conversion to avoid FloatingPointError
+    valid_mask = numeric_dates.notna() & np.isfinite(numeric_dates)
+    normalized_excel = pd.Series("", index=numeric_dates.index, dtype=str)
+    if valid_mask.any():
+        normalized_excel.loc[valid_mask] = pd.to_datetime(
+            numeric_dates[valid_mask], unit="D", origin="1899-12-30", errors="coerce"
+        ).dt.strftime("%Y-%m-%d")
 
     mask = (
         direct_match
