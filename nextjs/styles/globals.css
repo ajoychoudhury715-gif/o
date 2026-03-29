@@ -1,0 +1,129 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(135deg, #0c63e4 0%, #2563eb 100%);
+  min-height: 100vh;
+  color: #1f2937;
+}
+
+/* Glassmorphism styles */
+.glass {
+  @apply backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl;
+}
+
+.glass-light {
+  @apply backdrop-blur-xl bg-white/80 border border-white/30 rounded-2xl;
+}
+
+.glass-dark {
+  @apply backdrop-blur-xl bg-slate-900/20 border border-white/10 rounded-2xl;
+}
+
+/* Medical color palette */
+.status-pending {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.status-waiting {
+  @apply bg-blue-100 text-blue-800;
+}
+
+.status-arriving {
+  @apply bg-purple-100 text-purple-800;
+}
+
+.status-ongoing {
+  @apply bg-green-100 text-green-800;
+}
+
+.status-done {
+  @apply bg-emerald-100 text-emerald-800;
+}
+
+.status-cancelled {
+  @apply bg-red-100 text-red-800;
+}
+
+.status-shifted {
+  @apply bg-orange-100 text-orange-800;
+}
+
+/* Sidebar styles */
+.sidebar {
+  @apply sticky top-0 h-screen flex flex-col glass-light p-4 gap-4 overflow-y-auto;
+}
+
+/* Button styles */
+.btn-primary {
+  @apply px-4 py-2 bg-medical-blue-600 text-white rounded-lg hover:bg-medical-blue-700 transition-colors;
+}
+
+.btn-secondary {
+  @apply px-4 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors border border-white/30;
+}
+
+.btn-danger {
+  @apply px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors;
+}
+
+/* Input styles */
+.input {
+  @apply w-full px-4 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-medical-blue-500;
+}
+
+.input::placeholder {
+  @apply text-white/50;
+}
+
+/* Card styles */
+.card {
+  @apply glass p-6 rounded-xl shadow-lg;
+}
+
+.card-hover {
+  @apply card hover:shadow-xl transition-shadow cursor-pointer;
+}
+
+/* Text utilities */
+.text-gradient {
+  @apply bg-gradient-to-r from-medical-blue-600 to-medical-blue-400 bg-clip-text text-transparent;
+}
+
+/* Loading spinner */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  html,
+  body {
+    font-size: 14px;
+  }
+
+  .sidebar {
+    @apply h-auto w-full sticky top-0 z-50;
+  }
+}
+
