@@ -1,1 +1,15 @@
 /o/
+node_modules/
+.next/
+out/
+.env
+.env.local
+.env*.local
+*.log
+.DS_Store
+.vercel/
+build/
+dist/
+__pycache__/
+*.pyc
+.streamlit/
