@@ -2,6 +2,7 @@
 """Assistant availability dashboard."""
 
 from __future__ import annotations
+import html
 import streamlit as st
 import pandas as pd
 
@@ -31,6 +32,66 @@ def _format_dt_label(value) -> str:
     if not hasattr(dt_value, "time"):
         return str(value or "—")
     return time_to_12h(dt_value.astimezone(now_ist().tzinfo).time().replace(second=0, microsecond=0))
+
+
+def _build_assistant_card_html(
+    assistant: str,
+    status: str,
+    badge_html: str,
+    department: str,
+    reason: str,
+    current_op: str,
+    current_label: str,
+    current_for: str,
+    available_in: str,
+    expected_free_at: str,
+    is_selected: bool,
+) -> str:
+    border = "2px solid rgba(37,99,235,0.45)" if is_selected else "1px solid rgba(148,163,184,0.18)"
+    rows: list[str] = []
+
+    if department:
+        rows.append(
+            f'<div style="font-size:11px;color:#94a3b8;margin-top:4px;">'
+            f'🏥 {html.escape(department)}</div>'
+        )
+    if reason:
+        rows.append(
+            f'<div style="font-size:11px;color:#64748b;margin-top:2px;">'
+            f'{html.escape(reason)}</div>'
+        )
+    if current_op:
+        rows.append(
+            f'<div style="font-size:11px;color:#64748b;margin-top:2px;">'
+            f'OP: {html.escape(current_op)}</div>'
+        )
+    if current_for != "—":
+        rows.append(
+            f'<div style="font-size:11px;color:#475569;margin-top:6px;">'
+            f'{html.escape(current_label)}: <b>{html.escape(current_for)}</b></div>'
+        )
+
+    availability_label = available_in if status in {"BUSY", "BLOCKED"} else "Now"
+    free_at_label = expected_free_at if status in {"BUSY", "BLOCKED"} else "Now"
+    rows.append(
+        f'<div style="font-size:11px;color:#475569;margin-top:2px;">'
+        f'Available In: <b>{html.escape(availability_label)}</b></div>'
+    )
+    rows.append(
+        f'<div style="font-size:11px;color:#475569;margin-top:2px;">'
+        f'Free At: <b>{html.escape(free_at_label)}</b></div>'
+    )
+
+    return (
+        f'<div class="profile-card" style="margin-bottom:8px;border:{border};">'
+        f'<div style="display:flex;justify-content:space-between;align-items:center;">'
+        f'<span style="font-weight:600;color:#1e293b;font-size:14px;">'
+        f'👤 {html.escape(assistant)}</span>'
+        f'{badge_html}'
+        f'</div>'
+        f'{"".join(rows)}'
+        f'</div>'
+    )
 
 
 def _load_live_schedule_df() -> pd.DataFrame:
@@ -125,22 +186,21 @@ def _render_live_availability_dashboard(cache_bust: int) -> None:
                 current_op = str(info.get("current_op", "") or "").strip()
                 badge = avail_badge_html(status)
                 is_selected = selected_assistant == asst
-
-                st.markdown(
-                    f"""<div class="profile-card" style="margin-bottom:8px;border:{'2px solid rgba(37,99,235,0.45)' if is_selected else '1px solid rgba(148,163,184,0.18)'};">
-                      <div style="display:flex;justify-content:space-between;align-items:center;">
-                        <span style="font-weight:600;color:#1e293b;font-size:14px;">👤 {asst}</span>
-                        {badge}
-                      </div>
-                      {('<div style="font-size:11px;color:#94a3b8;margin-top:4px;">🏥 ' + dept + '</div>') if dept else ''}
-                      {('<div style="font-size:11px;color:#64748b;margin-top:2px;">' + reason + '</div>') if reason else ''}
-                      {('<div style="font-size:11px;color:#64748b;margin-top:2px;">OP: ' + current_op + '</div>') if current_op else ''}
-                      {('<div style="font-size:11px;color:#475569;margin-top:6px;">' + current_label + ': <b>' + current_for + '</b></div>') if current_for != '—' else ''}
-                      <div style="font-size:11px;color:#475569;margin-top:2px;">Available In: <b>{available_in if status in {'BUSY', 'BLOCKED'} else 'Now'}</b></div>
-                      <div style="font-size:11px;color:#475569;margin-top:2px;">Free At: <b>{expected_free_at if status in {'BUSY', 'BLOCKED'} else 'Now'}</b></div>
-                    </div>""",
-                    unsafe_allow_html=True,
+                card_html = _build_assistant_card_html(
+                    assistant=asst,
+                    status=status,
+                    badge_html=badge,
+                    department=dept,
+                    reason=reason,
+                    current_op=current_op,
+                    current_label=current_label,
+                    current_for=current_for,
+                    available_in=available_in,
+                    expected_free_at=expected_free_at,
+                    is_selected=is_selected,
                 )
+
+                st.markdown(card_html, unsafe_allow_html=True)
                 button_label = "Hide Daily Schedule" if is_selected else "View Daily Schedule"
                 if st.button(button_label, key=f"avail_detail_{asst}", width='stretch'):
                     st.session_state.availability_selected_assistant = "" if is_selected else asst
