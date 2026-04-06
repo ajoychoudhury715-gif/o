@@ -3,13 +3,32 @@
 
 from __future__ import annotations
 import streamlit as st
+import pandas as pd
 
 from services.availability import get_all_assistant_statuses, deserialize_time_blocks
 from services.profiles_cache import get_profiles_cache
 from data.attendance_repo import get_today_punch_map
-from services.utils import now_ist
+from services.utils import now_ist, time_to_12h
 from components.assistant_day_detail import render_assistant_day_detail
 from components.theme import avail_badge_html
+
+
+def _format_minutes_label(total_minutes) -> str:
+    if total_minutes is None:
+        return "—"
+    minutes = max(0, int(float(total_minutes or 0)))
+    hours = minutes // 60
+    mins = minutes % 60
+    return f"{hours}h {mins:02d}m"
+
+
+def _format_dt_label(value) -> str:
+    if value is None or (hasattr(pd, "isna") and pd.isna(value)):
+        return "—"
+    dt_value = value.to_pydatetime() if hasattr(value, "to_pydatetime") else value
+    if not hasattr(dt_value, "time"):
+        return str(value or "—")
+    return time_to_12h(dt_value.astimezone(now_ist().tzinfo).time().replace(second=0, microsecond=0))
 
 
 def render() -> None:
@@ -92,6 +111,11 @@ def render() -> None:
                 status = str(info.get("status", "FREE")).upper()
                 reason = str(info.get("reason", ""))
                 dept = str(info.get("department", ""))
+                current_label = str(info.get("current_label", "Busy For" if status == "BUSY" else "Free For"))
+                current_for = _format_minutes_label(info.get("current_for_minutes"))
+                available_in = _format_minutes_label(info.get("available_in_minutes"))
+                expected_free_at = _format_dt_label(info.get("expected_free_at"))
+                current_op = str(info.get("current_op", "") or "").strip()
                 badge = avail_badge_html(status)
                 is_selected = selected_assistant == asst
 
@@ -103,6 +127,10 @@ def render() -> None:
                       </div>
                       {('<div style="font-size:11px;color:#94a3b8;margin-top:4px;">🏥 ' + dept + '</div>') if dept else ''}
                       {('<div style="font-size:11px;color:#64748b;margin-top:2px;">' + reason + '</div>') if reason else ''}
+                      {('<div style="font-size:11px;color:#64748b;margin-top:2px;">OP: ' + current_op + '</div>') if current_op else ''}
+                      {('<div style="font-size:11px;color:#475569;margin-top:6px;">' + current_label + ': <b>' + current_for + '</b></div>') if current_for != '—' else ''}
+                      <div style="font-size:11px;color:#475569;margin-top:2px;">Available In: <b>{available_in if status in {'BUSY', 'BLOCKED'} else 'Now'}</b></div>
+                      <div style="font-size:11px;color:#475569;margin-top:2px;">Free At: <b>{expected_free_at if status in {'BUSY', 'BLOCKED'} else 'Now'}</b></div>
                     </div>""",
                     unsafe_allow_html=True,
                 )

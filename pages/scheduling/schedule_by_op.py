@@ -84,6 +84,8 @@ def _render_op_status_board(summary_df: pd.DataFrame, selected_op: str) -> None:
                 op_name = str(row.get("OP", "") or "").strip()
                 status = str(row.get("Current Status", "") or "").strip().upper() or "FREE"
                 current_for = _format_minutes_label(row.get("Current For Minutes", 0))
+                available_in = _format_minutes_label(row.get("Available In Minutes", 0))
+                expected_free_at = _format_dt_label(row.get("Expected Free At"))
                 busy_logged = _format_minutes_label(row.get("Busy Logged Minutes", 0))
                 free_logged = _format_minutes_label(row.get("Free Logged Minutes", 0))
                 busy_sessions = int(row.get("Busy Sessions", 0) or 0)
@@ -100,6 +102,8 @@ def _render_op_status_board(summary_df: pd.DataFrame, selected_op: str) -> None:
                         <div style="font-size:0.78rem;font-weight:700;color:{status_color};">{status}</div>
                       </div>
                       <div style="font-size:0.8rem;color:#475569;margin-top:8px;">{label}: <b>{current_for}</b></div>
+                      <div style="font-size:0.8rem;color:#475569;margin-top:4px;">Available In: <b>{available_in if status == "BUSY" else "Now"}</b></div>
+                      <div style="font-size:0.8rem;color:#475569;margin-top:4px;">Free At: <b>{expected_free_at if status == "BUSY" else "Now"}</b></div>
                       <div style="font-size:0.8rem;color:#475569;margin-top:4px;">Busy Logged: <b>{busy_logged}</b></div>
                       <div style="font-size:0.8rem;color:#475569;margin-top:4px;">Free Logged: <b>{free_logged}</b></div>
                       <div style="font-size:0.8rem;color:#475569;margin-top:4px;">Busy Sessions: <b>{busy_sessions}</b></div>
@@ -117,12 +121,15 @@ def _render_selected_op_analytics(df: pd.DataFrame, selected_op: str, selected_d
     current_status = str(summary.get("Current Status", "FREE") or "FREE").strip().upper()
     current_patient = str(summary.get("Current Patient", "") or "").strip()
     current_for_label = "Busy For" if current_status == "BUSY" else "Free For"
+    available_in_label = _format_minutes_label(summary.get("Available In Minutes", 0))
+    expected_free_at = _format_dt_label(summary.get("Expected Free At"))
 
-    metric_cols = st.columns(4)
+    metric_cols = st.columns(5)
     metric_cols[0].metric("Current Status", current_status)
     metric_cols[1].metric(current_for_label, _format_minutes_label(summary.get("Current For Minutes", 0)))
-    metric_cols[2].metric("Busy Logged", _format_minutes_label(summary.get("Busy Logged Minutes", 0)))
-    metric_cols[3].metric("Free Logged", _format_minutes_label(summary.get("Free Logged Minutes", 0)))
+    metric_cols[2].metric("Available In", available_in_label if current_status == "BUSY" else "Now")
+    metric_cols[3].metric("Free At", expected_free_at if current_status == "BUSY" else "Now")
+    metric_cols[4].metric("Busy Logged", _format_minutes_label(summary.get("Busy Logged Minutes", 0)))
 
     if current_status == "BUSY" and current_patient:
         st.warning(f"{selected_op} is currently busy with {current_patient}.")

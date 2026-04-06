@@ -2,17 +2,111 @@
 """Assistant availability: punch checks, time blocks, schedule conflicts."""
 
 from __future__ import annotations
-from datetime import time as time_type
+from datetime import datetime, time as time_type, timedelta
 from typing import Any, Optional
 import json
 import pandas as pd
 
-from services.utils import coerce_to_time_obj, time_to_minutes, now_ist, is_blank, time_to_hhmm
+from services.utils import coerce_to_time_obj, time_to_minutes, now_ist, is_blank, time_to_hhmm, parse_iso_ts
 from config.constants import TERMINAL_STATUSES
-from services.schedule_ops import filter_schedule_for_date, is_status_ongoing
+from services.schedule_ops import filter_schedule_for_date, is_status_ongoing, normalize_status
 
 
-def get_assistant_schedule(assistant_name: str, df_schedule: pd.DataFrame) -> list[dict[str, Any]]:
+def _combine_today_datetime(today_str: str, value) -> Optional[datetime]:
+    time_obj = coerce_to_time_obj(value)
+    if time_obj is None:
+        return None
+    parsed = pd.to_datetime(today_str, errors="coerce")
+    target_day = parsed.date() if pd.notna(parsed) else now_ist().date()
+    return datetime.combine(target_day, time_obj).replace(tzinfo=now_ist().tzinfo)
+
+
+def _duration_minutes_between(start_dt: Optional[datetime], end_dt: Optional[datetime]) -> Optional[int]:
+    if start_dt is None or end_dt is None:
+        return None
+    return max(0, int((end_dt - start_dt).total_seconds() // 60))
+
+
+def _build_appointment_times(appt: dict[str, Any], today_str: str) -> tuple[Optional[datetime], Optional[datetime], Optional[datetime]]:
+    start_dt = (
+        parse_iso_ts(appt.get("actual_start_at"))
+        or parse_iso_ts(appt.get("status_changed_at"))
+        or _combine_today_datetime(today_str, appt.get("in_time"))
+    )
+    scheduled_end = _combine_today_datetime(today_str, appt.get("out_time"))
+    actual_end = parse_iso_ts(appt.get("actual_end_at"))
+
+    if start_dt and scheduled_end and scheduled_end < start_dt:
+        scheduled_end += timedelta(days=1)
+    if start_dt and actual_end and actual_end < start_dt:
+        actual_end += timedelta(days=1)
+    return start_dt, scheduled_end, actual_end
+
+
+def _get_current_time_block(
+    assistant_upper: str,
+    time_blocks: list[dict],
+    today_str: str,
+) -> Optional[dict[str, Any]]:
+    current_time = now_ist()
+    for block in time_blocks or []:
+        if str(block.get("date", "")).strip() != today_str:
+            continue
+        if str(block.get("assistant", "")).strip().upper() != assistant_upper:
+            continue
+        start_dt = _combine_today_datetime(today_str, block.get("start_time"))
+        end_dt = _combine_today_datetime(today_str, block.get("end_time"))
+        if start_dt is None or end_dt is None:
+            continue
+        if end_dt < start_dt:
+            end_dt += timedelta(days=1)
+        if start_dt <= current_time <= end_dt:
+            return {
+                "reason": str(block.get("reason", "Blocked")).strip() or "Blocked",
+                "start_dt": start_dt,
+                "end_dt": end_dt,
+            }
+    return None
+
+
+def _latest_completed_engagement_end(
+    schedule: list[dict[str, Any]],
+    assistant_upper: str,
+    time_blocks: list[dict],
+    today_str: str,
+    fallback_start: Optional[datetime] = None,
+) -> Optional[datetime]:
+    ends: list[datetime] = []
+    current_time = now_ist()
+
+    for appt in schedule:
+        status = normalize_status(appt.get("status", ""))
+        if status not in TERMINAL_STATUSES:
+            continue
+        _, scheduled_end, actual_end = _build_appointment_times(appt, today_str)
+        end_dt = actual_end or scheduled_end
+        if end_dt and end_dt <= current_time:
+            ends.append(end_dt)
+
+    for block in time_blocks or []:
+        if str(block.get("date", "")).strip() != today_str:
+            continue
+        if str(block.get("assistant", "")).strip().upper() != assistant_upper:
+            continue
+        end_dt = _combine_today_datetime(today_str, block.get("end_time"))
+        if end_dt and end_dt <= current_time:
+            ends.append(end_dt)
+
+    if fallback_start is not None:
+        ends.append(fallback_start)
+    return max(ends) if ends else None
+
+
+def get_assistant_schedule(
+    assistant_name: str,
+    df_schedule: pd.DataFrame,
+    include_terminal: bool = False,
+) -> list[dict[str, Any]]:
     """Get all active appointments where this assistant is assigned."""
     if not assistant_name or df_schedule is None or df_schedule.empty:
         return []
@@ -23,8 +117,8 @@ def get_assistant_schedule(assistant_name: str, df_schedule: pd.DataFrame) -> li
             if col in row.index:
                 val = str(row.get(col, "")).strip().upper()
                 if val == assist_upper:
-                    status = str(row.get("STATUS", "")).strip().upper()
-                    if any(s in status for s in TERMINAL_STATUSES):
+                    status = normalize_status(row.get("STATUS", ""))
+                    if not include_terminal and status in TERMINAL_STATUSES:
                         continue
                     appointments.append({
                         "row_id": row.get("REMINDER_ROW_ID", ""),
@@ -35,6 +129,9 @@ def get_assistant_schedule(assistant_name: str, df_schedule: pd.DataFrame) -> li
                         "op": row.get("OP", ""),
                         "role": col,
                         "status": status,
+                        "actual_start_at": row.get("ACTUAL_START_AT", ""),
+                        "actual_end_at": row.get("ACTUAL_END_AT", ""),
+                        "status_changed_at": row.get("STATUS_CHANGED_AT", ""),
                     })
                     break
     return appointments
@@ -155,7 +252,7 @@ def get_assistant_status(
     today_str: str,
     today_weekday: int,
     weekly_off_map: dict,
-) -> dict[str, str]:
+) -> dict[str, Any]:
     from services.profiles_cache import get_department_for_assistant
     assist_upper = str(assistant).strip().upper()
     now = now_ist()
@@ -164,6 +261,7 @@ def get_assistant_status(
     pdata = punch_map.get(assist_upper, {})
     punch_in = pdata.get("punch_in", "")
     punch_out = pdata.get("punch_out", "")
+    punch_in_dt = _combine_today_datetime(today_str, punch_in)
 
     if not punch_in:
         off_set = {str(n).strip().upper() for n in weekly_off_map.get(today_weekday, [])}
@@ -173,17 +271,72 @@ def get_assistant_status(
     if punch_out:
         return {"status": "BLOCKED", "reason": f"Punched out at {str(punch_out)[:5]}", "department": dept}
 
-    current_time = now.time().replace(second=0, microsecond=0)
-    blocked, reason = is_blocked_by_time_block_point(assist_upper, current_time, time_blocks, today_str)
-    if blocked:
-        return {"status": "BLOCKED", "reason": reason, "department": dept}
+    current_block = _get_current_time_block(assist_upper, time_blocks, today_str)
+    if current_block:
+        blocked_for = _duration_minutes_between(current_block.get("start_dt"), now)
+        available_in = _duration_minutes_between(now, current_block.get("end_dt"))
+        return {
+            "status": "BLOCKED",
+            "reason": current_block.get("reason", "Blocked"),
+            "department": dept,
+            "current_for_minutes": blocked_for,
+            "available_in_minutes": available_in,
+            "expected_free_at": current_block.get("end_dt"),
+            "current_label": "Blocked For",
+        }
 
-    schedule = get_assistant_schedule(assist_upper, filter_schedule_for_date(df_schedule, today_str))
-    for appt in schedule:
-        if is_status_ongoing(appt.get("status", "")):
-            return {"status": "BUSY", "reason": f"With {appt.get('patient', 'patient')}", "department": dept}
+    schedule = get_assistant_schedule(
+        assist_upper,
+        filter_schedule_for_date(df_schedule, today_str),
+        include_terminal=True,
+    )
+    live_appts = [appt for appt in schedule if is_status_ongoing(appt.get("status", ""))]
+    if live_appts:
+        live_entries = []
+        for appt in live_appts:
+            start_dt, scheduled_end, _ = _build_appointment_times(appt, today_str)
+            predicted_end = scheduled_end or now
+            if predicted_end < now:
+                predicted_end = now
+            live_entries.append((appt, start_dt or now, predicted_end))
 
-    return {"status": "FREE", "reason": "Available", "department": dept}
+        busy_since = min(entry[1] for entry in live_entries)
+        expected_free_at = max(entry[2] for entry in live_entries)
+        current_patients = [str(entry[0].get("patient", "") or "").strip() for entry in live_entries if str(entry[0].get("patient", "") or "").strip()]
+        current_ops = sorted({str(entry[0].get("op", "") or "").strip() for entry in live_entries if str(entry[0].get("op", "") or "").strip()})
+        if len(current_patients) == 1:
+            reason = f"With {current_patients[0]}"
+        else:
+            reason = f"With {len(current_patients)} ongoing patients"
+
+        return {
+            "status": "BUSY",
+            "reason": reason,
+            "department": dept,
+            "current_patient": current_patients[0] if len(current_patients) == 1 else "",
+            "current_op": current_ops[0] if len(current_ops) == 1 else ", ".join(current_ops),
+            "current_for_minutes": _duration_minutes_between(busy_since, now),
+            "available_in_minutes": _duration_minutes_between(now, expected_free_at),
+            "expected_free_at": expected_free_at,
+            "current_label": "Busy For",
+        }
+
+    free_since = _latest_completed_engagement_end(
+        schedule,
+        assist_upper,
+        time_blocks,
+        today_str,
+        fallback_start=punch_in_dt,
+    )
+    return {
+        "status": "FREE",
+        "reason": "Available",
+        "department": dept,
+        "current_for_minutes": _duration_minutes_between(free_since, now) if free_since else None,
+        "available_in_minutes": 0,
+        "expected_free_at": now,
+        "current_label": "Free For",
+    }
 
 
 def get_all_assistant_statuses(
@@ -194,7 +347,7 @@ def get_all_assistant_statuses(
     today_weekday: int,
     weekly_off_map: dict,
     assistants: Optional[list] = None,
-) -> dict[str, dict[str, str]]:
+) -> dict[str, dict[str, Any]]:
     from services.profiles_cache import get_all_assistants
     if assistants is None:
         assistants = get_all_assistants()
