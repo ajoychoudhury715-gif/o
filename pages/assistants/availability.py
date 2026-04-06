@@ -8,6 +8,7 @@ from services.availability import get_all_assistant_statuses, deserialize_time_b
 from services.profiles_cache import get_profiles_cache
 from data.attendance_repo import get_today_punch_map
 from services.utils import now_ist
+from components.assistant_day_detail import render_assistant_day_detail
 from components.theme import avail_badge_html
 
 
@@ -78,8 +79,10 @@ def render() -> None:
     st.markdown("---")
 
     # ── Individual cards ───────────────────────────────────────────────────────
+    st.caption("Use 'View Daily Schedule' on any assistant card to inspect that assistant's full day.")
     cols_per_row = 3
     assistant_list = list(statuses.keys())
+    selected_assistant = str(st.session_state.get("availability_selected_assistant", "") or "").strip().upper()
 
     for row_start in range(0, len(assistant_list), cols_per_row):
         cols = st.columns(cols_per_row)
@@ -90,9 +93,10 @@ def render() -> None:
                 reason = str(info.get("reason", ""))
                 dept = str(info.get("department", ""))
                 badge = avail_badge_html(status)
+                is_selected = selected_assistant == asst
 
                 st.markdown(
-                    f"""<div class="profile-card" style="margin-bottom:8px;">
+                    f"""<div class="profile-card" style="margin-bottom:8px;border:{'2px solid rgba(37,99,235,0.45)' if is_selected else '1px solid rgba(148,163,184,0.18)'};">
                       <div style="display:flex;justify-content:space-between;align-items:center;">
                         <span style="font-weight:600;color:#1e293b;font-size:14px;">👤 {asst}</span>
                         {badge}
@@ -102,3 +106,11 @@ def render() -> None:
                     </div>""",
                     unsafe_allow_html=True,
                 )
+                button_label = "Hide Daily Schedule" if is_selected else "View Daily Schedule"
+                if st.button(button_label, key=f"avail_detail_{asst}", width='stretch'):
+                    st.session_state.availability_selected_assistant = "" if is_selected else asst
+                    st.rerun()
+
+    selected_assistant = str(st.session_state.get("availability_selected_assistant", "") or "").strip().upper()
+    if selected_assistant:
+        render_assistant_day_detail(df, selected_assistant, today_str=today_str)

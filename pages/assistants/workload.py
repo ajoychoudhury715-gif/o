@@ -7,6 +7,7 @@ import pandas as pd
 
 from services.schedule_ops import ensure_schedule_columns, add_computed_columns, compute_workload_summary
 from services.profiles_cache import get_profiles_cache
+from components.assistant_day_detail import render_assistant_day_detail
 
 
 def render() -> None:
@@ -94,11 +95,13 @@ def render() -> None:
 
     # ── Workload cards ─────────────────────────────────────────────────────────
     st.markdown("### 📋 Assistant Workload (Clinic Hours: 9 AM - 7 PM)")
+    st.caption("Use 'View Daily Schedule' on any assistant card to inspect that assistant's full day.")
 
     if display_df.empty:
         st.info("No workload data available.")
     else:
         cols_per_row = 3
+        selected_assistant = str(st.session_state.get("workload_selected_assistant", "") or "").strip().upper()
         for row_start in range(0, len(display_df), cols_per_row):
             cols = st.columns(cols_per_row)
             for col_idx, (_, row) in enumerate(display_df.iloc[row_start:row_start + cols_per_row].iterrows()):
@@ -108,6 +111,7 @@ def render() -> None:
                     hours_busy = float(row.get("Hours Busy", 0))
                     hours_available = float(row.get("Hours Available", 0))
                     overtime = float(row.get("Overtime (After 7 PM)", 0))
+                    is_selected = selected_assistant == asst_name.strip().upper()
 
                     # Color coding based on workload
                     if hours_busy > 10:  # Overworked
@@ -128,7 +132,7 @@ def render() -> None:
                         busy_color = "#22c55e"
 
                     html_card = (
-                        f'<div style="background:{bg_color};border:1.5px solid {border_color};border-radius:14px;padding:16px;margin-bottom:12px;backdrop-filter:blur(10px);transition:all 0.3s ease;box-shadow:0 2px 8px rgba(0,0,0,0.05);">'
+                        f'<div style="background:{bg_color};border:{"2px solid rgba(37,99,235,0.45)" if is_selected else "1.5px solid " + border_color};border-radius:14px;padding:16px;margin-bottom:12px;backdrop-filter:blur(10px);transition:all 0.3s ease;box-shadow:0 2px 8px rgba(0,0,0,0.05);">'
                         '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;">'
                         '<div style="min-width:0;flex:1;">'
                         f'<div style="font-weight:700;color:#1e293b;font-size:16px;word-break:break-word;">👥 {asst_name}</div>'
@@ -145,6 +149,14 @@ def render() -> None:
                         '</div>'
                     )
                     st.markdown(html_card, unsafe_allow_html=True)
+                    button_label = "Hide Daily Schedule" if is_selected else "View Daily Schedule"
+                    if st.button(button_label, key=f"workload_detail_{asst_name}", width='stretch'):
+                        st.session_state.workload_selected_assistant = "" if is_selected else asst_name.strip().upper()
+                        st.rerun()
+
+    selected_assistant = str(st.session_state.get("workload_selected_assistant", "") or "").strip().upper()
+    if selected_assistant:
+        render_assistant_day_detail(df, selected_assistant, today_str=today_str)
 
     # ── Unassigned slots ───────────────────────────────────────────────────────
     st.markdown("---")

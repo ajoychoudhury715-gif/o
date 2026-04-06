@@ -72,6 +72,10 @@ STATE_SCHEMA: dict[str, Any] = {
     # Attendance page
     "attendance_date_filter": None,
     "attendance_assistant_filter": None,
+
+    # Assistant detail panels
+    "availability_selected_assistant": None,
+    "workload_selected_assistant": None,
 }
 
 
