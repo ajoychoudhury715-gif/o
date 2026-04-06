@@ -4,6 +4,10 @@ export default function AssistantsPage() {
   return (
     <div>
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Assistants</h2>
+      <p className="mb-6 max-w-3xl text-sm text-gray-600">
+        The assistant workflows are still mid-migration. These cards are a feature map, not linked
+        tools yet.
+      </p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card title="Manage Profiles" description="View and edit assistant profiles" />
         <Card title="My Workload" description="View personal workload" />
@@ -24,7 +28,7 @@ function Card({
   description: string;
 }) {
   return (
-    <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow cursor-pointer">
+    <div className="rounded-lg bg-white p-6 shadow">
       <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
       <p className="text-gray-600 mt-2">{description}</p>
     </div>

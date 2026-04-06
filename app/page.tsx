@@ -11,14 +11,14 @@ export default function Home() {
     // Check if user is authenticated
     const checkAuth = async () => {
       try {
-        const response = await fetch('/api/auth/check');
+        const response = await fetch('/api/auth/check', { cache: 'no-store' });
         if (response.ok) {
-          router.push('/dashboard');
+          router.replace('/dashboard');
         } else {
-          router.push('/auth/login');
+          router.replace('/auth/login');
         }
-      } catch (error) {
-        router.push('/auth/login');
+      } catch {
+        router.replace('/auth/login');
       } finally {
         setIsLoading(false);
       }
@@ -33,7 +33,7 @@ export default function Home() {
         <div className="text-center">
           <div className="text-4xl mb-4">🦷</div>
           <h1 className="text-2xl font-bold">THE DENTAL BOND</h1>
-          <p className="text-gray-600 mt-2">Loading...</p>
+          <p className="mt-2 text-gray-600">Loading...</p>
         </div>
       </div>
     );

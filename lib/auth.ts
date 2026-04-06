@@ -1,23 +1,45 @@
-// Auth utilities
-export const getAuthToken = () => {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('auth_token');
-  }
-  return null;
-};
+import type { AuthSession } from './types';
 
-export const setAuthToken = (token: string) => {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('auth_token', token);
-  }
-};
+const AUTH_STORAGE_KEY = 'tdb_auth_session';
 
-export const clearAuthToken = () => {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('auth_token');
+export function getStoredSession(): AuthSession | null {
+  if (typeof window === 'undefined') {
+    return null;
   }
-};
 
-export const isAuthenticated = () => {
-  return getAuthToken() !== null;
-};
+  const rawSession = localStorage.getItem(AUTH_STORAGE_KEY);
+  if (!rawSession) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(rawSession) as AuthSession;
+  } catch {
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    return null;
+  }
+}
+
+export function storeSession(session: AuthSession): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session));
+}
+
+export function clearStoredSession(): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  localStorage.removeItem(AUTH_STORAGE_KEY);
+}
+
+export function getAuthToken(): string | null {
+  return getStoredSession()?.token ?? null;
+}
+
+export function isAuthenticated(): boolean {
+  return getStoredSession() !== null;
+}
