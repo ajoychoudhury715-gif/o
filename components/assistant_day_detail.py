@@ -9,6 +9,10 @@ from data.duty_repo import get_active_duty_assignments, load_duty_runs
 from services.schedule_ops import filter_rows_for_assistant, filter_schedule_for_date, normalize_status
 from services.utils import coerce_to_time_obj, now_ist, parse_iso_ts, time_to_12h
 
+CLINIC_START_MIN = 9 * 60
+CLINIC_END_MIN = 19 * 60
+CLINIC_SHIFT_MINUTES = CLINIC_END_MIN - CLINIC_START_MIN
+
 
 def _time_sort_key(value) -> int:
     time_obj = coerce_to_time_obj(value)
@@ -40,8 +44,51 @@ def _assistant_roles(row: pd.Series, assistant_name: str) -> str:
     return " / ".join(roles) if roles else "—"
 
 
+def _get_assistant_day_schedule_df(df_schedule: pd.DataFrame, assistant_name: str, today_str: str) -> pd.DataFrame:
+    return filter_rows_for_assistant(filter_schedule_for_date(df_schedule, today_str), assistant_name)
+
+
+def _duration_minutes(start_value, end_value) -> int:
+    start_time = coerce_to_time_obj(start_value)
+    end_time = coerce_to_time_obj(end_value)
+    if start_time is None or end_time is None:
+        return 0
+
+    start_min = start_time.hour * 60 + start_time.minute
+    end_min = end_time.hour * 60 + end_time.minute
+    if end_min < start_min:
+        end_min += 24 * 60
+    return max(0, end_min - start_min)
+
+
+def _format_minutes_label(total_minutes: int) -> str:
+    minutes = max(0, int(total_minutes))
+    hours = minutes // 60
+    mins = minutes % 60
+    return f"{hours}h {mins:02d}m"
+
+
+def _estimate_run_minutes(row: pd.Series) -> int:
+    started_at = parse_iso_ts(row.get("started_at"))
+    ended_at = parse_iso_ts(row.get("ended_at"))
+    due_at = parse_iso_ts(row.get("due_at"))
+    status = str(row.get("status", "") or "").strip().upper()
+
+    if started_at and ended_at:
+        return max(0, int((ended_at - started_at).total_seconds() // 60))
+    if started_at and status == "IN_PROGRESS":
+        return max(0, int((now_ist() - started_at).total_seconds() // 60))
+    if started_at and due_at:
+        return max(0, int((due_at - started_at).total_seconds() // 60))
+
+    try:
+        return max(0, int(float(str(row.get("est_minutes", 0) or 0))))
+    except Exception:
+        return 0
+
+
 def _build_appointments_df(df_schedule: pd.DataFrame, assistant_name: str, today_str: str) -> pd.DataFrame:
-    filtered = filter_rows_for_assistant(filter_schedule_for_date(df_schedule, today_str), assistant_name)
+    filtered = _get_assistant_day_schedule_df(df_schedule, assistant_name, today_str)
     if filtered.empty:
         return pd.DataFrame(columns=["In", "Out", "Patient", "Doctor", "OP", "Role", "Status", "Procedure", "QTRAQ"])
 
@@ -65,7 +112,7 @@ def _build_appointments_df(df_schedule: pd.DataFrame, assistant_name: str, today
     return result.reset_index(drop=True)
 
 
-def _build_duty_frames(assistant_name: str, today_str: str) -> tuple[pd.DataFrame, pd.DataFrame]:
+def _build_duty_frames(assistant_name: str, today_str: str) -> tuple[pd.DataFrame, pd.DataFrame, list[dict], pd.DataFrame]:
     assistant_upper = str(assistant_name or "").strip().upper()
     assignments = get_active_duty_assignments(assistant_upper)
 
@@ -123,7 +170,39 @@ def _build_duty_frames(assistant_name: str, today_str: str) -> tuple[pd.DataFram
     if not activity_df.empty:
         activity_df = activity_df.sort_values(by=["Started", "Task"], ascending=[True, True]).reset_index(drop=True)
 
-    return assigned_df, activity_df
+    return assigned_df, activity_df, assignments, today_runs
+
+
+def _build_time_analytics(schedule_df: pd.DataFrame, duty_assignments: list[dict], today_runs: pd.DataFrame) -> dict[str, int]:
+    patient_care_minutes = 0
+    if schedule_df is not None and not schedule_df.empty:
+        for _, row in schedule_df.iterrows():
+            patient_care_minutes += _duration_minutes(row.get("In Time"), row.get("Out Time"))
+
+    other_duty_minutes = 0
+    duty_ids_with_runs: set[str] = set()
+    if today_runs is not None and not today_runs.empty:
+        for _, row in today_runs.iterrows():
+            duty_id = str(row.get("duty_id", "") or "").strip()
+            if duty_id:
+                duty_ids_with_runs.add(duty_id)
+            other_duty_minutes += _estimate_run_minutes(row)
+
+    for duty in duty_assignments or []:
+        duty_id = str(duty.get("duty_id", "") or "").strip()
+        if duty_id and duty_id in duty_ids_with_runs:
+            continue
+        try:
+            other_duty_minutes += max(0, int(float(str(duty.get("est_minutes", 0) or 0))))
+        except Exception:
+            continue
+
+    free_time_minutes = max(0, CLINIC_SHIFT_MINUTES - patient_care_minutes - other_duty_minutes)
+    return {
+        "patient_care_minutes": patient_care_minutes,
+        "other_duty_minutes": other_duty_minutes,
+        "free_time_minutes": free_time_minutes,
+    }
 
 
 def render_assistant_day_detail(df_schedule: pd.DataFrame, assistant_name: str, today_str: str | None = None) -> None:
@@ -132,8 +211,10 @@ def render_assistant_day_detail(df_schedule: pd.DataFrame, assistant_name: str, 
         return
 
     today_value = str(today_str or now_ist().date().isoformat()).strip()
+    schedule_df = _get_assistant_day_schedule_df(df_schedule, assistant_upper, today_value)
     appointments_df = _build_appointments_df(df_schedule, assistant_upper, today_value)
-    duties_df, duty_activity_df = _build_duty_frames(assistant_upper, today_value)
+    duties_df, duty_activity_df, duty_assignments, today_runs = _build_duty_frames(assistant_upper, today_value)
+    analytics = _build_time_analytics(schedule_df, duty_assignments, today_runs)
 
     status_counts = appointments_df.get("Status", pd.Series(dtype=str)).astype(str).str.upper()
     ongoing_count = int(status_counts.eq("ON GOING").sum()) if not appointments_df.empty else 0
@@ -146,6 +227,13 @@ def render_assistant_day_detail(df_schedule: pd.DataFrame, assistant_name: str, 
     metric_cols[0].metric("Appointments", int(len(appointments_df)))
     metric_cols[1].metric("Ongoing", ongoing_count)
     metric_cols[2].metric("Tasks", int(len(duties_df)) if not duties_df.empty else int(len(duty_activity_df)))
+
+    st.markdown("#### ⏱ Time Analytics")
+    st.caption("Based on today's assigned appointment durations and duty activity/estimates within clinic hours (9 AM - 7 PM).")
+    analytics_cols = st.columns(3)
+    analytics_cols[0].metric("Patient Care", _format_minutes_label(analytics["patient_care_minutes"]))
+    analytics_cols[1].metric("Other Duties", _format_minutes_label(analytics["other_duty_minutes"]))
+    analytics_cols[2].metric("Free Time", _format_minutes_label(analytics["free_time_minutes"]))
 
     tab_appts, tab_tasks = st.tabs(["Appointments", "Tasks"])
 
