@@ -155,6 +155,68 @@ def _normalize_duty_assignments_df(df: pd.DataFrame, include_display: bool = Tru
     return pd.DataFrame(rows, columns=base_columns)
 
 
+def _build_duty_lookup(duties_df: pd.DataFrame) -> tuple[dict[str, dict], dict[str, str]]:
+    duty_map: dict[str, dict] = {}
+    duty_id_by_name: dict[str, str] = {}
+    if duties_df is None or duties_df.empty:
+        return duty_map, duty_id_by_name
+
+    for _, row in duties_df.iterrows():
+        duty_id = _normalize_text(row.get("id"))
+        duty_name = _normalize_text(row.get("name"))
+        if duty_id:
+            duty_map[duty_id] = row.to_dict()
+        if duty_id and duty_name:
+            duty_id_by_name[_normalize_name(duty_name)] = duty_id
+    return duty_map, duty_id_by_name
+
+
+def _sync_assignments_to_duties(
+    assignments_df: pd.DataFrame,
+    duties_df: pd.DataFrame,
+    include_display: bool = True,
+) -> pd.DataFrame:
+    normalized = _normalize_duty_assignments_df(assignments_df, include_display=True)
+    if normalized.empty:
+        base_columns = list(DUTY_ASSIGNMENTS_COLUMNS)
+        if include_display:
+            base_columns.append("duty_name")
+        return pd.DataFrame(columns=base_columns)
+
+    duty_map, duty_id_by_name = _build_duty_lookup(duties_df)
+    synced_rows = []
+    for _, row in normalized.iterrows():
+        duty_id = _normalize_text(row.get("duty_id"))
+        if not duty_id:
+            duty_id = duty_id_by_name.get(_normalize_name(row.get("duty_name")), "")
+
+        duty_info = duty_map.get(duty_id, {})
+        synced_row = {
+            "id": _normalize_text(row.get("id")),
+            "duty_id": duty_id,
+            "assistant": _normalize_name(row.get("assistant")),
+            "op": _normalize_text(row.get("op")),
+            "est_minutes": _normalize_minutes(
+                duty_info.get("est_minutes") if duty_info else row.get("est_minutes"),
+                default=30,
+            ),
+            "active": _normalize_bool(row.get("active"), default=True),
+        }
+        if include_display:
+            synced_row["duty_name"] = (
+                _normalize_text(duty_info.get("name"))
+                or _normalize_text(row.get("duty_name"))
+            )
+        synced_rows.append(synced_row)
+
+    synced_df = pd.DataFrame(synced_rows)
+    base_columns = list(DUTY_ASSIGNMENTS_COLUMNS)
+    if include_display:
+        base_columns.append("duty_name")
+        return synced_df[base_columns]
+    return synced_df[DUTY_ASSIGNMENTS_COLUMNS]
+
+
 def _normalize_duty_runs_df(df: pd.DataFrame, include_display: bool = True) -> pd.DataFrame:
     base_columns = list(DUTY_RUNS_COLUMNS)
     if include_display:
@@ -205,11 +267,13 @@ def load_duty_assignments() -> pd.DataFrame:
     df = _sb_load(SUPABASE_DUTY_ASSIGNMENTS_TABLE) if USE_SUPABASE else pd.DataFrame()
     if df.empty:
         df = load_sheet(EXCEL_DUTY_ASSIGNMENTS_SHEET, DUTY_ASSIGNMENTS_COLUMNS)
-    return _normalize_duty_assignments_df(df, include_display=True)
+    duties_df = load_duties_master()
+    return _sync_assignments_to_duties(df, duties_df, include_display=True)
 
 
 def save_duty_assignments(df: pd.DataFrame) -> bool:
-    normalized = _normalize_duty_assignments_df(df, include_display=False)
+    duties_df = load_duties_master()
+    normalized = _sync_assignments_to_duties(df, duties_df, include_display=False)
     if USE_SUPABASE and _sb_upsert(SUPABASE_DUTY_ASSIGNMENTS_TABLE, normalized):
         return True
     return save_sheet(normalized, EXCEL_DUTY_ASSIGNMENTS_SHEET)
@@ -259,16 +323,7 @@ def get_active_duty_assignments(assistant: str) -> list[dict]:
         if assignments_df.empty or duties_df.empty:
             return []
 
-        duty_map = {
-            _normalize_text(row.get("id")): row.to_dict()
-            for _, row in duties_df.iterrows()
-            if _normalize_text(row.get("id"))
-        }
-        duty_id_by_name = {
-            _normalize_name(row.get("name")): _normalize_text(row.get("id"))
-            for _, row in duties_df.iterrows()
-            if _normalize_name(row.get("name")) and _normalize_text(row.get("id"))
-        }
+        duty_map, duty_id_by_name = _build_duty_lookup(duties_df)
 
         mask = (
             assignments_df["assistant"].astype(str).str.strip().str.upper().eq(assistant_upper)
@@ -283,7 +338,10 @@ def get_active_duty_assignments(assistant: str) -> list[dict]:
             duty_info = duty_map.get(duty_id, {})
             if duty_info and not _normalize_bool(duty_info.get("active"), default=True):
                 continue
-            est_minutes = _normalize_minutes(arow.get("est_minutes") or duty_info.get("est_minutes"), default=30)
+            est_minutes = _normalize_minutes(
+                duty_info.get("est_minutes") if duty_info else arow.get("est_minutes"),
+                default=30,
+            )
             result.append({
                 "duty_id": duty_id,
                 "assistant": assistant_upper,

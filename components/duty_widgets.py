@@ -63,10 +63,13 @@ def _prepare_duty_master_editor_df(duties_df):
 def _prepare_assignment_editor_df(assignments_df, duties_df):
     import pandas as pd
 
-    duty_name_map = {}
+    duty_meta_map = {}
     if duties_df is not None and not duties_df.empty:
-        duty_name_map = {
-            _normalize_text(row.get("id")): _normalize_text(row.get("name"))
+        duty_meta_map = {
+            _normalize_text(row.get("id")): {
+                "name": _normalize_text(row.get("name")),
+                "est_minutes": _normalize_minutes(row.get("est_minutes"), default=30),
+            }
             for _, row in duties_df.iterrows()
             if _normalize_text(row.get("id"))
         }
@@ -86,10 +89,17 @@ def _prepare_assignment_editor_df(assignments_df, duties_df):
         edited[col] = edited[col].apply(_normalize_text)
     edited["assistant"] = edited["assistant"].str.upper()
     edited["duty_name"] = edited.apply(
-        lambda row: _normalize_text(row.get("duty_name")) or duty_name_map.get(_normalize_text(row.get("duty_id")), ""),
+        lambda row: _normalize_text(row.get("duty_name"))
+        or duty_meta_map.get(_normalize_text(row.get("duty_id")), {}).get("name", ""),
         axis=1,
     )
-    edited["est_minutes"] = edited["est_minutes"].apply(_normalize_minutes)
+    edited["est_minutes"] = edited.apply(
+        lambda row: duty_meta_map.get(_normalize_text(row.get("duty_id")), {}).get(
+            "est_minutes",
+            _normalize_minutes(row.get("est_minutes"), default=30),
+        ),
+        axis=1,
+    )
     edited["active"] = edited["active"].apply(_normalize_active)
     return edited
 
@@ -160,15 +170,22 @@ def render_duty_assignments_editor(
     import uuid
 
     st.markdown("#### 🔗 Duty Assignments")
+    st.caption("Estimated time is synced from Duty Definitions for the selected duty.")
     if assignments_df is None or assignments_df.empty:
         st.info("No assignments yet.")
     assignments_df = _prepare_assignment_editor_df(assignments_df, duties_df)
 
     duty_ids = []
     duty_name_map = {}
+    duty_estimate_map = {}
     if duties_df is not None and not duties_df.empty:
         duty_name_map = {
             _normalize_text(row.get("id")): _normalize_text(row.get("name"))
+            for _, row in duties_df.iterrows()
+            if _normalize_text(row.get("id"))
+        }
+        duty_estimate_map = {
+            _normalize_text(row.get("id")): _normalize_minutes(row.get("est_minutes"), default=30)
             for _, row in duties_df.iterrows()
             if _normalize_text(row.get("id"))
         }
@@ -190,8 +207,15 @@ def render_duty_assignments_editor(
         width='stretch',
         num_rows="dynamic",
         key="duty_assignments_editor",
-        disabled=["duty_name"],
+        disabled=["duty_name", "est_minutes"],
     )
+
+    synced_preview = edited.copy()
+    synced_preview["duty_name"] = synced_preview["duty_id"].map(duty_name_map).fillna(synced_preview["duty_name"])
+    synced_preview["est_minutes"] = synced_preview["duty_id"].map(duty_estimate_map).fillna(
+        synced_preview["est_minutes"].apply(_normalize_minutes)
+    )
+    edited = synced_preview
 
     if st.button("💾 Save Assignments", width='stretch', key="btn_save_assignments"):
         edited = _drop_empty_rows(edited.copy(), ["id", "assistant", "duty_id", "duty_name", "op"])
@@ -210,7 +234,9 @@ def render_duty_assignments_editor(
             axis=1,
         )
         edited["duty_name"] = edited["duty_id"].map(duty_name_map).fillna(edited["duty_name"])
-        edited["est_minutes"] = edited["est_minutes"].apply(_normalize_minutes)
+        edited["est_minutes"] = edited["duty_id"].map(duty_estimate_map).fillna(
+            edited["est_minutes"].apply(_normalize_minutes)
+        )
         edited["active"] = edited["active"].apply(_normalize_active)
 
         for i in range(len(edited)):
