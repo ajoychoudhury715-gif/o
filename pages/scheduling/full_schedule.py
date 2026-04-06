@@ -49,9 +49,13 @@ def _strict_date_mask(date_series: pd.Series, selected_date) -> tuple[pd.Series,
 
     # Support legacy Excel serial dates if any historical rows were imported that way.
     numeric_dates = pd.to_numeric(parse_input, errors="coerce")
-    normalized_excel = pd.to_datetime(
-        numeric_dates, unit="D", origin="1899-12-30", errors="coerce"
-    ).dt.strftime("%Y-%m-%d")
+    # Only convert numeric values; skip NaN to avoid FloatingPointError in rounding
+    normalized_excel = pd.Series([""] * len(numeric_dates), index=numeric_dates.index)
+    valid_mask = numeric_dates.notna()
+    if valid_mask.any():
+        normalized_excel[valid_mask] = pd.to_datetime(
+            numeric_dates[valid_mask], unit="D", origin="1899-12-30", errors="coerce"
+        ).dt.strftime("%Y-%m-%d")
 
     mask = (
         direct_match
