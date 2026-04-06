@@ -13,6 +13,8 @@ from services.schedule_ops import (
     ensure_row_ids,
     update_status,
     add_computed_columns,
+    apply_row_updates,
+    merge_updated_view,
 )
 from services.profiles_cache import (
     get_profiles_cache,
@@ -312,15 +314,10 @@ def _on_add_appointment(df, row: dict) -> None:
 
 def _on_edit_row(df, row_id: str, updates: dict) -> None:
     require_access("action::schedule::edit_appointment", "editing appointments")
-    mask = df["REMINDER_ROW_ID"].astype(str).str.strip() == row_id
-    idxs = df.index[mask].tolist()
-    if idxs:
-        for col, val in updates.items():
-            if col in df.columns:
-                df.loc[idxs[0], col] = val
-    st.session_state.df = df
+    updated = apply_row_updates(df, row_id, updates)
+    st.session_state.df = updated
     st.session_state[f"editing_row_{row_id}"] = False
-    maybe_save(df, message="Appointment updated")
+    maybe_save(updated, message="Appointment updated")
     st.rerun()
 
 
@@ -332,11 +329,9 @@ def _cancel_edit(row_id: str) -> None:
 def _on_table_save(full_df, view_df, updated_view) -> None:
     """Merge edited table rows back into full_df."""
     require_access("action::schedule::edit_appointment", "editing appointments")
-    for col in updated_view.columns:
-        if col in full_df.columns and col in view_df.columns:
-            full_df.loc[view_df.index, col] = updated_view[col].values
-    st.session_state.df = full_df
-    maybe_save(full_df, message="Table edited")
+    merged = merge_updated_view(full_df, view_df, updated_view)
+    st.session_state.df = merged
+    maybe_save(merged, message="Table edited")
     st.rerun()
 
 
