@@ -17,6 +17,8 @@ from data.schedule_repo import clear_schedule_cache
 from security.rbac import has_access, require_access
 from services.utils import now_ist, time_to_12h
 
+LIVE_OCCUPANCY_REFRESH_SECONDS = 15
+
 
 def _strict_date_mask(date_series: pd.Series, selected_date) -> tuple[pd.Series, str]:
     """Build strict date match mask with tolerant normalization for legacy date strings."""
@@ -166,6 +168,40 @@ def _render_selected_op_analytics(df: pd.DataFrame, selected_op: str, selected_d
             st.dataframe(free_display, width="stretch", hide_index=True)
 
 
+def _load_live_schedule_df() -> pd.DataFrame:
+    from data.schedule_repo import clear_schedule_cache, load_schedule
+
+    clear_schedule_cache()
+    live_df = load_schedule()
+    live_df = ensure_schedule_columns(live_df)
+    live_df = ensure_row_ids(live_df)
+    return add_computed_columns(live_df)
+
+
+@st.fragment(run_every=LIVE_OCCUPANCY_REFRESH_SECONDS)
+def _render_live_op_dashboard(selected_date, selected_op: str, all_ops: list[str]) -> None:
+    live_df = _load_live_schedule_df()
+    live_ops = sorted(
+        {
+            *(str(op or "").strip() for op in all_ops or []),
+            *(
+                str(value).strip()
+                for value in live_df.get("OP", pd.Series(dtype=str)).dropna().astype(str).tolist()
+            ),
+        }
+    )
+    live_ops = [op for op in live_ops if op]
+    current_op = selected_op if selected_op in live_ops else (live_ops[0] if live_ops else selected_op)
+
+    st.caption(
+        f"Live occupancy refreshes every {LIVE_OCCUPANCY_REFRESH_SECONDS}s. "
+        "Busy timers start only when a patient is marked ON GOING, and they stop as soon as that status becomes DONE or CANCELLED."
+    )
+    op_summary_df = build_op_status_summary(live_df, selected_date, op_rooms=live_ops)
+    _render_op_status_board(op_summary_df, current_op)
+    _render_selected_op_analytics(live_df, current_op, selected_date)
+
+
 def render() -> None:
     st.markdown("## 🏥 Schedule by OP Room")
 
@@ -224,9 +260,7 @@ def render() -> None:
             st.cache_data.clear()
             st.rerun()
 
-    op_summary_df = build_op_status_summary(df, selected_date, op_rooms=all_ops)
-    _render_op_status_board(op_summary_df, selected_op)
-    _render_selected_op_analytics(df, selected_op, selected_date)
+    _render_live_op_dashboard(selected_date, selected_op, all_ops)
 
     # ── Filter by date and OP ──────────────────────────────────────────────────
     filtered = filter_by_op(df, selected_op)

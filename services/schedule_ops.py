@@ -478,6 +478,8 @@ def build_op_status_summary(df: pd.DataFrame, target_date=None, op_rooms: list[s
         if live_records:
             live_start = min(record["start_dt"] for record in live_records)
             expected_free_at = max(record.get("predicted_end_dt") or record["end_dt"] for record in live_records)
+            if expected_free_at < effective_end:
+                expected_free_at = effective_end
             current_status = "BUSY"
             current_patient = live_records[0]["patient"] if len(live_records) == 1 else f"{len(live_records)} ongoing patients"
             current_for = _duration_minutes_between(live_start, effective_end)

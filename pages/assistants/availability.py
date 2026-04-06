@@ -12,6 +12,8 @@ from services.utils import now_ist, time_to_12h
 from components.assistant_day_detail import render_assistant_day_detail
 from components.theme import avail_badge_html
 
+LIVE_OCCUPANCY_REFRESH_SECONDS = 15
+
 
 def _format_minutes_label(total_minutes) -> str:
     if total_minutes is None:
@@ -31,20 +33,20 @@ def _format_dt_label(value) -> str:
     return time_to_12h(dt_value.astimezone(now_ist().tzinfo).time().replace(second=0, microsecond=0))
 
 
-def render() -> None:
-    st.markdown("## 📡 Assistant Availability")
+def _load_live_schedule_df() -> pd.DataFrame:
+    from data.schedule_repo import clear_schedule_cache, load_schedule
+    from services.schedule_ops import ensure_schedule_columns, ensure_row_ids, add_computed_columns
 
-    df = st.session_state.get("df")
-    if df is None:
-        from data.schedule_repo import load_schedule
-        from services.schedule_ops import ensure_schedule_columns, ensure_row_ids, add_computed_columns
-        df = load_schedule()
-        df = ensure_schedule_columns(df)
-        df = ensure_row_ids(df)
-        df = add_computed_columns(df)
-        st.session_state.df = df
+    clear_schedule_cache()
+    df = load_schedule()
+    df = ensure_schedule_columns(df)
+    df = ensure_row_ids(df)
+    return add_computed_columns(df)
 
-    cache_bust = st.session_state.get("profiles_cache_bust", 0)
+
+@st.fragment(run_every=LIVE_OCCUPANCY_REFRESH_SECONDS)
+def _render_live_availability_dashboard(cache_bust: int) -> None:
+    df = _load_live_schedule_df()
     cache = get_profiles_cache(cache_bust)
     assistants = sorted(cache.get("assistants_list") or [])
 
@@ -59,6 +61,11 @@ def render() -> None:
             default=[],
             key="avail_filter",
         )
+
+    st.caption(
+        f"Live occupancy refreshes every {LIVE_OCCUPANCY_REFRESH_SECONDS}s. "
+        "Patient appointments marked ON GOING show as BUSY; active duty runs and time blocks show as BLOCKED with the same countdown fields."
+    )
 
     now = now_ist()
     today_str = now.date().isoformat()
@@ -142,3 +149,8 @@ def render() -> None:
     selected_assistant = str(st.session_state.get("availability_selected_assistant", "") or "").strip().upper()
     if selected_assistant:
         render_assistant_day_detail(df, selected_assistant, today_str=today_str)
+
+
+def render() -> None:
+    st.markdown("## 📡 Assistant Availability")
+    _render_live_availability_dashboard(int(st.session_state.get("profiles_cache_bust", 0)))

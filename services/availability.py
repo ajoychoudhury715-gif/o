@@ -43,12 +43,12 @@ def _build_appointment_times(appt: dict[str, Any], today_str: str) -> tuple[Opti
     return start_dt, scheduled_end, actual_end
 
 
-def _get_current_time_block(
+def _get_time_block_intervals(
     assistant_upper: str,
     time_blocks: list[dict],
     today_str: str,
-) -> Optional[dict[str, Any]]:
-    current_time = now_ist()
+) -> list[dict[str, Any]]:
+    intervals: list[dict[str, Any]] = []
     for block in time_blocks or []:
         if str(block.get("date", "")).strip() != today_str:
             continue
@@ -60,13 +60,127 @@ def _get_current_time_block(
             continue
         if end_dt < start_dt:
             end_dt += timedelta(days=1)
-        if start_dt <= current_time <= end_dt:
-            return {
+        intervals.append(
+            {
                 "reason": str(block.get("reason", "Blocked")).strip() or "Blocked",
                 "start_dt": start_dt,
                 "end_dt": end_dt,
             }
-    return None
+        )
+    return sorted(intervals, key=lambda item: item.get("start_dt") or now_ist())
+
+
+def _extend_expected_end(
+    base_end: Optional[datetime],
+    intervals: list[dict[str, Any]],
+) -> Optional[datetime]:
+    if base_end is None:
+        return None
+
+    expected_end = base_end
+    changed = True
+    while changed:
+        changed = False
+        for interval in intervals or []:
+            start_dt = interval.get("start_dt")
+            end_dt = interval.get("end_dt")
+            if start_dt is None or end_dt is None:
+                continue
+            if start_dt <= expected_end and end_dt > expected_end:
+                expected_end = end_dt
+                changed = True
+    return expected_end
+
+
+def _get_current_time_block_stretch(
+    assistant_upper: str,
+    time_blocks: list[dict],
+    today_str: str,
+) -> Optional[dict[str, Any]]:
+    intervals = _get_time_block_intervals(assistant_upper, time_blocks, today_str)
+    current_time = now_ist()
+    active = [
+        interval
+        for interval in intervals
+        if interval.get("start_dt") is not None
+        and interval.get("end_dt") is not None
+        and interval["start_dt"] <= current_time <= interval["end_dt"]
+    ]
+    if not active:
+        return None
+
+    stretch_start = min(interval["start_dt"] for interval in active)
+    stretch_end = max(interval["end_dt"] for interval in active)
+    changed = True
+    while changed:
+        changed = False
+        for interval in intervals:
+            start_dt = interval.get("start_dt")
+            end_dt = interval.get("end_dt")
+            if start_dt is None or end_dt is None:
+                continue
+            if start_dt <= stretch_end and end_dt >= stretch_start:
+                new_start = min(stretch_start, start_dt)
+                new_end = max(stretch_end, end_dt)
+                if new_start != stretch_start or new_end != stretch_end:
+                    stretch_start = new_start
+                    stretch_end = new_end
+                    changed = True
+
+    reasons = []
+    for interval in intervals:
+        start_dt = interval.get("start_dt")
+        end_dt = interval.get("end_dt")
+        reason = str(interval.get("reason", "Blocked")).strip() or "Blocked"
+        if start_dt is None or end_dt is None:
+            continue
+        if start_dt <= stretch_end and end_dt >= stretch_start and reason not in reasons:
+            reasons.append(reason)
+
+    if len(reasons) == 1:
+        reason_label = reasons[0]
+    else:
+        reason_label = f"{len(reasons)} active blocks"
+
+    return {
+        "reason": reason_label,
+        "start_dt": stretch_start,
+        "end_dt": stretch_end,
+        "intervals": intervals,
+    }
+
+
+def _get_active_duty_run_state(assistant_upper: str) -> Optional[dict[str, Any]]:
+    from data.duty_repo import get_active_duty_run
+
+    active_run = get_active_duty_run(assistant_upper)
+    if not active_run:
+        return None
+
+    current_time = now_ist()
+    started_at = parse_iso_ts(active_run.get("started_at"))
+    due_at = parse_iso_ts(active_run.get("due_at"))
+    if started_at is None and due_at is None:
+        return None
+
+    if started_at is None:
+        try:
+            est_minutes = max(0, int(float(str(active_run.get("est_minutes", 0) or 0))))
+        except Exception:
+            est_minutes = 0
+        started_at = (due_at or current_time) - timedelta(minutes=est_minutes)
+
+    if due_at is None:
+        due_at = current_time
+    if due_at < started_at:
+        due_at = started_at
+
+    return {
+        "name": str(active_run.get("duty_name") or active_run.get("duty_id") or "Duty").strip(),
+        "op": str(active_run.get("op", "") or "").strip(),
+        "start_dt": started_at,
+        "end_dt": due_at,
+    }
 
 
 def _latest_completed_engagement_end(
@@ -271,25 +385,14 @@ def get_assistant_status(
     if punch_out:
         return {"status": "BLOCKED", "reason": f"Punched out at {str(punch_out)[:5]}", "department": dept}
 
-    current_block = _get_current_time_block(assist_upper, time_blocks, today_str)
-    if current_block:
-        blocked_for = _duration_minutes_between(current_block.get("start_dt"), now)
-        available_in = _duration_minutes_between(now, current_block.get("end_dt"))
-        return {
-            "status": "BLOCKED",
-            "reason": current_block.get("reason", "Blocked"),
-            "department": dept,
-            "current_for_minutes": blocked_for,
-            "available_in_minutes": available_in,
-            "expected_free_at": current_block.get("end_dt"),
-            "current_label": "Blocked For",
-        }
-
     schedule = get_assistant_schedule(
         assist_upper,
         filter_schedule_for_date(df_schedule, today_str),
         include_terminal=True,
     )
+    time_block_intervals = _get_time_block_intervals(assist_upper, time_blocks, today_str)
+    active_duty = _get_active_duty_run_state(assist_upper)
+
     live_appts = [appt for appt in schedule if is_status_ongoing(appt.get("status", ""))]
     if live_appts:
         live_entries = []
@@ -302,6 +405,12 @@ def get_assistant_status(
 
         busy_since = min(entry[1] for entry in live_entries)
         expected_free_at = max(entry[2] for entry in live_entries)
+        blocking_intervals = list(time_block_intervals)
+        if active_duty is not None:
+            blocking_intervals.append(active_duty)
+        expected_free_at = _extend_expected_end(expected_free_at, blocking_intervals) or expected_free_at
+        if expected_free_at < now:
+            expected_free_at = now
         current_patients = [str(entry[0].get("patient", "") or "").strip() for entry in live_entries if str(entry[0].get("patient", "") or "").strip()]
         current_ops = sorted({str(entry[0].get("op", "") or "").strip() for entry in live_entries if str(entry[0].get("op", "") or "").strip()})
         if len(current_patients) == 1:
@@ -319,6 +428,38 @@ def get_assistant_status(
             "available_in_minutes": _duration_minutes_between(now, expected_free_at),
             "expected_free_at": expected_free_at,
             "current_label": "Busy For",
+        }
+
+    if active_duty:
+        expected_free_at = _extend_expected_end(active_duty.get("end_dt"), time_block_intervals) or active_duty.get("end_dt")
+        if expected_free_at is not None and expected_free_at < now:
+            expected_free_at = now
+        return {
+            "status": "BLOCKED",
+            "reason": f"Duty: {active_duty.get('name', 'Duty')}",
+            "department": dept,
+            "current_op": active_duty.get("op", ""),
+            "current_for_minutes": _duration_minutes_between(active_duty.get("start_dt"), now),
+            "available_in_minutes": _duration_minutes_between(now, expected_free_at),
+            "expected_free_at": expected_free_at,
+            "current_label": "Duty For",
+        }
+
+    current_block = _get_current_time_block_stretch(assist_upper, time_blocks, today_str)
+    if current_block:
+        blocked_for = _duration_minutes_between(current_block.get("start_dt"), now)
+        expected_free_at = current_block.get("end_dt")
+        if expected_free_at is not None and expected_free_at < now:
+            expected_free_at = now
+        available_in = _duration_minutes_between(now, expected_free_at)
+        return {
+            "status": "BLOCKED",
+            "reason": current_block.get("reason", "Blocked"),
+            "department": dept,
+            "current_for_minutes": blocked_for,
+            "available_in_minutes": available_in,
+            "expected_free_at": expected_free_at,
+            "current_label": "Blocked For",
         }
 
     free_since = _latest_completed_engagement_end(
