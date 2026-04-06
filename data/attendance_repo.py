@@ -12,6 +12,7 @@ from config.settings import (
 from config.constants import ATTENDANCE_COLUMNS
 from data.supabase_client import get_supabase_client
 from data.excel_ops import load_sheet, save_sheet
+from services.utils import is_blank
 
 
 def _get_client():
@@ -89,8 +90,10 @@ def get_today_punch_map(date_str: str) -> dict[str, dict[str, str]]:
     for _, row in df[mask].iterrows():
         name = str(row.get(asst_col, "")).strip().upper()
         if name:
-            pin = str(row.get(pin_col, "") or "").strip() if pin_col else ""
-            pout = str(row.get(pout_col, "") or "").strip() if pout_col else ""
+            raw_pin = row.get(pin_col, "") if pin_col else ""
+            raw_pout = row.get(pout_col, "") if pout_col else ""
+            pin = "" if is_blank(raw_pin) else str(raw_pin).strip()
+            pout = "" if is_blank(raw_pout) else str(raw_pout).strip()
             result[name] = {
                 "punch_in": pin,
                 "punch_out": pout,

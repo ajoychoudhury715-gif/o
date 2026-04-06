@@ -107,12 +107,12 @@ def is_assistant_available(
         pdata = punch_map.get(assist_upper, {})
         punch_in = pdata.get("punch_in", "")
         punch_out = pdata.get("punch_out", "")
-        if not punch_in:
+        if is_blank(punch_in):
             if weekly_off_set and assist_upper in weekly_off_set:
                 return False, f"Weekly off ({now_ist().strftime('%A')})"
             return False, "Not punched in"
-        if punch_out:
-            return False, f"Punched out at {punch_out[:5]}"
+        if not is_blank(punch_out):
+            return False, f"Punched out at {str(punch_out)[:5]}"
 
     in_obj = coerce_to_time_obj(check_in_time)
     out_obj = coerce_to_time_obj(check_out_time)
@@ -165,12 +165,12 @@ def get_assistant_status(
     punch_in = pdata.get("punch_in", "")
     punch_out = pdata.get("punch_out", "")
 
-    if not punch_in:
+    if is_blank(punch_in):
         off_set = {str(n).strip().upper() for n in weekly_off_map.get(today_weekday, [])}
         if assist_upper in off_set:
             return {"status": "BLOCKED", "reason": f"Weekly off ({now.strftime('%A')})", "department": dept}
         return {"status": "BLOCKED", "reason": "Not punched in", "department": dept}
-    if punch_out:
+    if not is_blank(punch_out):
         return {"status": "BLOCKED", "reason": f"Punched out at {str(punch_out)[:5]}", "department": dept}
 
     current_time = now.time().replace(second=0, microsecond=0)
