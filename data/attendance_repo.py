@@ -14,6 +14,25 @@ from data.supabase_client import get_supabase_client
 from data.excel_ops import load_sheet, save_sheet
 
 
+def _normalize_attendance_df(df: pd.DataFrame) -> pd.DataFrame:
+    """Return attendance data with consistent lowercase columns and trimmed values."""
+    if df is None or df.empty:
+        return pd.DataFrame(columns=["date", "assistant", "punch_in", "punch_out"])
+
+    out = df.copy()
+    out.columns = [str(c).strip().lower().replace(" ", "_") for c in out.columns]
+
+    for col in ["date", "assistant", "punch_in", "punch_out"]:
+        if col not in out.columns:
+            out[col] = ""
+
+    out["date"] = out["date"].astype(str).str.strip()
+    out["assistant"] = out["assistant"].astype(str).str.strip().str.upper()
+    out["punch_in"] = out["punch_in"].fillna("").astype(str).str.strip()
+    out["punch_out"] = out["punch_out"].fillna("").astype(str).str.strip()
+    return out
+
+
 def _get_client():
     if not USE_SUPABASE:
         print("[PUNCH DEBUG] Supabase disabled (USE_SUPABASE=False)")
@@ -41,23 +60,16 @@ def load_attendance() -> pd.DataFrame:
             print(f"[LOAD ATTENDANCE DEBUG] Got {len(data)} records from Supabase")
             if data:
                 print(f"[LOAD ATTENDANCE DEBUG] Sample record: {data[0]}")
-            df = pd.DataFrame(data)
+            df = _normalize_attendance_df(pd.DataFrame(data))
             if not df.empty:
                 print(f"[LOAD ATTENDANCE DEBUG] DataFrame shape: {df.shape}, columns: {list(df.columns)}")
-                # Normalize column names to lowercase to avoid duplicates
-                df.columns = [str(c).strip().lower() for c in df.columns]
-                # Ensure required columns exist
-                required_cols = ["date", "assistant", "punch_in", "punch_out"]
-                for col in required_cols:
-                    if col not in df.columns:
-                        df[col] = ""
                 return df
             else:
                 print(f"[LOAD ATTENDANCE DEBUG] DataFrame is empty")
                 return df
         except Exception as e:
             print(f"[LOAD ATTENDANCE ERROR] Supabase query failed: {type(e).__name__}: {str(e)}")
-    return load_sheet(EXCEL_ATTENDANCE_SHEET, ATTENDANCE_COLUMNS)
+    return _normalize_attendance_df(load_sheet(EXCEL_ATTENDANCE_SHEET, ATTENDANCE_COLUMNS))
 
 
 def get_today_punch_map(date_str: str) -> dict[str, dict[str, str]]:

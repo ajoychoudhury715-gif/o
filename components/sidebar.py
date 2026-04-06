@@ -122,23 +122,25 @@ def _render_punch_widget(df) -> None:
     except Exception:
         assistants = []
 
-    if not assistants:
-        st.caption("No assistants found. Add assistants first.")
-        return
-
     # If logged in as an assistant, default to their own name
-    user_role = st.session_state.get("user_role", "")
-    current_user = st.session_state.get("current_user", "")
+    assistants = sorted({str(name).strip().upper() for name in assistants if str(name).strip()})
+    user_role = str(st.session_state.get("user_role", "") or "").strip().lower()
+    current_user = str(st.session_state.get("current_user", "") or "").strip()
+    current_user_upper = current_user.upper()
 
-    if user_role == "assistant" and current_user and current_user in assistants:
+    if user_role == "assistant" and current_user_upper:
         # Assistant can only punch themselves
-        assistant = current_user
-        st.caption(f"👤 {current_user}")
+        assistant = current_user_upper
+        st.caption(f"👤 {assistant}")
     else:
         # Admin/frontdesk can select any assistant
+        if not assistants:
+            st.caption("No assistants found. Add assistants first.")
+            return
         default_idx = 0
-        if st.session_state.get("sb_assistant") in assistants:
-            default_idx = assistants.index(st.session_state["sb_assistant"])
+        selected_assistant = str(st.session_state.get("sb_assistant", "") or "").strip().upper()
+        if selected_assistant in assistants:
+            default_idx = assistants.index(selected_assistant)
         assistant = st.selectbox("Select Assistant", assistants, index=default_idx, key="sb_assistant")
     now = now_ist()
     date_str = now.date().isoformat()
