@@ -25,7 +25,7 @@ def render() -> None:
     )
 
     cache = get_profiles_cache(st.session_state.get("profiles_cache_bust", 0))
-    assistants = sorted(cache.get("assistants_list") or [])
+    assistants = sorted({str(name).strip().upper() for name in (cache.get("assistants_list") or []) if str(name).strip()})
 
     with tab_master:
         _render_master(assistants)
@@ -56,15 +56,11 @@ def _render_assignments(assistants: list[str]) -> None:
     st.markdown("Assign duties to assistants.")
 
     duties_df = load_duties_master()
-    duty_names = []
-    if not duties_df.empty and "name" in duties_df.columns:
-        duty_names = duties_df["name"].dropna().astype(str).str.strip().unique().tolist()
-
     assignments_df = load_duty_assignments()
     render_duty_assignments_editor(
         assignments_df=assignments_df,
         assistants=assistants,
-        duty_names=duty_names,
+        duties_df=duties_df,
         on_save=lambda df: _save_assignments(df),
     )
 

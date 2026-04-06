@@ -209,7 +209,11 @@ def _render_duty_widget(df) -> None:
         from data.profile_repo import load_assistants
         assistants_df = load_assistants(st.session_state.get("profiles_cache_bust", 0))
         assistants = sorted(
-            assistants_df["name"].dropna().astype(str).str.strip().unique().tolist()
+            {
+                str(name).strip().upper()
+                for name in assistants_df["name"].dropna().astype(str).tolist()
+                if str(name).strip()
+            }
         ) if not assistants_df.empty else []
     except Exception:
         assistants = []
@@ -219,40 +223,47 @@ def _render_duty_widget(df) -> None:
         return
 
     # If logged in as an assistant, show only their duties
-    user_role = st.session_state.get("user_role", "")
-    current_user = st.session_state.get("current_user", "")
+    user_role = str(st.session_state.get("user_role", "") or "").strip().lower()
+    current_user = str(st.session_state.get("current_user", "") or "").strip().upper()
 
     if user_role == "assistant" and current_user:
         # Assistant can only see their own duties
         assistant = current_user
-        st.caption(f"👤 {current_user}")
+        st.caption(f"👤 {assistant}")
     else:
         # Admin/frontdesk can select any assistant
         default_idx = 0
-        if st.session_state.get("duty_current_assistant") in assistants:
-            default_idx = assistants.index(st.session_state["duty_current_assistant"])
+        selected_assistant = str(st.session_state.get("duty_current_assistant", "") or "").strip().upper()
+        if selected_assistant in assistants:
+            default_idx = assistants.index(selected_assistant)
 
         assistant = st.selectbox("Assistant", assistants, index=default_idx, key="duty_assistant_select")
         st.session_state.duty_current_assistant = assistant
 
     from data.duty_repo import get_active_duty_run, get_active_duty_assignments, start_duty_run, mark_duty_done, load_duty_runs
-    from services.duty_service import compute_pending_duties, format_remaining_time
-    from datetime import date as date_cls
+    from services.duty_service import compute_pending_duties
     from services.utils import parse_iso_ts
 
-    today = date_cls.today()
+    today = now_ist().date()
     assignments = get_active_duty_assignments(assistant)
     runs = []
     try:
         runs_df = load_duty_runs()
         if not runs_df.empty:
-            mask = runs_df["assistant"].astype(str).str.strip() == assistant
+            mask = runs_df["assistant"].astype(str).str.strip().str.upper() == assistant.upper()
             runs = runs_df[mask].to_dict(orient="records")
     except Exception:
         pass
 
     pending = compute_pending_duties(assignments, runs, today)
-    all_pending = pending["WEEKLY"] + pending["MONTHLY"]
+    all_pending = sorted(
+        pending["WEEKLY"] + pending["MONTHLY"],
+        key=lambda duty: (
+            0 if str(duty.get("frequency", "")).upper() == "WEEKLY" else 1,
+            str(duty.get("name", "") or "").upper(),
+            str(duty.get("op", "") or "").upper(),
+        ),
+    )
 
     # Always show duty selector dropdown
     if all_pending:
