@@ -355,10 +355,17 @@ def _build_busy_record(row: pd.Series, target_date=None) -> Optional[dict]:
     if predicted_end_dt is None or predicted_end_dt < start_dt:
         predicted_end_dt = end_dt
 
+    assistants = []
+    for col in ["FIRST", "SECOND", "Third"]:
+        value = str(row.get(col, "") or "").strip()
+        if value and value.upper() not in {name.upper() for name in assistants}:
+            assistants.append(value)
+
     return {
         "row_id": str(row.get("REMINDER_ROW_ID", "") or "").strip(),
         "patient": str(row.get("Patient Name", "") or "").strip() or "—",
         "doctor": str(row.get("DR.", "") or "").strip() or "—",
+        "assistants": assistants,
         "op": str(row.get("OP", "") or "").strip(),
         "status": status,
         "scheduled_in": scheduled_start,
@@ -456,6 +463,7 @@ def build_op_status_summary(df: pd.DataFrame, target_date=None, op_rooms: list[s
     target_day = _normalize_target_date(target_date)
     window_start, _ = _clinic_window(target_day)
     effective_end = _effective_window_end(target_day)
+    current_dt = now_ist() if target_day == now_ist().date() else effective_end
     total_logged_minutes = _duration_minutes_between(window_start, effective_end)
 
     activity_by_op = build_op_activity_records(df, target_day, op_rooms=op_rooms)
@@ -478,21 +486,33 @@ def build_op_status_summary(df: pd.DataFrame, target_date=None, op_rooms: list[s
         if live_records:
             live_start = min(record["start_dt"] for record in live_records)
             expected_free_at = max(record.get("predicted_end_dt") or record["end_dt"] for record in live_records)
-            if expected_free_at < effective_end:
-                expected_free_at = effective_end
+            if expected_free_at < current_dt:
+                expected_free_at = current_dt
             current_status = "BUSY"
             current_patient = live_records[0]["patient"] if len(live_records) == 1 else f"{len(live_records)} ongoing patients"
-            current_for = _duration_minutes_between(live_start, effective_end)
-            available_in = _duration_minutes_between(effective_end, max(expected_free_at, effective_end))
+            current_doctor = live_records[0]["doctor"] if len(live_records) == 1 else ""
+            current_assistants = sorted(
+                {
+                    assistant
+                    for record in live_records
+                    for assistant in (record.get("assistants") or [])
+                    if str(assistant or "").strip()
+                }
+            )
+            current_for = _duration_minutes_between(live_start, current_dt)
+            available_in = _duration_minutes_between(current_dt, expected_free_at)
         else:
             current_status = "FREE"
             current_patient = ""
+            current_doctor = ""
+            current_assistants = []
             last_busy_end = max(
                 (min(record["end_dt"], effective_end) for record in records if record.get("end_dt")),
                 default=window_start,
             )
-            current_for = _duration_minutes_between(last_busy_end, effective_end)
-            expected_free_at = effective_end
+            free_since = min(last_busy_end, current_dt)
+            current_for = _duration_minutes_between(free_since, current_dt)
+            expected_free_at = current_dt
             available_in = 0
 
         rows.append(
@@ -500,6 +520,8 @@ def build_op_status_summary(df: pd.DataFrame, target_date=None, op_rooms: list[s
                 "OP": op,
                 "Current Status": current_status,
                 "Current Patient": current_patient,
+                "Current Doctor": current_doctor,
+                "Current Assistants": ", ".join(current_assistants),
                 "Current For Minutes": current_for,
                 "Available In Minutes": available_in,
                 "Expected Free At": expected_free_at,

@@ -2,6 +2,7 @@
 """Schedule filtered by OP room."""
 
 from __future__ import annotations
+import html
 import pandas as pd
 import streamlit as st
 
@@ -11,6 +12,7 @@ from services.schedule_ops import (
 )
 from state.save_manager import maybe_save
 from components.schedule_card import render_schedule_card, render_add_appointment_form
+from components.theme import avail_badge_html
 from config.constants import OP_ROOMS
 from services.profiles_cache import get_profiles_cache
 from data.schedule_repo import clear_schedule_cache
@@ -70,6 +72,65 @@ def _format_dt_label(value) -> str:
     return time_to_12h(dt_value.astimezone(now_ist().tzinfo).time().replace(second=0, microsecond=0))
 
 
+def _build_op_card_html(
+    op_name: str,
+    status: str,
+    patient: str,
+    doctor: str,
+    assistants: str,
+    current_for: str,
+    available_in: str,
+    expected_free_at: str,
+    is_selected: bool,
+) -> str:
+    border = "2px solid rgba(37,99,235,0.45)" if is_selected else "1px solid rgba(148,163,184,0.18)"
+    badge = avail_badge_html(status if status in {"FREE", "BUSY", "BLOCKED"} else "FREE")
+    rows: list[str] = []
+
+    if doctor:
+        rows.append(
+            f'<div style="font-size:11px;color:#94a3b8;margin-top:4px;">'
+            f'🩺 {html.escape(doctor)}</div>'
+        )
+    if status == "BUSY" and patient:
+        rows.append(
+            f'<div style="font-size:11px;color:#64748b;margin-top:2px;">'
+            f'With {html.escape(patient)}</div>'
+        )
+    elif status != "BUSY":
+        rows.append('<div style="font-size:11px;color:#64748b;margin-top:2px;">Available</div>')
+    if assistants:
+        rows.append(
+            f'<div style="font-size:11px;color:#64748b;margin-top:2px;">'
+            f'Assistant: {html.escape(assistants)}</div>'
+        )
+
+    label = "Busy For" if status == "BUSY" else "Free For"
+    rows.append(
+        f'<div style="font-size:11px;color:#475569;margin-top:6px;">'
+        f'{label}: <b>{html.escape(current_for)}</b></div>'
+    )
+    rows.append(
+        f'<div style="font-size:11px;color:#475569;margin-top:2px;">'
+        f'Available In: <b>{html.escape(available_in if status == "BUSY" else "Now")}</b></div>'
+    )
+    rows.append(
+        f'<div style="font-size:11px;color:#475569;margin-top:2px;">'
+        f'Free At: <b>{html.escape(expected_free_at if status == "BUSY" else "Now")}</b></div>'
+    )
+
+    return (
+        f'<div class="profile-card" style="margin-bottom:8px;border:{border};">'
+        f'<div style="display:flex;justify-content:space-between;align-items:center;">'
+        f'<span style="font-weight:600;color:#1e293b;font-size:14px;">'
+        f'🦷 {html.escape(op_name)}</span>'
+        f'{badge}'
+        f'</div>'
+        f'{"".join(rows)}'
+        f'</div>'
+    )
+
+
 def _render_op_status_board(summary_df: pd.DataFrame, selected_op: str) -> None:
     st.markdown("### 🧭 OP Operational Visibility")
     st.caption("Busy/free status is synced from patient status. Only appointments marked ON GOING make an OP Busy; DONE and CANCELLED free the OP immediately.")
@@ -88,30 +149,21 @@ def _render_op_status_board(summary_df: pd.DataFrame, selected_op: str) -> None:
                 current_for = _format_minutes_label(row.get("Current For Minutes", 0))
                 available_in = _format_minutes_label(row.get("Available In Minutes", 0))
                 expected_free_at = _format_dt_label(row.get("Expected Free At"))
-                busy_logged = _format_minutes_label(row.get("Busy Logged Minutes", 0))
-                free_logged = _format_minutes_label(row.get("Free Logged Minutes", 0))
-                busy_sessions = int(row.get("Busy Sessions", 0) or 0)
                 patient = str(row.get("Current Patient", "") or "").strip()
-                label = "Busy For" if status == "BUSY" else "Free For"
-                status_color = "#047857" if status == "BUSY" else "#64748b"
-                border_color = "#0f766e" if op_name == selected_op else ("#10b981" if status == "BUSY" else "#cbd5e1")
-
+                doctor = str(row.get("Current Doctor", "") or "").strip()
+                assistants = str(row.get("Current Assistants", "") or "").strip()
                 st.markdown(
-                    f"""
-                    <div style="border:2px solid {border_color};border-radius:16px;padding:14px 14px 10px 14px;background:#ffffff;">
-                      <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;">
-                        <div style="font-size:1rem;font-weight:700;color:#0f172a;">{op_name}</div>
-                        <div style="font-size:0.78rem;font-weight:700;color:{status_color};">{status}</div>
-                      </div>
-                      <div style="font-size:0.8rem;color:#475569;margin-top:8px;">{label}: <b>{current_for}</b></div>
-                      <div style="font-size:0.8rem;color:#475569;margin-top:4px;">Available In: <b>{available_in if status == "BUSY" else "Now"}</b></div>
-                      <div style="font-size:0.8rem;color:#475569;margin-top:4px;">Free At: <b>{expected_free_at if status == "BUSY" else "Now"}</b></div>
-                      <div style="font-size:0.8rem;color:#475569;margin-top:4px;">Busy Logged: <b>{busy_logged}</b></div>
-                      <div style="font-size:0.8rem;color:#475569;margin-top:4px;">Free Logged: <b>{free_logged}</b></div>
-                      <div style="font-size:0.8rem;color:#475569;margin-top:4px;">Busy Sessions: <b>{busy_sessions}</b></div>
-                      <div style="font-size:0.8rem;color:#475569;margin-top:8px;">{('Current Patient: <b>' + patient + '</b>') if patient else 'Current Patient: <b>None</b>'}</div>
-                    </div>
-                    """,
+                    _build_op_card_html(
+                        op_name=op_name,
+                        status=status,
+                        patient=patient,
+                        doctor=doctor,
+                        assistants=assistants,
+                        current_for=current_for,
+                        available_in=available_in,
+                        expected_free_at=expected_free_at,
+                        is_selected=(op_name == selected_op),
+                    ),
                     unsafe_allow_html=True,
                 )
 
