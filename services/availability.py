@@ -9,6 +9,7 @@ import pandas as pd
 
 from services.utils import coerce_to_time_obj, time_to_minutes, now_ist, is_blank, time_to_hhmm
 from config.constants import TERMINAL_STATUSES
+from services.schedule_ops import filter_schedule_for_date, is_status_ongoing
 
 
 def get_assistant_schedule(assistant_name: str, df_schedule: pd.DataFrame) -> list[dict[str, Any]]:
@@ -158,7 +159,6 @@ def get_assistant_status(
     from services.profiles_cache import get_department_for_assistant
     assist_upper = str(assistant).strip().upper()
     now = now_ist()
-    current_min = now.hour * 60 + now.minute
     dept = get_department_for_assistant(assist_upper)
 
     pdata = punch_map.get(assist_upper, {})
@@ -178,22 +178,10 @@ def get_assistant_status(
     if blocked:
         return {"status": "BLOCKED", "reason": reason, "department": dept}
 
-    schedule = get_assistant_schedule(assist_upper, df_schedule)
+    schedule = get_assistant_schedule(assist_upper, filter_schedule_for_date(df_schedule, today_str))
     for appt in schedule:
-        s = str(appt.get("status", "")).upper()
-        appt_in = coerce_to_time_obj(appt.get("in_time"))
-        appt_out = coerce_to_time_obj(appt.get("out_time"))
-        if "ON GOING" in s or "ONGOING" in s:
+        if is_status_ongoing(appt.get("status", "")):
             return {"status": "BUSY", "reason": f"With {appt.get('patient', 'patient')}", "department": dept}
-        if (appt_in is None or appt_out is None) and "ARRIVED" in s:
-            return {"status": "BUSY", "reason": f"With {appt.get('patient', 'patient')}", "department": dept}
-        if appt_in and appt_out:
-            in_m = appt_in.hour * 60 + appt_in.minute
-            out_m = appt_out.hour * 60 + appt_out.minute
-            if out_m < in_m:
-                out_m += 1440
-            if in_m <= current_min <= out_m:
-                return {"status": "BUSY", "reason": f"With {appt.get('patient', 'patient')}", "department": dept}
 
     return {"status": "FREE", "reason": "Available", "department": dept}
 

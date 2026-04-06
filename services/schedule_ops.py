@@ -27,11 +27,84 @@ def ensure_row_ids(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def normalize_status(value) -> str:
+    """Normalize status labels to the app's canonical uppercase format."""
+    status = str(value or "").strip().upper()
+    if status == "ONGOING":
+        return "ON GOING"
+    return status
+
+
+def is_status_ongoing(value) -> bool:
+    return normalize_status(value) == "ON GOING"
+
+
+def get_schedule_date_series(df: pd.DataFrame) -> pd.Series:
+    """Return the best-available schedule date series for strict day filtering."""
+    if df is None or df.empty:
+        return pd.Series(dtype=str)
+
+    date_series = (
+        df["DATE"].fillna("").astype(str).str.strip()
+        if "DATE" in df.columns
+        else pd.Series([""] * len(df), index=df.index, dtype=str)
+    )
+    if "appointment_date" in df.columns:
+        fallback = df["appointment_date"].fillna("").astype(str).str.strip()
+        date_series = date_series.where(date_series.ne(""), fallback)
+    return date_series
+
+
+def filter_schedule_for_date(df: pd.DataFrame, target_date=None) -> pd.DataFrame:
+    """Return only rows scheduled for the given calendar date."""
+    if df is None:
+        return pd.DataFrame()
+    if df.empty:
+        return df.copy()
+
+    if target_date is None:
+        target_date = now_ist().date().isoformat()
+
+    target_dt = pd.to_datetime(target_date, errors="coerce")
+    if pd.isna(target_dt):
+        return df.iloc[0:0].copy()
+
+    formatted_date = target_dt.strftime("%Y-%m-%d")
+    raw_dates = get_schedule_date_series(df).fillna("").astype(str).str.strip()
+    raw_lower = raw_dates.str.lower()
+
+    direct_match = (
+        raw_dates.eq(formatted_date)
+        | raw_dates.str.startswith(f"{formatted_date}T")
+        | raw_dates.str.startswith(f"{formatted_date} ")
+    )
+    parse_input = raw_dates.where(~raw_lower.isin(["", "nan", "none", "nat"]))
+    normalized_default = pd.to_datetime(parse_input, errors="coerce").dt.strftime("%Y-%m-%d")
+    normalized_dayfirst = pd.to_datetime(parse_input, errors="coerce", dayfirst=True).dt.strftime("%Y-%m-%d")
+    mask = direct_match | normalized_default.eq(formatted_date) | normalized_dayfirst.eq(formatted_date)
+    return df[mask.fillna(False)].copy()
+
+
+def filter_rows_for_assistant(df: pd.DataFrame, assistant_name: str) -> pd.DataFrame:
+    """Return only rows where the assistant is assigned in any allotment slot."""
+    if df is None:
+        return pd.DataFrame()
+    if df.empty:
+        return df.copy()
+
+    assist_upper = str(assistant_name or "").strip().upper()
+    if not assist_upper:
+        return df.iloc[0:0].copy()
+
+    mask = pd.Series(False, index=df.index)
+    for col in ["FIRST", "SECOND", "Third"]:
+        if col in df.columns:
+            mask = mask | df[col].fillna("").astype(str).str.strip().str.upper().eq(assist_upper)
+    return df[mask].copy()
+
+
 def add_computed_columns(df: pd.DataFrame) -> pd.DataFrame:
     """Add In_min, Out_min, Is_Ongoing columns."""
-    now = now_ist()
-    current_min = now.hour * 60 + now.minute
-
     def to_min(val):
         if is_blank(val):
             return None
@@ -40,22 +113,15 @@ def add_computed_columns(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     df["In_min"] = df["In Time"].apply(to_min)
     df["Out_min"] = df["Out Time"].apply(to_min)
-    df["Is_Ongoing"] = df.apply(
-        lambda r: bool(
-            r["In_min"] is not None and r["Out_min"] is not None
-            and r["In_min"] <= current_min <= r["Out_min"]
-        ),
-        axis=1,
-    )
+    df["Is_Ongoing"] = df.get("STATUS", pd.Series("", index=df.index)).apply(is_status_ongoing)
     return df
 
 
 def filter_ongoing(df: pd.DataFrame) -> pd.DataFrame:
     if "In_min" not in df.columns:
         df = add_computed_columns(df)
-    ongoing_mask = df.get("Is_Ongoing", pd.Series(False, index=df.index))
-    status_ongoing = df.get("STATUS", pd.Series(dtype=str)).astype(str).str.upper().str.contains("ON GOING|ONGOING", na=False)
-    return df[ongoing_mask | status_ongoing].copy()
+    ongoing_mask = df.get("Is_Ongoing", pd.Series(False, index=df.index)).fillna(False)
+    return df[ongoing_mask].copy()
 
 
 def filter_upcoming(df: pd.DataFrame, minutes_ahead: int = 60) -> pd.DataFrame:
@@ -68,9 +134,10 @@ def filter_upcoming(df: pd.DataFrame, minutes_ahead: int = 60) -> pd.DataFrame:
         (df["In_min"] > current_min) &
         (df["In_min"] <= current_min + minutes_ahead)
     )
-    status_col = df.get("STATUS", pd.Series(dtype=str)).astype(str).str.upper()
+    status_col = df.get("STATUS", pd.Series("", index=df.index)).apply(normalize_status)
     not_terminal = ~status_col.isin(TERMINAL_STATUSES)
-    return df[mask & not_terminal].copy()
+    not_ongoing = ~status_col.apply(is_status_ongoing)
+    return df[mask & not_terminal & not_ongoing].copy()
 
 
 def filter_by_op(df: pd.DataFrame, op: str) -> pd.DataFrame:
@@ -96,11 +163,12 @@ def update_status(df: pd.DataFrame, row_id: str, new_status: str) -> pd.DataFram
         return df
     df = df.copy()
     now_str = datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S")
-    df.loc[mask, "STATUS"] = new_status
+    status_value = normalize_status(new_status)
+    df.loc[mask, "STATUS"] = status_value
     df.loc[mask, "STATUS_CHANGED_AT"] = now_str
-    if new_status in {"ON GOING", "ARRIVED"}:
+    if is_status_ongoing(status_value):
         df.loc[mask, "ACTUAL_START_AT"] = now_str
-    elif new_status in TERMINAL_STATUSES:
+    elif status_value in TERMINAL_STATUSES:
         df.loc[mask, "ACTUAL_END_AT"] = now_str
     return df
 

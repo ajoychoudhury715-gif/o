@@ -7,20 +7,39 @@ import pandas as pd
 
 from services.utils import coerce_to_time_obj, now_ist, parse_iso_ts
 from config.constants import TERMINAL_STATUSES
+from services.schedule_ops import (
+    filter_rows_for_assistant,
+    filter_schedule_for_date,
+    is_status_ongoing,
+    normalize_status,
+)
 
 REMINDER_ADVANCE_MINUTES = 15
 
 
-def get_due_reminders(df_schedule: pd.DataFrame) -> list[dict[str, Any]]:
-    """Return appointments due for a reminder (within 15 min, not dismissed/snoozed)."""
+def get_due_reminders(
+    df_schedule: pd.DataFrame,
+    current_user: str = "",
+    current_role: str = "",
+) -> list[dict[str, Any]]:
+    """Return due reminders for today's relevant appointments."""
     if df_schedule is None or df_schedule.empty:
         return []
+
     now = now_ist()
+    scoped_df = filter_schedule_for_date(df_schedule, now.date().isoformat())
+    role = str(current_role or "").strip().lower()
+    user = str(current_user or "").strip().upper()
+    if role == "assistant" and user:
+        scoped_df = filter_rows_for_assistant(scoped_df, user)
+    if scoped_df.empty:
+        return []
+
     current_min = now.hour * 60 + now.minute
     due = []
-    for _, row in df_schedule.iterrows():
-        status = str(row.get("STATUS", "")).strip().upper()
-        if status in TERMINAL_STATUSES:
+    for _, row in scoped_df.iterrows():
+        status = normalize_status(row.get("STATUS", ""))
+        if status in TERMINAL_STATUSES or is_status_ongoing(status):
             continue
         dismissed = str(row.get("REMINDER_DISMISSED", "")).strip().lower()
         if dismissed in {"1", "true", "yes"}:
@@ -45,6 +64,7 @@ def get_due_reminders(df_schedule: pd.DataFrame) -> list[dict[str, Any]]:
                 "minutes_until": minutes_until,
                 "status": status,
             })
+    due.sort(key=lambda item: (int(item.get("minutes_until", 9999)), str(item.get("patient", "")).strip().upper()))
     return due
 
 

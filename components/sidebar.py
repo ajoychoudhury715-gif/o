@@ -375,7 +375,11 @@ def _render_reminders(df) -> None:
         return
     from services.reminder_service import get_due_reminders, dismiss_reminder, snooze_reminder
     from state.save_manager import maybe_save
-    reminders = get_due_reminders(df)
+    reminders = get_due_reminders(
+        df,
+        current_user=str(st.session_state.get("current_user", "") or ""),
+        current_role=str(st.session_state.get("user_role", "") or ""),
+    )
     if not reminders:
         return
     st.markdown("### 🔔 Reminders")
