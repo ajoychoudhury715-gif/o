@@ -27,8 +27,11 @@ COLORS = {
 
 # ── Patient Status Options ────────────────────────────────────────────────────
 STATUS_OPTIONS = [
-    "PENDING", "WAITING", "ARRIVING", "ARRIVED",
-    "ON GOING", "DONE", "COMPLETED", "CANCELLED", "SHIFTED", "LATE",
+    "PENDING",
+    "ARRIVED",
+    "ON GOING",
+    "DONE",
+    "CANCELLED",
 ]
 
 STATUS_COLORS = {

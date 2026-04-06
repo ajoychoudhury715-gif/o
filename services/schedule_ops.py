@@ -7,7 +7,7 @@ import uuid
 import pandas as pd
 
 from services.utils import coerce_to_time_obj, time_to_minutes, now_ist, is_blank
-from config.constants import SCHEDULE_COLUMNS, TERMINAL_STATUSES
+from config.constants import SCHEDULE_COLUMNS, STATUS_OPTIONS, TERMINAL_STATUSES
 
 
 def ensure_schedule_columns(df: pd.DataFrame) -> pd.DataFrame:
@@ -30,13 +30,30 @@ def ensure_row_ids(df: pd.DataFrame) -> pd.DataFrame:
 def normalize_status(value) -> str:
     """Normalize status labels to the app's canonical uppercase format."""
     status = str(value or "").strip().upper()
-    if status == "ONGOING":
-        return "ON GOING"
+    legacy_map = {
+        "ONGOING": "ON GOING",
+        "PROCESSING": "PENDING",
+        "WAITING": "PENDING",
+        "LATE": "PENDING",
+        "ARRIVING": "ARRIVED",
+        "COMPLETED": "DONE",
+        "SHIFTED": "CANCELLED",
+    }
+    if status in legacy_map:
+        return legacy_map[status]
     return status
 
 
 def is_status_ongoing(value) -> bool:
     return normalize_status(value) == "ON GOING"
+
+
+def status_option_for_ui(value) -> str:
+    """Map stored status values to one of the supported dropdown options."""
+    status = normalize_status(value)
+    if status in STATUS_OPTIONS:
+        return status
+    return "PENDING"
 
 
 def get_schedule_date_series(df: pd.DataFrame) -> pd.Series:

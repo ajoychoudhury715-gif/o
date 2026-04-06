@@ -10,6 +10,7 @@ import streamlit as st
 from config.constants import STATUS_OPTIONS
 from config.settings import APPOINTMENT_DATE_COLUMN_TYPE
 from components.theme import status_badge_html, assign_pill_html
+from services.schedule_ops import status_option_for_ui
 from services.utils import coerce_to_time_obj, time_to_12h
 
 
@@ -63,7 +64,8 @@ def render_schedule_card(
     doctor = str(row.get("DR.", "")).strip() or "—"
     op = str(row.get("OP", "")).strip() or "—"
     procedure = str(row.get("Procedure", "")).strip() or ""
-    status = str(row.get("STATUS", "PENDING")).strip().upper()
+    raw_status = str(row.get("STATUS", "") or "").strip()
+    status = status_option_for_ui(raw_status)
     first = str(row.get("FIRST", "")).strip()
     second = str(row.get("SECOND", "")).strip()
     third = str(row.get("Third", "")).strip()
@@ -170,7 +172,7 @@ def render_add_appointment_form(
                 third = st.selectbox("Third Assistant", [""] + assistants, key="add_third")
 
             case_paper = st.text_input("QTRAQ")
-            status = st.selectbox("Status", ["Processing", "Done"], index=0)
+            status = st.selectbox("Status", STATUS_OPTIONS, index=0)
 
             submitted = st.form_submit_button("➕ Add Appointment", width='stretch')
             if submitted:

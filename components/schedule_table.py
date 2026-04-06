@@ -7,6 +7,7 @@ import pandas as pd
 import streamlit as st
 
 from config.constants import STATUS_OPTIONS, SCHEDULE_COLUMNS
+from services.schedule_ops import normalize_status, status_option_for_ui
 from services.utils import is_blank, coerce_to_time_obj, time_to_12h
 
 
@@ -38,6 +39,15 @@ def _fmt_time_12h(val) -> str:
     if t is None:
         return str(val or "")
     return time_to_12h(t)
+
+
+def _resolve_saved_status(original_status: str, selected_status: str) -> str:
+    """Preserve the existing stored status unless the user picked a different option."""
+    current_option = status_option_for_ui(original_status)
+    selected_option = status_option_for_ui(selected_status)
+    if selected_option == current_option:
+        return str(original_status or "")
+    return normalize_status(selected_option)
 
 
 def render_schedule_table(
@@ -74,6 +84,8 @@ def render_schedule_table(
     for col in ("In Time", "Out Time"):
         if col in display_df.columns:
             display_df[col] = display_df[col].fillna("").astype(str).apply(_fmt_time_12h)
+    if "STATUS" in display_df.columns:
+        display_df["STATUS"] = display_df["STATUS"].apply(status_option_for_ui)
 
     # Build column_config
     doctors_opts = sorted(doctors or [])
@@ -145,7 +157,15 @@ def render_schedule_table(
         updated = df.copy()
         for col in display_cols:
             if col in edited.columns and col in updated.columns:
-                updated[col] = edited[col].values
+                if col == "STATUS":
+                    original_statuses = updated[col].fillna("").astype(str)
+                    resolved_statuses = [
+                        _resolve_saved_status(original_statuses.iloc[i], edited[col].iloc[i])
+                        for i in range(len(updated))
+                    ]
+                    updated[col] = resolved_statuses
+                else:
+                    updated[col] = edited[col].values
         on_save(updated)
         st.toast("Table changes applied.", icon="💾")
 
@@ -259,13 +279,12 @@ def render_edit_row_form(
             "QTRAQ",
             value=str(row.get("CASE PAPER", "") or ""),
         )
+        current_status_raw = str(row.get("STATUS", "") or "")
+        current_status_option = status_option_for_ui(current_status_raw)
         status = st.selectbox(
             "Status",
-            ["Processing", "Done"],
-            index=_idx_of(
-                str(row.get("STATUS", "Processing") or "Processing").upper(),
-                ["PROCESSING", "DONE"],
-            ),
+            STATUS_OPTIONS,
+            index=_idx_of(current_status_option, STATUS_OPTIONS),
         )
 
         col_save, col_cancel = st.columns(2)
@@ -291,7 +310,7 @@ def render_edit_row_form(
                     "SECOND": second,
                     "Third": third,
                     "CASE PAPER": case_paper,
-                    "STATUS": status,
+                    "STATUS": _resolve_saved_status(current_status_raw, status),
                 }
                 on_save(row_id, updates)
 
